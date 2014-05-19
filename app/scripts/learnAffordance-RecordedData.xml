@@ -1,0 +1,213 @@
+<application>
+    <name>learnAffordances-RecordedData</name>
+    <module>
+        <name>blobSpotter</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <workdir>C:\ProgramsTanis\IIT\VS\Affordances\blobSpotter\build\bin\Release</workdir>
+        <geometry>(Pos (x 456.00) (y 86.90))</geometry>
+    </module>
+    <module>
+        <name>dataSetPlayer</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 966.90) (y 833.90))</geometry>
+    </module>
+    <module>
+        <name>featExt</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <workdir>C:\ProgramsTanis\IIT\VS\Affordances\featExt\build\Release</workdir>
+        <geometry>(Pos (x 776.00) (y 101.90))</geometry>
+    </module>
+    <module>
+        <name>iCubGui</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 800.90) (y 555.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/left</prefix>
+        <geometry>(Pos (x 267.00) (y 221.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 350 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/right</prefix>
+        <geometry>(Pos (x 391.00) (y 366.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 1050 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/imProp</prefix>
+        <geometry>(Pos (x 1071.00) (y 148.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 1050 --y 350</parameters>
+        <node>localhost</node>
+        <prefix>/imFeats</prefix>
+        <geometry>(Pos (x 1071.00) (y 193.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 1050 --y 350 --out /out</parameters>
+        <node>localhost</node>
+        <prefix>/bSpotProp</prefix>
+        <geometry>(Pos (x 656.00) (y 16.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/bSpotBlobs</prefix>
+        <geometry>(Pos (x 771.00) (y 225.90))</geometry>
+    </module>
+    <connection>
+        <from external="true">/icub/head/state:o</from>
+        <to external="true">/iCubGui/head:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 287.00) (y 439.00)) ((x 195.00) (y 407.00)) ((x 656.00) (y 407.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/inertial</from>
+        <to external="true">/iCubGui/inertial:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 286.50) (y 471.00)) ((x 165.00) (y 443.00)) ((x 653.00) (y 443.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/left_arm/state:o</from>
+        <to external="true">/iCubGui/left_arm:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 300.50) (y 509.50)) ((x 225.00) (y 477.00)) ((x 653.00) (y 478.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/right_arm/state:o</from>
+        <to external="true">/iCubGui/right_arm:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 302.00) (y 544.00)) ((x 225.00) (y 512.00)) ((x 656.00) (y 512.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/left_leg/state:o</from>
+        <to external="true">/iCubGui/left_leg:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 300.50) (y 580.00)) ((x 222.00) (y 548.00)) ((x 656.00) (y 548.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/right_leg/state:o</from>
+        <to external="true">/iCubGui/right_leg:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 304.50) (y 615.00)) ((x 230.00) (y 583.00)) ((x 656.00) (y 583.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/torso/state:o</from>
+        <to external="true">/iCubGui/torso:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 290.00) (y 666.00)) ((x 199.00) (y 650.00)) ((x 658.00) (y 618.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/xpLogger/log</from>
+        <to external="true">/targetPlotter/rpcSniff:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 257.50) (y 721.50)) ((x 153.00) (y 719.00)) ((x 639.00) (y 660.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/xpLogger/log</from>
+        <to external="true">/tooltipPlotter/rpcSniff:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 288.00) (y 739.00)) ((x 153.00) (y 719.00)) ((x 700.00) (y 695.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/cartesianController/left_arm/state:o</from>
+        <to external="true">/tooltipPlotter/eef:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 412.50) (y 801.50)) ((x 353.00) (y 769.00)) ((x 749.00) (y 770.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/tooltipPlotter/traj:o</from>
+        <to external="true">/iCubGui/objects</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 345.00) (y 848.50)) ((x 219.00) (y 813.00)) ((x 748.00) (y 820.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/targetPlotter/target:o</from>
+        <to external="true">/iCubGui/objects</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 350.50) (y 872.00)) ((x 230.00) (y 860.00)) ((x 748.00) (y 820.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/xpVision/target:o</from>
+        <to external="true">/targetPlotter/target:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 322.50) (y 927.00)) ((x 201.00) (y 915.00)) ((x 721.00) (y 875.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/left/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 237.50) (y 178.50)) ((x 228.00) (y 109.00)) ((x 268.00) (y 240.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/right/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 301.50) (y 385.00)) ((x 232.00) (y 374.00)) ((x 392.00) (y 385.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/xpLogger/log</from>
+        <to external="true">/learnAff/log:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 244.50) (y 758.50)) ((x 153.00) (y 719.00)) ((x 613.00) (y 734.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/xpVision/target:o</from>
+        <to external="true">/learnAff/targetPos:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 325.50) (y 948.00)) ((x 201.00) (y 915.00)) ((x 727.00) (y 917.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/featExt/imgProp:o</from>
+        <to>/imProp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 986.50) (y 156.00)) ((x 922.00) (y 145.00)) ((x 1072.00) (y 167.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/featExt/imgFeat:o</from>
+        <to>/imFeats/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 986.50) (y 191.00)) ((x 922.00) (y 170.00)) ((x 1072.00) (y 212.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/blobSpotter/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 332.00) (y 117.00)) ((x 228.00) (y 109.00)) ((x 457.00) (y 117.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobSpotter/image:o</from>
+        <to>/bSpotBlobs/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 692.50) (y 187.00)) ((x 634.00) (y 130.00)) ((x 772.00) (y 244.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobSpotter/image:o</from>
+        <to>/featExt/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 695.00) (y 131.00)) ((x 634.00) (y 130.00)) ((x 777.00) (y 132.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobSpotter/propagated:o</from>
+        <to>/bSpotProp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 635.00) (y 70.00)) ((x 634.00) (y 105.00)) ((x 657.00) (y 35.00))  )</geometry>
+    </connection>
+</application>

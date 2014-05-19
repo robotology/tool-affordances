@@ -1,0 +1,157 @@
+<application>
+    <name>TestSegment</name>
+    <version>1.0</version>
+    <authors>
+        <author email=""></author>
+    </authors>
+    <module>
+        <name>blobExtractor</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:blobExtractor:1</prefix>
+        <workdir>C:\ProgramsTanis\robotology\iCub\contrib\src\interactiveObjectsLearning\build\blobExtractor\Release</workdir>
+        <geometry>(Pos (x 478.00) (y 302.90))</geometry>
+    </module>
+    <module>
+        <name>findToolBlob</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:findToolBlob:5</prefix>
+        <workdir>C:\ProgramsTanis\IIT\VS\Affordances\findToolBlob\build\Release</workdir>
+        <geometry>(Pos (x 743.00) (y 251.90))</geometry>
+    </module>
+    <module>
+        <name>lumaChroma</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:lumaChroma:1</prefix>
+        <geometry>(Pos (x 253.00) (y 74.90))</geometry>
+    </module>
+    <module>
+        <name>templatePFTracker</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:templatePFTracker:1</prefix>
+        <geometry>(Pos (x 942.00) (y 360.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:1</prefix>
+        <geometry>(Pos (x 488.00) (y 81.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:2</prefix>
+        <geometry>(Pos (x 757.00) (y 353.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:3</prefix>
+        <geometry>(Pos (x 1230.00) (y 348.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:6</prefix>
+        <geometry>(Pos (x 989.00) (y 191.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:7</prefix>
+        <geometry>(Pos (x 1034.00) (y 267.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/TestSegment:yarpview:5</prefix>
+        <geometry>(Pos (x 1233.00) (y 394.90))</geometry>
+    </module>
+    <connection>
+        <from external="true">/icubSim/cam/left</from>
+        <to>/TestSegment:templatePFTracker:1/templatePFTracker/left/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 595.00) (y 393.50)) ((x 268.00) (y 345.00)) ((x 943.00) (y 441.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icubSim/cam/left</from>
+        <to>/TestSegment:lumaChroma:1/lumaChroma/image:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 250.50) (y 244.50)) ((x 268.00) (y 345.00)) ((x 254.00) (y 143.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:lumaChroma:1/lumaChroma/image:o</from>
+        <to>/TestSegment:yarpview:1/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 436.50) (y 159.00)) ((x 405.00) (y 218.00)) ((x 489.00) (y 100.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:lumaChroma:1/lumaChroma/image:o</from>
+        <to>/TestSegment:blobExtractor:1/blobExtractor/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 431.50) (y 282.00)) ((x 405.00) (y 218.00)) ((x 479.00) (y 346.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:blobExtractor:1/blobExtractor/blobs:o</from>
+        <to>/TestSegment:findToolBlob:5/findToolBlob/blobs:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 688.50) (y 339.00)) ((x 654.00) (y 371.00)) ((x 744.00) (y 307.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:findToolBlob:5/findToolBlob/targetBox:o</from>
+        <to>/TestSegment:yarpview:7/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 962.50) (y 290.50)) ((x 911.00) (y 295.00)) ((x 1035.00) (y 286.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:findToolBlob:5/findToolBlob/targetBox:o</from>
+        <to>/TestSegment:templatePFTracker:1/templatePFTracker/template/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 916.50) (y 355.50)) ((x 911.00) (y 295.00)) ((x 943.00) (y 416.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icubSim/cam/right</from>
+        <to>/TestSegment:templatePFTracker:1/templatePFTracker/right/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 599.50) (y 465.00)) ((x 277.00) (y 463.00)) ((x 943.00) (y 466.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:templatePFTracker:1/templatePFTracker/left/image:o</from>
+        <to>/TestSegment:yarpview:3/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1180.00) (y 373.00)) ((x 1150.00) (y 379.00)) ((x 1231.00) (y 367.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:templatePFTracker:1/templatePFTracker/right/image:o</from>
+        <to>/TestSegment:yarpview:5/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1181.50) (y 408.50)) ((x 1150.00) (y 404.00)) ((x 1234.00) (y 413.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:blobExtractor:1/blobExtractor/binary:o</from>
+        <to>/TestSegment:yarpview:2/yarpview/img:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 695.50) (y 384.00)) ((x 654.00) (y 396.00)) ((x 758.00) (y 372.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/TestSegment:findToolBlob:5/findToolBlob/image:o</from>
+        <to>/TestSegment:yarpview:6/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 940.00) (y 240.00)) ((x 911.00) (y 270.00)) ((x 990.00) (y 210.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icubSim/cam/left</from>
+        <to>/TestSegment:findToolBlob:5/findToolBlob/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 495.50) (y 314.00)) ((x 268.00) (y 345.00)) ((x 744.00) (y 282.00))  )</geometry>
+    </connection>
+</application>

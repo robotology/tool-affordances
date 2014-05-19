@@ -1,0 +1,78 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>nearThingsDetector</name>
+    <description>Uses 3D and disparity information to find the distance of the  closest object</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="nearThingsDetector"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="nearThingsDetector/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email=""> Tanis Mar</author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <!-- input data if available -->
+        <input type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/nearThingsDetector/rpc:i</port>
+            <description>takes RPC commands from Human or stateMachine</description>
+        </input>
+        
+        <input>
+            <type>ImageOfPixelMono</type>
+            <port carrier="udp">/nearThingsDetector/disp:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>StereoDisparity disparity image</description>
+        </input>
+
+        <!--
+        <input>
+            <type>ImageOfPixelFloat</type>
+            <port carrier="udp">/nearThingsDetector/world:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>stereo disparity world image</description>
+        </input>
+        -->
+        <!-- output data if available -->
+        <output>
+            <type>ImageOfPixelBgr</type>
+            <port carrier="udp">/nearThingsDetector/img:o</port>
+            <description> Send out the binary image of selected blob</description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/nearThingsDetector/target:o</port>
+            <description> Coordinates of closest object</description>
+        </output>
+        <output>
+            <type>rpc</type>
+            <port carrier="udp">/nearThingsDetector/sfm:o</port>
+            <description> Output commands or data to communicate with SFM</description>
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+
