@@ -1,0 +1,448 @@
+<application>
+    <name>KARMA_app</name>
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters></parameters>
+        <node>node6</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1112.00) (y 384.90))</geometry>
+    </module>
+    <module>
+        <name>activeSeg</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 249.00) (y 41.90))</geometry>
+    </module>
+    <module>
+        <name>blobExtractor</name>
+        <parameters>--details on</parameters>
+        <node>node3</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 424.00) (y 462.90))</geometry>
+    </module>
+    <module>
+        <name>blobSelector</name>
+        <parameters></parameters>
+        <node>node5</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 448.00) (y 218.90))</geometry>
+    </module>
+    <module>
+        <name>iSpeak</name>
+        <parameters></parameters>
+        <node>node8</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 985.00) (y 700.90))</geometry>
+    </module>
+    <module>
+        <name>iolHelper</name>
+        <parameters></parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 709.90) (y 330.90))</geometry>
+    </module>
+    <module>
+        <name>iolStateMachineHandler</name>
+        <parameters></parameters>
+        <node>node7</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 665.00) (y 468.90))</geometry>
+    </module>
+    <module>
+        <name>karmaLearn</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1104.90) (y 20.90))</geometry>
+    </module>
+    <module>
+        <name>karmaManager</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 886.90) (y 12.90))</geometry>
+    </module>
+    <module>
+        <name>karmaMotor</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1266.90) (y 18.90))</geometry>
+    </module>
+    <module>
+        <name>lumaChroma</name>
+        <parameters>--image hsv --out</parameters>
+        <node>node2</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 247.00) (y 298.90))</geometry>
+    </module>
+    <module>
+        <name>milClassifier</name>
+        <parameters></parameters>
+        <node>node4</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1082.00) (y 198.90))</geometry>
+    </module>
+    <module>
+        <name>motionCUT</name>
+        <parameters>--recogThres 0.6</parameters>
+        <node>node3</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 248.00) (y 145.90))</geometry>
+    </module>
+    <module>
+        <name>objectsPropertiesCollector</name>
+        <parameters>--name memory --db memory.ini</parameters>
+        <node>icub-b6</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 194.00) (y 589.90))</geometry>
+    </module>
+    <module>
+        <name>speechRecognizer</name>
+        <parameters></parameters>
+        <node>node9</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 417.00) (y 323.90))</geometry>
+    </module>
+    <module>
+        <name>templatePFTracker</name>
+        <parameters></parameters>
+        <node>node2</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 473.00) (y 21.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /iolViewer/luma/view --x 0 --y 0 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 9.00) (y 370.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /iolViewer/blobs/view --x 320 --y 0 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 13.00) (y 551.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /iolViewer/mil/view --x 640 --y 0 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 9.00) (y 597.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /iolViewer/manager/view --x 960 --y 0 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 10.00) (y 413.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /karmaViewer/plotMap/view --x 640 --y 350 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 9.00) (y 457.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /iolViewer/manager/view/localizer --x 1280 --y 350 --RefreshTime 50</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 8.00) (y 644.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /seg --x 0 --y 350 --RefreshTime 33</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 12.00) (y 323.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /segCrop --x 320 --y 350 --RefreshTime 33</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 11.00) (y 500.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /tracker --x 640 --y 350 --out /desiredTrack --RefreshTime 33</parameters>
+        <node>node0</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 11.00) (y 686.90))</geometry>
+    </module>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/iolStateMachineHandler/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 418.50) (y 364.50)) ((x 192.00) (y 180.00)) ((x 666.00) (y 549.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/lumaChroma/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 209.50) (y 273.50)) ((x 192.00) (y 180.00)) ((x 248.00) (y 367.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/imgClassifier:o</from>
+        <to>/milClassifier/img:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 996.50) (y 383.00)) ((x 931.00) (y 537.00)) ((x 1083.00) (y 229.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/blobSelector/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 310.00) (y 208.50)) ((x 192.00) (y 180.00)) ((x 449.00) (y 237.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/motionCUT/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 210.00) (y 190.50)) ((x 192.00) (y 180.00)) ((x 249.00) (y 201.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/motionCUT/blobs:o</from>
+        <to>/blobSelector/blobs:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 419.00) (y 238.00)) ((x 410.00) (y 214.00)) ((x 449.00) (y 262.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/motionCUT/blobs:o</from>
+        <to>/actionsRenderingEngine/left/blobs:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 751.00) (y 383.50)) ((x 410.00) (y 214.00)) ((x 1113.00) (y 553.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/lumaChroma/image:o</from>
+        <to>/blobExtractor/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 410.50) (y 461.50)) ((x 417.00) (y 442.00)) ((x 425.00) (y 481.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobExtractor/blobs:o</from>
+        <to>/iolStateMachineHandler/blobs:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 631.50) (y 540.00)) ((x 618.00) (y 506.00)) ((x 666.00) (y 574.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/classify:rpc</from>
+        <to>/milClassifier/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 996.50) (y 408.00)) ((x 931.00) (y 562.00)) ((x 1083.00) (y 254.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/lumaChroma/image:o</from>
+        <to external="true">/iolViewer/luma/view</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 550.00) (y 414.00)) ((x 417.00) (y 442.00)) ((x 704.00) (y 386.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobExtractor/img:o</from>
+        <to external="true">/iolViewer/blobs/view</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 653.00) (y 463.50)) ((x 618.00) (y 481.00)) ((x 709.00) (y 446.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaLearn/plot:o</from>
+        <to external="true">/karmaViewer/plotMap/view</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1260.50) (y 84.50)) ((x 1260.00) (y 87.00)) ((x 1282.00) (y 82.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/milClassifier/img:o</from>
+        <to external="true">/iolViewer/mil/view</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1279.50) (y 216.50)) ((x 1276.00) (y 217.00)) ((x 1304.00) (y 216.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/img:o</from>
+        <to external="true">/iolViewer/manager/view</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1015.50) (y 405.50)) ((x 931.00) (y 487.00)) ((x 1121.00) (y 324.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/imgLoc:o</from>
+        <to external="true">/iolViewer/manager/view/localizer</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1015.50) (y 436.00)) ((x 931.00) (y 512.00)) ((x 1121.00) (y 360.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/speak:o</from>
+        <to>/iSpeak</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 948.00) (y 703.00)) ((x 931.00) (y 687.00)) ((x 986.00) (y 719.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/motor:rpc</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1011.50) (y 520.00)) ((x 931.00) (y 637.00)) ((x 1113.00) (y 403.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/wbd:rpc</from>
+        <to external="true">/wholeBodyDynamics/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1027.50) (y 684.00)) ((x 931.00) (y 612.00)) ((x 1145.00) (y 756.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/motor_stop:rpc</from>
+        <to>/actionsRenderingEngine/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1011.50) (y 557.50)) ((x 931.00) (y 662.00)) ((x 1113.00) (y 453.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/get3d:rpc</from>
+        <to>/actionsRenderingEngine/get:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1011.50) (y 507.50)) ((x 931.00) (y 587.00)) ((x 1113.00) (y 428.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iolStateMachineHandler/memory:rpc</from>
+        <to external="true">/memory/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1151.50) (y 517.00)) ((x 931.00) (y 712.00)) ((x 1393.00) (y 322.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/actionsRenderingEngine/OPC:io</from>
+        <to external="true">/memory/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1375.00) (y 468.50)) ((x 1378.00) (y 615.00)) ((x 1393.00) (y 322.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/milClassifier/OPC:io</from>
+        <to external="true">/memory/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1324.00) (y 294.50)) ((x 1276.00) (y 267.00)) ((x 1393.00) (y 322.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/iolHelper/opc</from>
+        <to external="true">/memory/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1102.50) (y 369.50)) ((x 833.00) (y 417.00)) ((x 1393.00) (y 322.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/speechRecognizer/recog/continuous:o</from>
+        <to>/iolStateMachineHandler/motor_stop:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 640.00) (y 495.50)) ((x 635.00) (y 367.00)) ((x 666.00) (y 624.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobSelector/point:o</from>
+        <to>/iolStateMachineHandler/point:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 639.50) (y 461.50)) ((x 634.00) (y 274.00)) ((x 666.00) (y 649.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/speechRecognizer/tts/iSpeak:o</from>
+        <to>/iSpeak</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 800.00) (y 530.50)) ((x 635.00) (y 342.00)) ((x 986.00) (y 719.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/iSpeak/emotions:o</from>
+        <to external="true">/icub/face/emotions/in</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1122.00) (y 726.50)) ((x 1123.00) (y 731.00)) ((x 1142.00) (y 722.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/activeSeg/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 210.50) (y 120.00)) ((x 192.00) (y 180.00)) ((x 250.00) (y 60.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/activeSeg/image:o</from>
+        <to external="true">/seg</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 407.00) (y 57.50)) ((x 411.00) (y 72.00)) ((x 424.00) (y 43.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/activeSeg/imageCrop:o</from>
+        <to>/templatePFTracker/template/image:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 432.00) (y 87.00)) ((x 411.00) (y 97.00)) ((x 474.00) (y 77.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/templatePFTracker/left/image:o</from>
+        <to external="true">/tracker</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 726.00) (y 37.00)) ((x 699.00) (y 40.00)) ((x 774.00) (y 34.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/templatePFTracker/target:o</from>
+        <to external="true">/karmaManager/particle:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 773.00) (y 103.00)) ((x 699.00) (y 140.00)) ((x 868.00) (y 66.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/segmentTarget:o</from>
+        <to>/activeSeg/fixPoint:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 231.50) (y 84.50)) ((x 234.00) (y 84.00)) ((x 250.00) (y 85.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobExtractor/blobs:o</from>
+        <to external="true">/karmaManager/blobs:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 735.50) (y 377.50)) ((x 618.00) (y 506.00)) ((x 874.00) (y 249.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/are:rpc</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1066.50) (y 308.50)) ((x 1041.00) (y 214.00)) ((x 1113.00) (y 403.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/blobSelector/point:o</from>
+        <to external="true">/karmaManager/point:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 744.00) (y 184.50)) ((x 634.00) (y 274.00)) ((x 875.00) (y 95.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/iolState:o</from>
+        <to>/iolStateMachineHandler/human:rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 850.00) (y 441.50)) ((x 1055.00) (y 284.00)) ((x 666.00) (y 599.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/templatePFTracker/left/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 322.50) (y 141.00)) ((x 192.00) (y 180.00)) ((x 474.00) (y 102.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/templatePFTracker/right/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 326.00) (y 134.50)) ((x 199.00) (y 142.00)) ((x 474.00) (y 127.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/karma:rpc</from>
+        <to external="true">/karmaMotor/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1074.00) (y 150.50)) ((x 1057.00) (y 151.00)) ((x 1112.00) (y 150.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/templatePFTracker/target:o</from>
+        <to>/actionsRenderingEngine/tracker:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 895.50) (y 409.00)) ((x 699.00) (y 140.00)) ((x 1113.00) (y 678.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/mil:rpc</from>
+        <to>/milClassifier/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1048.50) (y 218.00)) ((x 1035.00) (y 182.00)) ((x 1083.00) (y 254.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaManager/learn:rpc</from>
+        <to external="true">/karmaLearn/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1072.50) (y 121.00)) ((x 1054.00) (y 124.00)) ((x 1112.00) (y 118.00))  )</geometry>
+    </connection>
+</application>
