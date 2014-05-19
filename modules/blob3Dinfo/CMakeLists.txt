@@ -6,23 +6,6 @@ cmake_minimum_required(VERSION 2.8.7)
 set(PROJECTNAME blob3Dinfo)
 project(${PROJECTNAME})
 
-find_package(YARP REQUIRED)
-find_package(ICUB REQUIRED)
-find_package(ICUBcontrib)
-
-find_package(PCL 1.6 REQUIRED)
-find_package(thrift3D REQUIRED)
-find_package(minimumBoundingBox REQUIRED)
-
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
-
-include(YarpInstallationHelpers)
-include(ICUBcontribHelpers)
-include(ICUBcontribOptions)
-icubcontrib_set_default_prefix()
-
 include(YarpIDL)
 yarp_idl_to_dir(${PROJECTNAME}.thrift ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -49,3 +32,5 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable (${PROJECTNAME} ${source} ${header}  ${idl})
 target_link_libraries (${PROJECTNAME} ${PCL_LIBRARIES} ${ICUB_LIBRARIES} ${YARP_LIBRARIES} minimumBoundingBox thrift3D)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+
+yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})

@@ -7,20 +7,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(PROJECTNAME blobSpotter)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
-find_package(ICUBcontrib)
-
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
 
 find_package(OpenCV)
-
-include(YarpInstallationHelpers)
-include(ICUBcontribHelpers)
-include(ICUBcontribOptions)
-icubcontrib_set_default_prefix()
 
 include(YarpIDL)
 yarp_idl_to_dir(${PROJECTNAME}.thrift ${CMAKE_CURRENT_SOURCE_DIR})
@@ -46,6 +34,10 @@ add_executable(${PROJECTNAME} ${source} ${header} ${idl} )
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+
+
+yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
+
 
 #icubcontrib_finalize_export (${PROJECT_NAME})
 #icubcontrib_add_uninstall_target()

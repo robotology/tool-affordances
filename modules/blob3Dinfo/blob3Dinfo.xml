@@ -1,0 +1,71 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>blob3Dinfo</name>
+    <description>Selects a blob among the available ones according to a criteria specified on the rpc.</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="blob3Dinfo"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="blobExtractor/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email=""> Tanis </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input>
+            <type>Rpc</type>
+            <port carrier="tcp">/blob3Dinfo/cmd:rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>rpc port to talk with accept commands</description>
+        </input>
+        
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/blob3Dinfo/blobs:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives coordinates of blobs to be analysed </description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/blob3Dinfo/image3D:o</port>
+            <description> Send out 3D image from stereovision </description>
+        </output>
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/blob3Dinfo/imageBin:o</port>
+            <description> Sends Binary image of blobs </description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/blob3Dinfo/info:o</port>
+            <description> Sends back the requested information </description>
+        </output>
+
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+

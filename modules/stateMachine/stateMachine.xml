@@ -1,7 +1,7 @@
 <module>
     <!-- module's name should match its executable file's name. -->
-    <name>affManager</name>
-    <description> distrubutes and controls information among modules used for Affordance Learning</description>
+    <name>stateMachine</name>
+    <description> Coordinates the modules used for Affordance Learning</description>
     <version>0.5</version>
 
     <!-- <arguments> can have multiple <param> tags-->
@@ -30,18 +30,8 @@
         <!-- output data if available -->
         <output type="service">
             <type>rpc</type>
-            <port carrier="udp">/affManager/are:rpc</port>
-            <description> Send commands to the Actions Rendering Engine module</description>
-        </output>
-        <output>
-            <type>rpc</type>
-            <port carrier="tcp">/affManager/blobInfo:rpc</port>
-            <description>Send commands to the Feature Extraction Module</description>
-        </output>
-        <output>
-            <type>rpc</type>
-            <port carrier="udp">/affManager/affLearn:rpc</port>
-            <description> Send commands to the affordance Learning Module</description>
+            <port carrier="udp">/stateMachine/rpc:o</port>
+            <description> Send commands to the modules involved in the affordance Experiment</description>
         </output>
     </data>
 

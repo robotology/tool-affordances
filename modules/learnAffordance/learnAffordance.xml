@@ -1,0 +1,68 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>objectDetector</name>
+    <description>Tanis knows!</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="blobExtractor"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="blobExtractor/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email=""> Tanis </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/objectDetector/image:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>Receives the camera image.</description>
+        </input>
+
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/objectDetector/blobs:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>Receives blobs' information</description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/objectDetector/image:o</port>
+            <description></description>
+        </output>
+
+        <output>
+            <type>Vector</type>
+            <port carrier="tcp">/objectDetector/targetPix:o</port>
+            <description>coordinates of selected blob</description>
+        </output>
+
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+

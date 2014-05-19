@@ -6,10 +6,6 @@ project(${PROJECTNAME})
 
 find_package(YARP REQUIRED)
 find_package(OpenCV)
-find_package(ICUB)
-
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
 
 include(YarpIDL)
 # Thrift compile definition file to generate source code into the desired directory
@@ -42,7 +38,6 @@ target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES}  ${YARP_LIBRARIES} ${IC
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
-#install(FILES featExt.xml DESTINATION ${YARP_MODULES_INSTALL_DIR})
-
+yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
 
 

@@ -71,7 +71,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
 	//rpc
 	bool retRPC = true;    
-    retRPC = rpcCmd.open(("/"+name+"/cmd:rpc").c_str());					//rpc client to interact with the italkManager
+    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     // retRPC = retRPC && rpcMotorKarma.open(("/"+name+"/karma:rpc").c_str());            //rpc server to query Karma
     // retRPC = retRPC && rpcBlobSpot.open(("/"+name+"/blobSpot:rpc").c_str());           //rpc server to query blobSpotter
