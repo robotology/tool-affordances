@@ -1,6 +1,6 @@
 <module>
     <!-- module's name should match its executable file's name. -->
-    <name>stateMachine</name>
+    <name>affStateMachine</name>
     <description> Coordinates the modules used for Affordance Learning</description>
     <version>0.5</version>
 

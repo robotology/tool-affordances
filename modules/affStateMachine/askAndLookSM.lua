@@ -1,4 +1,3 @@
-
 --require("yarp")
 return rfsm.state {
 
@@ -9,8 +8,9 @@ return rfsm.state {
 		entry=function()
 	        print(">> in ST_INIT")
             ret = aff_rpc:open("/fsm/aff:o")
+            print(aff_rpc:getName())
             ret = ret and fe_rpc:open("/fsm/fe:o")
-            
+            print(fe_rpc:getName())
             if ret == false then
                 print("cannot open some ports")
                 rfsm.send_events(fsm, "e_open_failed")
@@ -27,10 +27,10 @@ return rfsm.state {
 	ST_CONNECT = rfsm.state{
 		entry=function()
 	        print(">> in ST_CONNECT")
-            --ret = yarp.NetworkBase_connect(are_rpc:getName(), "/actionsRendeingEngine/cmd:io")
-            ret = yarp.NetworkBase_connect(aff_rpc:getName(), "/affManager/cmd:rpc")
-            --ret = yarp.NetworkBase_connect(karma_rpc:getName(), "/karma/rpc")
-            ret = yarp.NetworkBase_connect(fe_rpc:getName(), "/featExt/rpc:i")
+            ret = yarp.NetworkBase_connect(aff_rpc:getName(), "/affManager/rpc:i")
+            --ret = ret and yarp.NetworkBase_connect(are_rpc:getName(), "/actionsRendeingEngine/cmd:io")
+            --ret = ret and yarp.NetworkBase_connect(karma_rpc:getName(), "/karma/rpc")
+            ret = ret and yarp.NetworkBase_connect(fe_rpc:getName(), "/featExt/rpc:i")
             if ret == false then
                 print("cannot connect to some ports")
                 rfsm.send_events(fsm, "e_con_failed")
@@ -46,10 +46,10 @@ return rfsm.state {
 	ST_GOHOME = rfsm.state{
 		entry = function()
             print(">> in ST_GOHOME ")
-            request = yarp.Bottle()
+            req = yarp.Bottle()
             reply = yarp.Bottle()
-            request:clear()
-            request:addString('goHome')
+            req:clear()
+            req:addString('goHome')
             aff_rpc:write(req, reply)
             if reply:get(0):asString() == "ok" then
                  rfsm.send_events(fsm, "e_home_ok")
