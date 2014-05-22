@@ -1,0 +1,63 @@
+<application>
+    <name>learnAffordancesApp</name>
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters>--from configSim.ini</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 550.00) (y 130.90))</geometry>
+    </module>
+    <module>
+        <name>affManager</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <workdir>C:\ProgramsTanis\IIT\VS\Affordances\affManager\build\bin\Release</workdir>
+        <geometry>(Pos (x 272.00) (y 130.90))</geometry>
+    </module>
+    <module>
+        <name>affStateMachine</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/learnAffordancesApp:affStateMachine:1</prefix>
+        <geometry>(Pos (x 0.00) (y 155.90))</geometry>
+    </module>
+    <module>
+        <name>featExt</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/learnAffordances:featExt:1</prefix>
+        <geometry>(Pos (x 379.00) (y 460.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 1050 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/imProp</prefix>
+        <geometry>(Pos (x 679.00) (y 510.90))</geometry>
+    </module>
+    <connection>
+        <from>/affManager/are:rpc</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 486.00) (y 149.00)) ((x 442.00) (y 149.00)) ((x 551.00) (y 149.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/learnAffordances:featExt:1/featExt/imgFeat:o</from>
+        <to>/imProp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 592.00) (y 529.00)) ((x 525.00) (y 529.00)) ((x 680.00) (y 529.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/learnAffordancesApp:affStateMachine:1/stateMachine/rpc:o</from>
+        <to>/affManager/rpc:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 231.00) (y 174.00)) ((x 210.00) (y 174.00)) ((x 273.00) (y 174.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/learnAffordances:featExt:1/featExt/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 275.50) (y 492.00)) ((x 192.00) (y 492.00)) ((x 380.00) (y 491.00))  )</geometry>
+    </connection>
+</application>
