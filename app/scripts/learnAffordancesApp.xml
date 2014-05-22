@@ -1,11 +1,11 @@
 <application>
-    <name>learnAffordancesApp</name>
+    <name>learnAffordancesApp(1)</name>
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--from configSim.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 550.00) (y 130.90))</geometry>
+        <geometry>(Pos (x 550) (y 130.9))</geometry>
     </module>
     <module>
         <name>affManager</name>
@@ -13,51 +13,51 @@
         <node>localhost</node>
         <prefix></prefix>
         <workdir>C:\ProgramsTanis\IIT\VS\Affordances\affManager\build\bin\Release</workdir>
-        <geometry>(Pos (x 272.00) (y 130.90))</geometry>
+        <geometry>(Pos (x 272) (y 130.9))</geometry>
     </module>
     <module>
         <name>affStateMachine</name>
         <parameters></parameters>
         <node>localhost</node>
-        <prefix>/learnAffordancesApp:affStateMachine:1</prefix>
-        <geometry>(Pos (x 0.00) (y 155.90))</geometry>
+        <prefix></prefix>
+        <geometry>(Pos (x 0) (y 155.9))</geometry>
     </module>
     <module>
         <name>featExt</name>
         <parameters></parameters>
         <node>localhost</node>
-        <prefix>/learnAffordances:featExt:1</prefix>
-        <geometry>(Pos (x 379.00) (y 460.90))</geometry>
+        <prefix></prefix>
+        <geometry>(Pos (x 379) (y 460.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters>--x 1050 --y 0</parameters>
         <node>localhost</node>
         <prefix>/imProp</prefix>
-        <geometry>(Pos (x 679.00) (y 510.90))</geometry>
+        <geometry>(Pos (x 679) (y 510.9))</geometry>
     </module>
     <connection>
         <from>/affManager/are:rpc</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
+        <to external="true">/actionsRenderingEngine/cmd:io</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 486.00) (y 149.00)) ((x 442.00) (y 149.00)) ((x 551.00) (y 149.00))  )</geometry>
+        <geometry>(Pos ((x 490) (y 130.5)) ((x 442) (y 149)) ((x 559) (y 112))  )</geometry>
     </connection>
     <connection>
-        <from>/learnAffordances:featExt:1/featExt/imgFeat:o</from>
+        <from>/featExt/imgFeat:o</from>
         <to>/imProp/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 592.00) (y 529.00)) ((x 525.00) (y 529.00)) ((x 680.00) (y 529.00))  )</geometry>
+        <geometry>(Pos ((x 592) (y 529)) ((x 525) (y 529)) ((x 680) (y 529))  )</geometry>
     </connection>
     <connection>
-        <from>/learnAffordancesApp:affStateMachine:1/stateMachine/rpc:o</from>
+        <from>/stateMachine/rpc:o</from>
         <to>/affManager/rpc:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 231.00) (y 174.00)) ((x 210.00) (y 174.00)) ((x 273.00) (y 174.00))  )</geometry>
+        <geometry>(Pos ((x 231) (y 174)) ((x 210) (y 174)) ((x 273) (y 174))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
-        <to>/learnAffordances:featExt:1/featExt/img:i</to>
+        <to>/featExt/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 275.50) (y 492.00)) ((x 192.00) (y 492.00)) ((x 380.00) (y 491.00))  )</geometry>
+        <geometry>(Pos ((x 275.5) (y 491)) ((x 192) (y 491)) ((x 380) (y 491))  )</geometry>
     </connection>
 </application>

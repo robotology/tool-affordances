@@ -85,7 +85,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	// Cartesian Controller Interface
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
-    optCart.put("remote","/icubSim/cartesianController/left_arm");
+    optCart.put("remote","/icub/cartesianController/left_arm");
     optCart.put("local","/cartesian_client/left_arm");
 	if (!clientCart.open(optCart))
 		return false;    
@@ -314,6 +314,7 @@ void AffManager::askForToolExe()
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("tato");
+    cmdAre.addString("left");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"Waiting for tool %s:\n",replyAre.toString().c_str());
 }
