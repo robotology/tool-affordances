@@ -153,8 +153,9 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn)
 	// ==== Mutual similarities ====
 	Mat similarityMatrix = Mat::zeros(contours.size(),contours.size(), CV_32F);
 	for( int i = 0; i < contours.size(); i++ ){
-		char cntNum[10]; sprintf_s(cntNum,"Object %d",i);
-		feats[i].name.assign(cntNum);
+		std::ostringstream cntNum; 
+        cntNum << "Object "<< i;
+		feats[i].name.assign(cntNum.str());
 		for( int j = 0; j < contours.size(); j++ ){
 			double similarity = matchShapes(contours[i].getPoints(),contours[j].getPoints(),CV_CONTOURS_MATCH_I3,0);
 			similarityMatrix.at<float>(i,j) = similarity;
@@ -253,8 +254,9 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn)
 		contours[i].convHull->drawOnImg(contoursIm, color);
 		contours[i].contourNorm->drawOnImg(contoursIm,color);
 
-		char strI[4]; sprintf_s(strI,"%d",i);
-		contours[i].drawText(contoursIm, strI , color);	
+		std::ostringstream cntN; 
+        cntN << i;
+		contours[i].drawText(contoursIm, cntN.str() , color);	
 
 		featSend.content.push_back(feats[i]);
 	} //end contours loop

@@ -448,7 +448,7 @@ void Contour::getWavelet(vector<double>& outWL)
 // Utils
 void Contour::drawOnImg(Mat img, const Scalar& color)
 {
-	vector<vector<Point>> all;
+	vector<vector<Point> > all;
 	all.push_back(points);
 	drawContours( img, all, -1,  color, 2, 8);
 }
@@ -456,7 +456,7 @@ void Contour::drawOnImg(Mat img, const Scalar& color)
 void Contour::drawText(Mat img, string text, const Scalar& color)
 {
 	putText( img, text, massCenter(), CV_FONT_HERSHEY_COMPLEX, 0.5,color);
-	vector<vector<Point>> all;
+	vector<vector<Point> > all;
 	all.push_back(points);
 	drawContours( img, all, -1,  color, 2, 8);
 }
@@ -465,7 +465,7 @@ void Contour::computeImg()
 {	// Prepares a Mat image from the vector<Point> contour, of size the upright bounding rectangle
 	if (this->image==NULL)
 	{
-		vector<vector<Point>> cntVec;	
+		vector<vector<Point> > cntVec;	
 		Rect boundRect = boundingRect( points );
 		// Shift cooordinates of the contour to its bounding box coordintates
 		vector<Point> cntDispl (points.size());

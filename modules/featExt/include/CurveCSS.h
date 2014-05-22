@@ -32,7 +32,7 @@ template<typename T, typename V>
 void ConvertCurve(const std::vector<cv::Point_<T> >& curve, std::vector<cv::Point_<V> >& output) {
 	output.clear();
 	for (int j=0; j<curve.size(); j++) {
-		output.push_back(Point_<V>(curve[j].x,curve[j].y));
+		output.push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 	}
 }
 
@@ -48,7 +48,7 @@ void ResampleCurve2D(const std::vector<cv::Point>& curve,
 
 template<typename T>
 void drawOpenCurve(cv::Mat& img, const std::vector<cv::Point_<T> >& curve, cv::Scalar color, int thickness) {
-	std::vector<Point> curve2i;
+	std::vector<cv::Point> curve2i;
 	ConvertCurve(curve, curve2i);
 	for (int i=0; i<curve2i.size()-1; i++) {
 		line(img, curve2i[i], curve2i[i+1], color, thickness);
@@ -100,33 +100,33 @@ void GetCurveSegments(const std::vector<cv::Point_<T> >& curve, const std::vecto
 		int intpt_idx = (closedCurve)?i:i-1;
 		segments[i].clear();
 		for (int j=interestPoints[intpt_idx]; j<interestPoints[intpt_idx+1]; j++) {
-			segments[i].push_back(Point_<V>(curve[j].x,curve[j].y));
+			segments[i].push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 		}
 	}
 	if (closedCurve) {
 		//put in the segment that passes the 0th point
 		segments.back().clear();
 		for (int j=interestPoints.back(); j<curve.size(); j++) {
-			segments.back().push_back(Point_<V>(curve[j].x,curve[j].y));
+			segments.back().push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 		}
 		for (int j=0; j<interestPoints[0]; j++) {
-			segments.back().push_back(Point_<V>(curve[j].x,curve[j].y));
+			segments.back().push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 		}
 	} else {
 		//put in the segment after the last point
 		segments.back().clear();
 		for (int j=interestPoints.back(); j<curve.size(); j++) {
-			segments.back().push_back(Point_<V>(curve[j].x,curve[j].y));
+			segments.back().push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 		}
 		//put in the segment before the 1st point
 		segments.front().clear();
 		for (int j=0; j<interestPoints[0]; j++) {
-			segments.front().push_back(Point_<V>(curve[j].x,curve[j].y));
+			segments.front().push_back(cv::Point_<V>(curve[j].x,curve[j].y));
 		}
 	}
 	for (int i=0; i<segments.size(); i++) {
 		std::vector<double> x,y;
-		cout <<"segments[i].size() " << segments[i].size() << endl;
+		std::cout <<"segments[i].size() " << segments[i].size() << std::endl;
 		PolyLineSplit(segments[i], x, y); ResampleCurve(x, y, x, y, 50,true); PolyLineMerge(segments[i], x, y);
 	}
 }
@@ -140,20 +140,20 @@ void GetCurveSegmentsWithCSSImage(std::vector<cv::Point_<T> >& curve, std::vecto
 	
 	PolyLineMerge(curve, smoothx, smoothy);
 	
-	double minx,maxx; minMaxLoc(smoothx, &minx, &maxx);
-	double miny,maxy; minMaxLoc(smoothy, &miny, &maxy);
-	cv::Mat drawing(maxy,maxx,CV_8UC3,Scalar(0));
-	RNG rng(time(NULL));
-	Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-//	vector<vector<Point_<T> > > contours(1,curve);
+	double minx,maxx; cv::minMaxLoc(smoothx, &minx, &maxx);
+	double miny,maxy; cv::minMaxLoc(smoothy, &miny, &maxy);
+	cv::Mat drawing(maxy,maxx,CV_8UC3,cv::Scalar(0));
+	cv::RNG rng(time(NULL));
+	cv::Scalar color = cv::Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+//	vector<vector<cv::Point_<T> > > contours(1,curve);
 //	drawContours( drawing, contours, 0, color, 2, 8);
 	drawOpenCurve(drawing, curve, color, 2);
 	
 	for (int m=0; m<interestPoints.size() ; m++) {
-		circle(drawing, curve[interestPoints[m]], 5, Scalar(0,255), CV_FILLED);
+		circle(drawing, curve[interestPoints[m]], 5, cv::Scalar(0,255), CV_FILLED);
 	}
 	imshow("curve interests", drawing);
-	waitKey();
+	cv::waitKey();
 	
 	GetCurveSegments(curve, interestPoints, segments, closedCurve);
 }

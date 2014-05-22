@@ -226,12 +226,12 @@ int processWavelet(VideoCapture& capture)
 
     Mat GrayFrame=Mat(frame.rows, frame.cols, CV_8UC1);
     Mat Src=Mat(frame.rows, frame.cols, CV_32FC1);
-    Mat Dst=Mat(frame.rows, frame.cols, CV_32FC1);
+    Mat Dst=Mat(frame.rows, frame.cols, CV_32FC1, double(0));
     Mat Temp=Mat(frame.rows, frame.cols, CV_32FC1);
     Mat Filtered=Mat(frame.rows, frame.cols, CV_32FC1);
     for (;;) 
     {
-        Dst=0;
+        //Dst=0;
         capture >> frame;
         if (frame.empty()) continue;
         cvtColor(frame, GrayFrame, CV_BGR2GRAY);
