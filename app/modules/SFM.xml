@@ -44,7 +44,7 @@
             <description> Accepts bounding box coordinates to output only the corresponding region of world 3D Data </description>
         </input>
         <input>
-            <type>Rpc</type>
+            <type port_type="service">Rpc</type>
             <port carrier="tcp">/SFM/rpc</port>
             <required>no</required>
             <priority>no</priority>

@@ -32,7 +32,7 @@
             <priority>no</priority>
             <description>Port to query the module about targets and current state.</description>
         </input>
-        <input>
+        <input port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/actionsRenderingEngine/rpc</port>
             <required>no</required>

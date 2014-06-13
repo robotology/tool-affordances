@@ -19,7 +19,7 @@
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
         <input>
-            <type>Rpc</type>
+            <type port_type="service">Rpc</type>
             <port carrier="tcp">/karmaToolFinder/rpc</port>
             <required>no</required>
             <priority>no</priority>

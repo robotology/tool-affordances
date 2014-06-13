@@ -50,7 +50,7 @@ Particle filtering is a Monte Carlo sampling approach to Bayesian filtering.The 
         </input>
 
 	<input>
-            <type>Rpc</type>
+            <type port_type="service">Rpc</type>
             <port carrier="tcp">/templatePFTracker</port>
             <!-- required input means the execution of module depends on
                  this input data. Notice that not all the input are required

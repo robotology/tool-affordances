@@ -42,7 +42,7 @@
             <description>Used to forward requests to the blob detector for image segmentation.</description>
 	</input>
         <input>
-            <type>Rpc</type>
+            <type port_type="service">Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/human:rpc</port>
             <required>no</required>
             <priority>no</priority>
