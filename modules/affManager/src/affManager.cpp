@@ -82,6 +82,8 @@ bool AffManager::configure(ResourceFinder &rf)
 	optCart.put("device","cartesiancontrollerclient");
     optCart.put("remote","/"+robot+"/cartesianController/left_arm");
     optCart.put("local","/"+name+"/cartesian_client/left_arm");
+    optCart.put("remote","/icub/cartesianController/left_arm");
+    optCart.put("local","/cartesian_client/left_arm");
 	if (!clientCart.open(optCart))
 		return false;    
     clientCart.view(icart);	// open the view	
@@ -822,7 +824,7 @@ int main(int argc, char *argv[])
     rf.setVerbose(true);
     rf.setDefault("name","affManager");
 	rf.setDefault("camera","left");
-	rf.setDefault("robot","icubSim");
+	rf.setDefault("robot","icub");
     //rf.setDefaultContext("affManager");
     //rf.setDefaultConfigFile("affManager.ini");
     //rf.setDefault("tracking_period","30");
