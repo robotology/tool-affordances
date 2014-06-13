@@ -1,0 +1,86 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>SFM</name>
+    <description>The module uses a complete Structure From Motion (SFM) pipeline for the computation of the extrinsics parameters between two different views. These parameters are then used to rectify the images and to compute a depth map using the H. Hirschmuller Algorithm (CVPR 2006) implemented since Opencv 2.2. The Kinematics of the iCub is used to guess the current camera positions, then visual features are used to refine this model. Before start make sure you have calibrated the intrinsics parameters. For the stereo calibration see the module stereoCalib . The module provides three output ports: the first one is the disparity map in grayscale values, the second port is the WorldImage, that is a 3-channels float image, in each pixel are stored the three X Y Z coordinates with respect to Root reference frame. The third port outputs the current keypoints matched. Non valid points are handled with the value (0,0,0). In addition a RPC port supports requests for 3D/2D points computation (see below).</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="blob3Dinfo"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="blobExtractor/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+        <author email=""> Sean Ryan Fanello </author>
+        <author email=""> xml by Tanis Mar </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+     
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/SFM/left:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description> Accepts the incoming images from the left eye. </description>
+        </input>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/SFM/right:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description> Accepts the incoming images from the right eye. </description>
+        </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/SFM/box:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Accepts bounding box coordinates to output only the corresponding region of world 3D Data </description>
+        </input>
+        <input>
+            <type>Rpc</type>
+            <port carrier="tcp">/SFM/rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> rpc for terminal commands communication.</description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/SFM/disp:o</port>
+            <description> outputs the disparity map in grayscale values </description>
+        </output>
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/SFM/match:o</port>
+            <description> Outputs the match image. </description>
+        </output>
+        <output>
+            <type>ImageOfPixelFloat</type>
+            <port carrier="udp">/SFM/world:o</port>
+            <description> Outputs the world image (3-channel float with X Y Z values). </description>
+        </output>
+
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+
