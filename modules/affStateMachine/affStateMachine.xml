@@ -23,7 +23,7 @@
         <!-- input data if available -->
         <input type="service">
             <type>rpc</type>
-            <port carrier="tcp">/affManager/rpc:i</port>
+            <port carrier="tcp">/stateMachine/rpc:i</port>
             <description>takes RPC commands from Human or stateMachine</description>
         </input>
         

@@ -3,8 +3,9 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 add_subdirectory(affManager)
+add_subdirectory(affLearn)
 add_subdirectory(blobSpotter)
-##add_subdirectory(blob3Dinfo)
+add_subdirectory(objectFinder)
 add_subdirectory(featExt)
 ##add_subdirectory(exploreAffordances)
 ##add_subdirectory(learnAffordance)

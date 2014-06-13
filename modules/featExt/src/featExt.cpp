@@ -15,22 +15,40 @@ using namespace std;
 
 void FeatExt::loop()
 {
-	Bottle cmd, val, reply;
-	rpcCmd.read(cmd, true);
-	int rxCmd=processRpcCmd(cmd,val);
-	if (rxCmd==Vocab::encode("fext")){
-
+    if (processing){        
 		ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
-		//ImageOf<PixelRgb> *binImIn = binImPort.read(false);  // read an image
-
-		if(imageIn == NULL)
-		{
+		if(imageIn == NULL)		{
 			printf("No input image \n"); 
 			return;
-		}
-		//printf("Image loaded \n");
-		featExtractor(*imageIn);
+		}		
+        VecVec feats;
+		featExtractor(*imageIn, feats);
+        return;
 	}
+    else            //accept commands if the module is idle
+    {
+	    Bottle cmd, val, reply;
+	    rpcCmd.read(cmd, true);
+	    int rxCmd=processRpcCmd(cmd,val);
+
+	    if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
+		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+		    if(imageIn == NULL)		    {
+			    printf("No input image \n"); 
+                reply.addString("ack");
+			    return;
+		    }		    
+            VecVec feats;
+		    featExtractor(*imageIn, feats);
+            rpcCmd.reply(feats);
+           
+	    } else if (rxCmd==Vocab::encode("go")){        
+            processing = true;
+	    }
+    return;
+    
+    }
+
 }
 
 bool FeatExt::open()
@@ -38,12 +56,13 @@ bool FeatExt::open()
     bool ret=true;
     ret = rpcCmd.open("/featExt/rpc:i");					// Port for receiving rpc commands
 	ret = ret && inImPort.open("/featExt/img:i");			// give the port a name
-    ret = ret && binImPort.open("/featExt/binImg:i");		//port to receive info about the blobs in the image.
+    //ret = ret && binImPort.open("/featExt/binImg:i");		//port to receive info about the blobs in the image.
 	ret = ret && imPropOutPort.open("/featExt/imgProp:o");
 	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");
 	ret = ret && featPort.open("/featExt/feats:o");			//port to receive info confirming reception of template.
 
-	
+	processing = false;
+
     return ret;
 }
 
@@ -61,7 +80,7 @@ bool FeatExt::close()
     inImPort.close();
 	imPropOutPort.close();
 	imFeatOutPort.close();
-	binImPort.close();
+	//binImPort.close();
     featPort.close();
 	printf("Closed");
     return true;
@@ -70,7 +89,7 @@ bool FeatExt::close()
 bool FeatExt::interrupt()
 {
 	inImPort.interrupt();
-	binImPort.interrupt();
+	//binImPort.interrupt();
 	imFeatOutPort.interrupt();
 	imPropOutPort.interrupt();
 
@@ -92,13 +111,13 @@ int FeatExt::processRpcCmd(const Bottle &cmd, Bottle &b)
     return ret;
 }
 
-void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn)
+void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 {
 	//ofstream featFile;
 	//featFile.open ("features.txt");
 	
 	//prepare ports
-	VecVec &featSend= featPort.prepare();						// Prepare port to send features	
+	featSend= featPort.prepare();						// Prepare port to send features	
 	ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
 	ImageOf<PixelRgb> &imFeatOut = imFeatOutPort.prepare();	// Prepare the port for features output image	
 
@@ -110,7 +129,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn)
 	Mat src = cvarrToMat(imPropOut.getIplImage(),false);
 	//Mat src((IplImage*) imPropOut.getIplImage());				// Create the src image form the received frame		
 	
-	//Prepare image variable
+	//Prepare random generator
 	RNG rng(12345);
 		
 	// Find contours out of the received blobs
@@ -129,7 +148,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn)
 
 	// draw it on offset and thick line to close possible apertures
 	drawContours( contoursIm, contoursPoint, -1, Scalar(128), 2, 8); 
-	// Recomputing the contour needed to close possible 
+	// Recomputing the contour needed to close possible open contours
 	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 	drawContours( edges, contoursPoint, -1, Scalar(255), 1 , 8); 
 

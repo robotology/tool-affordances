@@ -1,0 +1,72 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>karmaToolFinder</name>
+    <description>This module finds the tool dimension employing nonlinear optimization. </description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+        <param desc="Name of the module" default="karmaToolFinder"> name</param>
+        <!--param desc="specifies the configuration file" default="/templatePFTracker.ini"> from </param>
+        <param desc="specifies the sub-path from \c $ICUB_ROOT/icub/app to the configuration file" default="/templatePFTracker/conf"> context </param-->	
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+        <author email="vadim.tikhanoff@iit.it"> Vadim Tikhanoff </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input>
+            <type>Rpc</type>
+            <port carrier="tcp">/karmaToolFinder/rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Rceives the information to manage the data acquisition and optimization phase</description>
+        </input>
+        
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/karmaToolFinder/in</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> receives the position of the tool tip in the image plane</description>
+        </input>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/karmaToolFinder/img:i </port>
+            <description> receives images from the camera.</description>
+        </input>
+        <!-- output datas if available -->
+                <!-- output data if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/karmaToolFinder/log:o </port>
+            <description> streams out a complete set of data used during the acquisition. </description>
+        </output>
+        
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/karmaToolFinder/img:o</port>
+            <description> streams out images with superimposed information on the tool.</description>
+        </output>
+        
+    </data>
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>icubmod</library>
+        <library>OpenCV</library>
+        <library>IPOPT</library>
+    </development>
+
+</module>
+

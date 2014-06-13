@@ -16,13 +16,6 @@
  * Public License for more details
 */
 
-#include <sstream>
-#include <stdio.h>
-#include <yarp/math/Rand.h>
-#include <yarp/math/Math.h>
-#include <yarp/os/Os.h>
-#include <yarp/os/Time.h>
-
 #include "affManager.h"
 
 using namespace std;
@@ -50,15 +43,16 @@ bool AffManager::configure(ResourceFinder &rf)
     if ((hand!="left") && (hand!="right"))
         hand="left";
 
-	hand=rf.find("robot").asString().c_str();
-    if ((hand!="icubSim") && (hand!="icub"))
-        hand="icubSim";
+	robot = rf.find("robot").asString().c_str();
+    if ((robot!="icubSim") && (robot!="icub"))
+        robot="icubSim";
 
     //simMode=rf.check("simMode", Value("off"),"simMode (string)").asString();
 	
 	attach(rpcCmd);
 	running=true;
 	lookingAtTool = false;
+    actionDone = false;
 
 	//incoming
 	/*bool ret = true;  
@@ -73,23 +67,41 @@ bool AffManager::configure(ResourceFinder &rf)
 	bool retRPC = true;    
     retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
-    // retRPC = retRPC && rpcMotorKarma.open(("/"+name+"/karma:rpc").c_str());            //rpc server to query Karma
-    // retRPC = retRPC && rpcBlobSpot.open(("/"+name+"/blobSpot:rpc").c_str());           //rpc server to query blobSpotter
-	retRPC = retRPC && rpcBlobPicker.open(("/"+name+"/blobPick:rpc").c_str());         //rpc server to query blobPicker
-	retRPC = retRPC && rpcBlobInfo.open(("/"+name+"/blobInfo:rpc").c_str());			//rpc server to query blob3Dinfo
+    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());            //rpc server to query Karma Motor    
+	// retRPC = retRPC && rpcBlobPicker.open(("/"+name+"/blobPick:rpc").c_str());      //rpc server to query blobPicker
+	retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());			   //rpc server to query featExtractin Module
+    retRPC = retRPC && rpcAffLearn.open(("/"+name+"/affLearn:rpc").c_str());		   //rpc server to query affLearn
+    retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           //rpc server to query objectFinder
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
 		return false;
 	}
-	
+
 	// Cartesian Controller Interface
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
-    optCart.put("remote","/icubSim/cartesianController/left_arm");
-    optCart.put("local","/cartesian_client/left_arm");
+    optCart.put("remote","/"+robot+"/cartesianController/left_arm");
+    optCart.put("local","/"+name+"/cartesian_client/left_arm");
 	if (!clientCart.open(optCart))
 		return false;    
     clientCart.view(icart);	// open the view	
+
+    icart->storeContext(&cartCntxt);
+
+    // Gaze Controller Interface
+    Property optGaze("(device gazecontrollerclient)");
+    optGaze.put("remote","/iKinGazeCtrl");
+    optGaze.put("local","/"+name+"/gaze_client");
+
+    if (!clientGaze.open(optGaze))
+        return false;
+    clientGaze.view(igaze);
+
+    igaze->storeContext(&gazeCntxt);        // store the original the context
+
+    igaze->setNeckTrajTime(0.8);
+    igaze->setEyesTrajTime(0.4);
+    igaze->setTrackingMode(true);
 
 	return true;
 }
@@ -98,17 +110,9 @@ bool AffManager::configure(ResourceFinder &rf)
 /**********************************************************/
 bool AffManager::updateModule()
 {
-	/* Depending on the human input, perform different actions. 
-	These can range from carrying out single actions to the whole experiment.
-	Single actions:
-	- 'prepare' : Look to the scenario and get the robot ready to start the experiment
-	- 'takeTool':	 
-	*/
-
 	if (!running)
         return false;
 	return true;
-
 }
 
 /**********************************************************/
@@ -116,8 +120,11 @@ bool AffManager::interruptModule()
 {
     rpcCmd.interrupt();
     rpcMotorAre.interrupt();
-	rpcMotorIol.interrupt();
-    rpcMotorKarma.interrupt();
+	//rpcMotorIol.interrupt();
+    rpcKarmaMotor.interrupt();
+
+    rpcFeatExt.interrupt();
+    rpcAffLearn.interrupt();
 
     return true;
 }
@@ -127,8 +134,16 @@ bool AffManager::close()
 {
     rpcCmd.close();
     rpcMotorAre.close();
-	rpcMotorIol.close();
-    rpcMotorKarma.close();
+	//rpcMotorIol.close();
+    rpcKarmaMotor.close();
+
+    rpcFeatExt.close();
+    rpcAffLearn.close();
+
+    clientGaze.close();
+    clientCart.close();
+    igaze->restoreContext(gazeCntxt);       // ... and then retrieve the stored context_0
+    icart->restoreContext(cartCntxt);
 
 	running = false;
 
@@ -161,30 +176,52 @@ bool AffManager::goHome(){
 	goHomeExe();
 	return true;
 }
-bool AffManager::lookAtTool(){
-	lookAtToolExe();
+
+bool AffManager::getTool(){
+	askForToolExe();
+    if (!graspToolExe()){
+        std::cout << "Tool couldnt be grasped properly, stopping!" << std::endl;
+        return false;
+    }
+    lookAtToolExe();
+
+    attachToolExe();
+    observeToolExe();
+
 	return true;
 }
-bool AffManager::lookAtPoint(){
-	lookAtPointExe();
-	return lookingAtTool;
-}
-bool AffManager::lookAtRack(){
-	lookAtRackExe();
-	return lookingAtTool;
-}
+
 bool AffManager::askForTool(){
 	askForToolExe();
-	return true;
-}
-bool AffManager::reachTool(){
-	reachToolExe();
 	return true;
 }
 bool AffManager::graspTool(){
 	graspToolExe();
 	return toolInHand;
 }
+bool AffManager::lookAtTool(){
+	lookAtToolExe();
+	return true;
+}
+/*
+bool AffManager::lookAtPoint(){
+	lookAtPointExe();
+	return lookingAtTool;
+}
+*/
+/*
+bool AffManager::lookAtRack(){
+	lookAtRackExe();
+	return lookingAtTool;
+}
+*/
+/*
+bool AffManager::reachTool(){
+	reachToolExe();
+	return true;
+}
+*/
+
 bool AffManager::observeTool(){
 	observeToolExe();
 	return true;
@@ -193,14 +230,36 @@ bool AffManager::observeObj(){
 	observeObjExe();
 	return true;
 }
+/*
 int  AffManager::findTools(){
 	vector<int> blobsInReachIndices = findToolsExe();	
 	return blobsInReachIndices.size();
 }
+*/
+/*
 bool AffManager::selectTool(){
 	selectToolExe();
 	return true;
 }
+*/
+
+bool AffManager::doAction(){
+	observeObjExe();
+    slideActionExe();
+    observeObjExe();
+    computeEffect();
+	return true;
+}
+
+bool AffManager::attachTool(){
+	attachToolExe();
+	return true;
+}
+bool AffManager::slideAction(){
+	slideActionExe();
+	return true;
+}
+
 /**********************************************************
 					PRIVATE METHODS
 /**********************************************************/
@@ -219,15 +278,8 @@ void AffManager::goHomeExe()
     fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
 }
 
-void AffManager::lookAtToolExe()
-{
-	
-	findToolsExe();
-	lookAtRackExe();
-
-}
-
 /**********************************************************/
+/*
 void AffManager::lookAtPointExe()
 {
 	bool pointReached = false;
@@ -258,8 +310,10 @@ void AffManager::lookAtPointExe()
 	fprintf(stdout,"I am tired of looking around, just give me the tool \n");
 	return;
 }
+*/
 
 /**********************************************************/
+/*
 void AffManager::lookAtRackExe()
 {
 	fprintf(stdout,"Start looking at Rack procedure:\n");
@@ -304,7 +358,7 @@ void AffManager::lookAtRackExe()
 	lookingAtTool = false;
 	return;
 }
-
+*/
 /**********************************************************/
 void AffManager::askForToolExe()
 {
@@ -314,11 +368,15 @@ void AffManager::askForToolExe()
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("tato");
+    cmdAre.addString("left");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"Waiting for tool %s:\n",replyAre.toString().c_str());
+    Time::delay(3);
+    return;
 }
 
 /**********************************************************/
+/*
 void AffManager::reachToolExe()
 {
 	get3Dposition();
@@ -331,9 +389,10 @@ void AffManager::reachToolExe()
 	}
 	return;
 }
+*/
 
 /**********************************************************/
-void AffManager::graspToolExe()
+bool AffManager::graspToolExe()
 {
     Time::delay(0.5);
 	// Close hand toolwise
@@ -342,6 +401,7 @@ void AffManager::graspToolExe()
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("clto");
+    cmdAre.addString("left");
     fprintf(stdout,"%s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
     fprintf(stdout,"'clto' 'left' action is %s:\n",replyAre.toString().c_str());
@@ -355,57 +415,250 @@ void AffManager::graspToolExe()
     fprintf(stdout,"%s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
 	toolInHand = replyAre.get(0).asBool();
+    return toolInHand;
 }
 
 /**********************************************************/
-void AffManager::observeToolExe()
+void AffManager::lookAtToolExe()
 {
-	Time::delay(1.0);
-    fprintf(stdout,"Start 'observe' procedure:\n");
-    Bottle cmdAre,replyAre;
-    cmdAre.clear();
-    replyAre.clear();
-    cmdAre.addString("observe");
-    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
-    rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"'observe' 'action is %s:\n",replyAre.toString().c_str());
+    // Put tool on a comfortable lookable position
+    handToCenter();
+    fprintf(stdout,"Moving hand to the center:\n");
+    lookOverHand();
+    if (robot== "icubSim")
+    {
+        simTool();
+    }
 
+    return;
+}
 
-    Bottle cmdBlob,replyBlob;
-    cmdBlob.clear();
-    replyBlob.clear();
-    cmdBlob.addString("snapshot");
-    fprintf(stdout,"%s\n",cmdBlob.toString().c_str());
-    rpcBlobInfo.write(cmdAre, replyAre);
-	// XXX separate the tool blob from the rest using disparity, and perform featEXT to get features.
+void AffManager::handToCenter()
+{
+    Vector xd(3), od(4);                            // Set a position in the center in front of the robot
+    xd[0]=-0.3; xd[1]=-0.05; xd[2]=0.05;
+    
+    Vector oy(4), ox(4);
+
+    oy[0]=0.0; oy[1]=1.0; oy[2]=0.0; oy[3]=M_PI;
+    ox[0]=1.0; ox[1]=0.0; ox[2]=0; ox[3]=M_PI/2.0;
+        
+    Matrix Ry = iCub::ctrl::axis2dcm(oy);   // from axis/angle to rotation matrix notation
+    Matrix Rx = iCub::ctrl::axis2dcm(ox);
+
+    Matrix R = Ry*Rx;                 // compose the two rotations keeping the order
+    //fprintf(stdout,"M = \n[ %s ] \n\n", R.toString().c_str());
+    od = iCub::ctrl::dcm2axis(R);     // from rotation matrix back to the axis/angle notation     
+
+    fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
+
+    icart->goToPoseSync(xd,od);   // send request and wait for reply
+    fprintf(stdout,"Hand moving!!");
+    icart->waitMotionDone(0.04);
+    fprintf(stdout,"Movement completed!!");
+    return;
+}
+
+void AffManager::lookOverHand()
+{
+    Vector handPos,handOr;
+    icart->getPose(handPos,handOr);
+    handPos[2] += 0.15;          // Tool center round 15 cm over the hand
+
+    fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
+
+    igaze->lookAtFixationPoint(handPos);     
+    igaze->waitMotionDone();                                // wait until the operation is done
+    lookingAtTool = true;
+
+    return;
+}
+
+void AffManager::simTool()
+{
+    fprintf(stdout,"Creating virtual tool at -0.3 0 0.15 \n");
+    yarp::os::RpcClient simPort;
+    const char* portName="/affManager/rpcSim:o";
+    simPort.open(portName);  // give the port a name
+	Network::connect(portName, "/icubSim/world");
+    Bottle simCmd, reply;
+    simCmd.addString("world mk cyl 0.01 0.2 0 0.75 0.35 0 0 1");
+    simPort.write(simCmd, reply);
+    simCmd.clear();reply.clear();
+    Time::delay(0.05);
+    simCmd.addString("world rot cyl 1 90 0 0");
+    simCmd.clear();reply.clear();
+    Time::delay(0.05);
+    simCmd.addString("world grab cyl 1 left 1");
+    simPort.write(simCmd, reply);
+    Network::disconnect(portName, "/icubSim/world");
+    return;
 }
 
 /**********************************************************/
-void AffManager::observeObjExe()
+void AffManager::slideActionExe()
 {
-	Time::delay(1.0);
-    fprintf(stdout,"Start 'observe' procedure:\n");
-    Bottle cmdAre,replyAre;
-    cmdAre.clear();
-    replyAre.clear();
-    cmdAre.addString("look");
-	// XXX So far point at the object. Improve to detect it automatically.
-	cmdAre.addString("raw");
-    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
-    rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"'observe' 'action is %s:\n",replyAre.toString().c_str());
-	// XXX Perform featExt on the Objects blob
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();   replyKM.clear();
+
+    int drawAngle = (int)Rand::scalar(0,359);
+    double drawDist = 0.2;
+    cmdKM.addString("draw");
+    cmdKM.addDouble(target3DcoordsIni[1]);
+    cmdKM.addDouble(target3DcoordsIni[2]);
+    cmdKM.addInt(drawAngle);
+    cmdKM.addDouble(drawDist);
+    fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+
+
+    // Save the features of the action
+    Bottle cmdLearn,replyLearn;
+    cmdLearn.clear();
+    replyLearn.clear();
+    cmdLearn.addString("addData");
+    cmdLearn.addString("actionFeats");
+    // Add the action data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
+    Bottle& bData = cmdLearn.addList();
+    bData.addString("action 1");
+    Bottle &toolData = bData.addList();
+    toolData.addInt(drawAngle);
+    
+    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+
+
+    return;
 }
 
 
 // Perceptual Methods
 /**********************************************************/
+void AffManager::attachToolExe()
+{
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();   replyKM.clear();
+
+    // find the dimensions and tooltip of the tool
+    Bottle toolDim;
+    cmdKM.addString("find");
+    cmdKM.addString("left");
+    cmdKM.addString("left");
+    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    toolDim = replyKM.tail();
+    fprintf(stdout,"TOOL AT %s:\n", toolDim.toString().c_str());
+
+    cmdKM.clear();    replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("remove");
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("attach");
+    cmdKM.addString("left");
+    cmdKM.addDouble(toolDim.get(0).asDouble());
+    cmdKM.addDouble(toolDim.get(1).asDouble());
+    cmdKM.addDouble(toolDim.get(2).asDouble());
+    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+    fprintf(stdout,"reply is %s:\n",replyKM.toString().c_str());
+    return;
+}
+
+/**********************************************************/
+void AffManager::observeToolExe()
+{
+    Bottle cmdFE,replyFE;
+    cmdFE.clear();
+    replyFE.clear();
+    cmdFE.addString("snapshot");
+    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+    // At this point, NearThingdetector, which will be running on parallel, should separate the tool blob from the rest using disparity
+
+    Bottle cmdLearn,replyLearn;
+    cmdLearn.clear();
+    replyLearn.clear();
+    cmdLearn.addString("addData");
+    cmdLearn.addString("toolFeats");
+    cmdLearn.append(replyFE);
+
+    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+   
+    return;
+}
+
+/**********************************************************/
+void AffManager::observeObjExe()
+{
+	//Time::delay(0.5);
+    fprintf(stdout,"Start 'observe' procedure:\n");
+    Bottle cmdFinder,replyFinder;
+    cmdFinder.clear();
+    replyFinder.clear();
+    cmdFinder.addString("getPoint");
+	// XXX So far point at the object. Improve to detect it automatically.
+	rpcObjFinder.write(cmdFinder, replyFinder);
+    lookingAtTool = false;
+    lookingAtObject = true;
+    fprintf(stdout,"3D point received!\n");
+    Bottle coords3dB = replyFinder.tail();
+    if (!actionDone){
+        target3DcoordsIni[0] = coords3dB.get(0).asDouble();
+        target3DcoordsIni[1] = coords3dB.get(1).asDouble();
+        target3DcoordsIni[2] = coords3dB.get(2).asDouble();
+        actionDone = true;
+    }else{
+        target3DcoordsAfter[0] = coords3dB.get(0).asDouble();
+        target3DcoordsAfter[1] = coords3dB.get(1).asDouble();
+        target3DcoordsAfter[2] = coords3dB.get(2).asDouble();
+        }
+    fprintf(stdout,"Object is located at %s:\n",replyFinder.toString().c_str());
+
+    return;
+}
+
+/**********************************************************/
+void AffManager::computeEffect()
+{
+    //To compute the effect, we assume that the object hasnt move in the z axis ( that is, has remained on the table)
+    Vector delta = target3DcoordsAfter - target3DcoordsIni;
+    double dx = delta[0];
+    double dy = delta[1];
+
+    effectAlpha = atan2 (dy,dx) * 180 / PI;
+    effectDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
+
+    // save the effect features
+    Bottle cmdLearn,replyLearn;
+    cmdLearn.clear();
+    replyLearn.clear();
+    cmdLearn.addString("addData");
+    cmdLearn.addString("effectFeats");
+    // Add the effect data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
+    Bottle& bData = cmdLearn.addList();
+    bData.addString("effect 1");
+    Bottle &effData = bData.addList();
+    effData.addDouble(effectAlpha);
+    effData.addDouble(effectDist);
+    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+    
+    return;
+}
+
+
+/*
 vector<int> AffManager::findToolsExe()
 {
-	/*Call blob3Dinfo to get the indices of the blobs within a given range.
-	Filter the blob image keeeping only those blobs, and pass it to ToolSelector/blobpicker.
-	Which uses featExt to select the correct blob based on its features.
-	*/
+	// Call blob3Dinfo to get the indices of the blobs within a given range.
+	// Filter the blob image keeeping only those blobs, and pass it to ToolSelector/blobpicker.
+	// Which uses featExt to select the correct blob based on its features.
+	
 	Bottle blobList;
 	vector<int> blobsInReachIndices;
 	blobsInReachList.clear();
@@ -419,11 +672,11 @@ vector<int> AffManager::findToolsExe()
         invalid = true;
     }
 	
-	/* Thrift approach
-	AffManager affManager;
-	affManager.yarp().attachAsClient(rpcBlobInfo);
-	affManager.blobsInRange(0.5);
-	*/
+	// Thrift approach
+	//AffManager affManager;
+	//affManager.yarp().attachAsClient(rpcBlobInfo);
+	//affManager.blobsInRange(0.5);
+	
 
 	Bottle cmdBlob, replyBlob;
     cmdBlob.clear();
@@ -451,7 +704,10 @@ vector<int> AffManager::findToolsExe()
 	}
 	return blobsInReachIndices;
 }
+*/
 
+/**********************************************************/
+/*
 bool AffManager::selectToolExe(){
 	
 	vector<int> blobsInReachIndices = findToolsExe();
@@ -486,7 +742,10 @@ bool AffManager::selectToolExe(){
 		return false;
 	}
 }
+*/
+
 /**********************************************************/
+/*
 Bottle AffManager::getBlobs()
 {
    // grab resources
@@ -508,9 +767,10 @@ Bottle AffManager::getBlobs()
 
     return blobList;
 }
-
+*/
 
 /**********************************************************/
+/*
 bool AffManager::get3Dposition()
 {
     Bottle cmdMotor,replyMotor;
@@ -538,15 +798,16 @@ bool AffManager::get3Dposition()
         return false;
 	}
 }
-
+*/
 /**********************************************************/
+/*
 bool AffManager::get3Dorient()
 {
 	target3Dorient[0]=0.0; target3Dorient[1]=0.0; target3Dorient[2]=1.0; target3Dorient[3]=3.14;
 	// XXX Use the PCL and minimumBoundingBox to get the orientation axis
 	return true;
 }
-
+*/
 //+++++++++++++++++++ MAIN ++++++++++++++++++++++++++++++++
 /**********************************************************/
 int main(int argc, char *argv[])

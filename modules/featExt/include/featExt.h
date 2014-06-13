@@ -15,6 +15,8 @@ class FeatExt
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imFeatOutPort; // port for sending output images
     yarp::os::BufferedPort<VecVec> featPort;
 
+    bool processing;
+
 public:
 
     FeatExt()
@@ -34,7 +36,7 @@ public:
 
 	int processRpcCmd(const yarp::os::Bottle &cmd, yarp::os::Bottle &b);
 
-	void featExtractor(const yarp::sig::ImageOf<yarp::sig::PixelRgb>& img );	
+	void featExtractor(const yarp::sig::ImageOf<yarp::sig::PixelRgb>& img, VecVec& feats );	
 
 };
 

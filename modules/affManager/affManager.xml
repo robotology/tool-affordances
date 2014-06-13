@@ -33,15 +33,26 @@
             <port carrier="udp">/affManager/are:rpc</port>
             <description> Send commands to the Actions Rendering Engine module</description>
         </output>
+        
+        <output type="service">
+            <type>rpc</type>
+            <port carrier="udp">/affManager/karmaMotor:rpc</port>
+            <description> Send commands to the Karma motor for tool use related actions</description>
+        </output>
         <output>
             <type>rpc</type>
-            <port carrier="tcp">/affManager/blobInfo:rpc</port>
+            <port carrier="tcp">/affManager/featExt:rpc</port>
             <description>Send commands to the Feature Extraction Module</description>
         </output>
         <output>
             <type>rpc</type>
             <port carrier="udp">/affManager/affLearn:rpc</port>
             <description> Send commands to the affordance Learning Module</description>
+        </output>
+                <output>
+            <type>rpc</type>
+            <port carrier="udp">/affManager/objFind:rpc</port>
+            <description> Send commands to the objectFinder Module</description>
         </output>
     </data>
 

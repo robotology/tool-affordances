@@ -1,6 +1,6 @@
 <module>
     <!-- module's name should match its executable file's name. -->
-    <name>objectDetector</name>
+    <name>affLearn</name>
     <description>Tanis knows!</description>
     <version>1.0</version>
 
@@ -21,35 +21,19 @@
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
         
-        <input>
-            <type>ImageOfPixelRgb</type>
-            <port carrier="udp">/objectDetector/image:i</port>
-            <required>yes</required>
-            <priority>no</priority>
-            <description>Receives the camera image.</description>
+        <input type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/affLearn/rpc:i</port>
+            <description>takes RPC commands from Human or stateMachine</description>
         </input>
 
-        <input>
-            <type>Bottle</type>
-            <port carrier="tcp">/objectDetector/blobs:i</port>
-            <required>yes</required>
-            <priority>no</priority>
-            <description>Receives blobs' information</description>
-        </input>
 
-        <!-- output datas if available -->
+    <!-- output datas if available -->
         <output>
             <type>ImageOfPixelRgb</type>
-            <port carrier="udp">/objectDetector/image:o</port>
+            <port carrier="udp">/affLearn/plot:o</port>
             <description></description>
         </output>
-
-        <output>
-            <type>Vector</type>
-            <port carrier="tcp">/objectDetector/targetPix:o</port>
-            <description>coordinates of selected blob</description>
-        </output>
-
     </data>
 
     <dependencies>

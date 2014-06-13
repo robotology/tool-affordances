@@ -46,73 +46,13 @@ public:
   }
 };
 
-class affManager_IDLServer_lookAtTool : public yarp::os::Portable {
+class affManager_IDLServer_getTool : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("lookAtTool",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
-};
-
-class affManager_IDLServer_lookAtRack : public yarp::os::Portable {
-public:
-  bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("lookAtRack",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
-};
-
-class affManager_IDLServer_lookAtPoint : public yarp::os::Portable {
-public:
-  bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("lookAtPoint",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
-};
-
-class affManager_IDLServer_lookAtObject : public yarp::os::Portable {
-public:
-  bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("lookAtObject",1,1)) return false;
+    if (!writer.writeTag("getTool",1,1)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -146,13 +86,13 @@ public:
   }
 };
 
-class affManager_IDLServer_reachTool : public yarp::os::Portable {
+class affManager_IDLServer_graspTool : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("reachTool",1,1)) return false;
+    if (!writer.writeTag("graspTool",1,1)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -166,13 +106,33 @@ public:
   }
 };
 
-class affManager_IDLServer_graspTool : public yarp::os::Portable {
+class affManager_IDLServer_lookAtTool : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("graspTool",1,1)) return false;
+    if (!writer.writeTag("lookAtTool",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
+class affManager_IDLServer_lookAtObject : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("lookAtObject",1,1)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -226,19 +186,19 @@ public:
   }
 };
 
-class affManager_IDLServer_findTools : public yarp::os::Portable {
+class affManager_IDLServer_attachTool : public yarp::os::Portable {
 public:
-  int32_t _return;
+  bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("findTools",1,1)) return false;
+    if (!writer.writeTag("attachTool",1,1)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
     yarp::os::idl::WireReader reader(connection);
     if (!reader.readListReturn()) return false;
-    if (!reader.readI32(_return)) {
+    if (!reader.readBool(_return)) {
       reader.fail();
       return false;
     }
@@ -246,13 +206,33 @@ public:
   }
 };
 
-class affManager_IDLServer_selectTool : public yarp::os::Portable {
+class affManager_IDLServer_doAction : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("selectTool",1,1)) return false;
+    if (!writer.writeTag("doAction",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
+class affManager_IDLServer_slideAction : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("slideAction",1,1)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -304,38 +284,11 @@ bool affManager_IDLServer::goHome() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::lookAtTool() {
+bool affManager_IDLServer::getTool() {
   bool _return = false;
-  affManager_IDLServer_lookAtTool helper;
+  affManager_IDLServer_getTool helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtTool()");
-  }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
-}
-bool affManager_IDLServer::lookAtRack() {
-  bool _return = false;
-  affManager_IDLServer_lookAtRack helper;
-  if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtRack()");
-  }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
-}
-bool affManager_IDLServer::lookAtPoint() {
-  bool _return = false;
-  affManager_IDLServer_lookAtPoint helper;
-  if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtPoint()");
-  }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
-}
-bool affManager_IDLServer::lookAtObject() {
-  bool _return = false;
-  affManager_IDLServer_lookAtObject helper;
-  if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtObject()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::getTool()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -349,20 +302,29 @@ bool affManager_IDLServer::askForTool() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::reachTool() {
-  bool _return = false;
-  affManager_IDLServer_reachTool helper;
-  if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::reachTool()");
-  }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
-}
 bool affManager_IDLServer::graspTool() {
   bool _return = false;
   affManager_IDLServer_graspTool helper;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::graspTool()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::lookAtTool() {
+  bool _return = false;
+  affManager_IDLServer_lookAtTool helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtTool()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::lookAtObject() {
+  bool _return = false;
+  affManager_IDLServer_lookAtObject helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtObject()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -385,20 +347,29 @@ bool affManager_IDLServer::observeObj() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-int32_t affManager_IDLServer::findTools() {
-  int32_t _return = 0;
-  affManager_IDLServer_findTools helper;
+bool affManager_IDLServer::attachTool() {
+  bool _return = false;
+  affManager_IDLServer_attachTool helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","int32_t affManager_IDLServer::findTools()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::attachTool()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::selectTool() {
+bool affManager_IDLServer::doAction() {
   bool _return = false;
-  affManager_IDLServer_selectTool helper;
+  affManager_IDLServer_doAction helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::selectTool()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::doAction()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::slideAction() {
+  bool _return = false;
+  affManager_IDLServer_slideAction helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::slideAction()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -442,42 +413,9 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "lookAtTool") {
+    if (tag == "getTool") {
       bool _return;
-      _return = lookAtTool();
-      yarp::os::idl::WireWriter writer(reader);
-      if (!writer.isNull()) {
-        if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeBool(_return)) return false;
-      }
-      reader.accept();
-      return true;
-    }
-    if (tag == "lookAtRack") {
-      bool _return;
-      _return = lookAtRack();
-      yarp::os::idl::WireWriter writer(reader);
-      if (!writer.isNull()) {
-        if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeBool(_return)) return false;
-      }
-      reader.accept();
-      return true;
-    }
-    if (tag == "lookAtPoint") {
-      bool _return;
-      _return = lookAtPoint();
-      yarp::os::idl::WireWriter writer(reader);
-      if (!writer.isNull()) {
-        if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeBool(_return)) return false;
-      }
-      reader.accept();
-      return true;
-    }
-    if (tag == "lookAtObject") {
-      bool _return;
-      _return = lookAtObject();
+      _return = getTool();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -497,9 +435,9 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "reachTool") {
+    if (tag == "graspTool") {
       bool _return;
-      _return = reachTool();
+      _return = graspTool();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -508,9 +446,20 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "graspTool") {
+    if (tag == "lookAtTool") {
       bool _return;
-      _return = graspTool();
+      _return = lookAtTool();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "lookAtObject") {
+      bool _return;
+      _return = lookAtObject();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -541,20 +490,31 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "findTools") {
-      int32_t _return;
-      _return = findTools();
+    if (tag == "attachTool") {
+      bool _return;
+      _return = attachTool();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeI32(_return)) return false;
+        if (!writer.writeBool(_return)) return false;
       }
       reader.accept();
       return true;
     }
-    if (tag == "selectTool") {
+    if (tag == "doAction") {
       bool _return;
-      _return = selectTool();
+      _return = doAction();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "slideAction") {
+      bool _return;
+      _return = slideAction();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -610,17 +570,16 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("*** Available commands:");
     helpString.push_back("start");
     helpString.push_back("goHome");
-    helpString.push_back("lookAtTool");
-    helpString.push_back("lookAtRack");
-    helpString.push_back("lookAtPoint");
-    helpString.push_back("lookAtObject");
+    helpString.push_back("getTool");
     helpString.push_back("askForTool");
-    helpString.push_back("reachTool");
     helpString.push_back("graspTool");
+    helpString.push_back("lookAtTool");
+    helpString.push_back("lookAtObject");
     helpString.push_back("observeTool");
     helpString.push_back("observeObj");
-    helpString.push_back("findTools");
-    helpString.push_back("selectTool");
+    helpString.push_back("attachTool");
+    helpString.push_back("doAction");
+    helpString.push_back("slideAction");
     helpString.push_back("quit");
     helpString.push_back("help");
   }
@@ -635,40 +594,30 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
       helpString.push_back("Adopt home position ");
       helpString.push_back("@return true/false on success/failure ");
     }
-    if (functionName=="lookAtTool") {
-      helpString.push_back("bool lookAtTool() ");
-      helpString.push_back("Performs several routines until it finds a tool ");
-      helpString.push_back("@return true/false on success/failure of finding a tool in any of its possible locations ");
-    }
-    if (functionName=="lookAtRack") {
-      helpString.push_back("bool lookAtRack() ");
-      helpString.push_back("Look at predefined rack position ");
+    if (functionName=="getTool") {
+      helpString.push_back("bool getTool() ");
+      helpString.push_back("performs the sequence to get the tool from user, look at it and extract its features. ");
       helpString.push_back("@return true/false on success/failure of looking at that position ");
-    }
-    if (functionName=="lookAtPoint") {
-      helpString.push_back("bool lookAtPoint() ");
-      helpString.push_back("Look at user given coordinates ");
-      helpString.push_back("@return true/false on success/failure of looking at that position ");
-    }
-    if (functionName=="lookAtObject") {
-      helpString.push_back("bool lookAtObject() ");
-      helpString.push_back("Look at the target object ");
-      helpString.push_back("@return true/false on success/failure of finding/looking at object ");
     }
     if (functionName=="askForTool") {
       helpString.push_back("bool askForTool() ");
       helpString.push_back("Asks for tool and move the arm to receiving position ");
       helpString.push_back("@return true/false on success/failure on going to receive position ");
     }
-    if (functionName=="reachTool") {
-      helpString.push_back("bool reachTool() ");
-      helpString.push_back("Robot reaches for the tool without grasping ");
-      helpString.push_back("@return true/false on success/failure on computing and reaching the desired point ");
-    }
     if (functionName=="graspTool") {
       helpString.push_back("bool graspTool() ");
       helpString.push_back("Closes hand on tool previously reached or received. ");
       helpString.push_back("@return true/false on success/failure on holding the tool. ");
+    }
+    if (functionName=="lookAtTool") {
+      helpString.push_back("bool lookAtTool() ");
+      helpString.push_back("Moves the tool in hand to a comfortable lookable position, i.e., in front of iCubs eyes ");
+      helpString.push_back("@return true/false on success/failure of bringing the tool in front ");
+    }
+    if (functionName=="lookAtObject") {
+      helpString.push_back("bool lookAtObject() ");
+      helpString.push_back("Look at the target object ");
+      helpString.push_back("@return true/false on success/failure of finding/looking at object ");
     }
     if (functionName=="observeTool") {
       helpString.push_back("bool observeTool() ");
@@ -680,14 +629,22 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
       helpString.push_back("Observes (extracts some features) of target object ");
       helpString.push_back("@return true/false on success/failure finding and extracting feats from object ");
     }
-    if (functionName=="findTools") {
-      helpString.push_back("int32_t findTools() ");
-      helpString.push_back("Attempts to recognise a tool on the actual visual field ");
-      helpString.push_back("@returns the number of potential tools found. ");
+    if (functionName=="attachTool") {
+      helpString.push_back("bool attachTool() ");
+      helpString.push_back("Uses active exploration and non-linear optimization to copmute the tool dimensions and attach its end-effector to the robot's arm. ");
+      helpString.push_back("Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
     }
-    if (functionName=="selectTool") {
-      helpString.push_back("bool selectTool() ");
-      helpString.push_back("Selects one tool among many ");
+    if (functionName=="doAction") {
+      helpString.push_back("bool doAction() ");
+      helpString.push_back("Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect. ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="slideAction") {
+      helpString.push_back("bool slideAction() ");
+      helpString.push_back("Executes a sliding action (push or draw) using the end-effector (tool or hand) ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }

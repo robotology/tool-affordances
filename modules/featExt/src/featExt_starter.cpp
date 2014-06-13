@@ -40,7 +40,7 @@ public:
         return true;
     }
 
-    //void respond();
+    void respond();
 
 };
 

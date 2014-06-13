@@ -112,7 +112,7 @@ return rfsm.state {
             request = yarp.Bottle()
             reply = yarp.Bottle()
             request:clear()
-            request:addString('observeTool')
+            request:addString('lookAtTool')
             aff_rpc:write(req, reply)
             if reply:get(0):asString() == "ok" then
                  rfsm.send_events(fsm, "e_observeTool_ok")

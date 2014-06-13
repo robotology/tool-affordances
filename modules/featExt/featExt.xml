@@ -21,23 +21,29 @@
 
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
-        
+        <input type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/featExt/rpc:i</port>
+            <description> Takes RPC commands from Human or stateMachine</description>
+        </input>
         <input>
             <type>ImageOfPixelRgb</type>
             <port carrier="udp">/featExt/img:i</port>
             <required>yes</required>
             <priority>no</priority>
-            <description>Receives the camera image.</description>
+            <description> Receives the camera image.</description>
         </input>
-
+        
+        <!--
         <input>
             <type>ImageOfPixelRgb</type>
             <port carrier="udp">/featExt/binImg:i</port>
             <required>no</required>
             <priority>no</priority>
-            <description>Receives blob image</description>
+            <description> Receives blob image</description>
         </input>
-
+        -->
+        
         <!-- output data if available -->
         <output>
             <type>Vector(Vector(double))</type>

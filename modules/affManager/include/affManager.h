@@ -15,43 +15,48 @@
  * Public License for more details
 */
 
-#ifndef __AFFMOTOR_H__
-#define __AFFMOTOR_H__
+#ifndef __AFFMANAGER_H__
+#define __AFFMANAGER_H__
 
 // Includes
 #include <string>
+#include <math.h>
+#include <sstream>
+#include <stdio.h>
+#include <deque>
 
+// YARP libraries
 #include <yarp/os/RFModule.h>
 #include <yarp/os/RpcServer.h>
 #include <yarp/os/RpcClient.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Port.h>
+#include <yarp/os/Os.h>
+#include <yarp/os/Time.h>
+
 #include <yarp/sig/Image.h>
 #include <yarp/sig/Vector.h>
 
-//for iCart
+#include <yarp/math/Rand.h>
+#include <yarp/math/Math.h>
+
+//for iCart and iGaze
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
-
-#include <yarp/sig/Vector.h>
+#include <yarp/dev/GazeControl.h>
 #include <yarp/dev/CartesianControl.h>
-#include <stdio.h>
-#include <deque>
 
-//for vision Stuff
-#include <cv.h>
+#include <iCub/ctrl/math.h>
+#include <iCub/ctrl/pids.h>
 
+//for the thrift interface
 #include <affManager_IDLServer.h>
 
 YARP_DECLARE_DEVICES(icubmod)
+#define PI 3.14159265
 
-/**********************************************************/
-// DATA Structs
-struct affTuple
-{
-	// XXXX
-};
+
 /**********************************************************/
 class AffManager : public yarp::os::RFModule, public affManager_IDLServer
 {
@@ -66,16 +71,17 @@ protected:
     yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
 
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
-	yarp::os::RpcClient         rpcMotorIol;        //rpc motor port IOL
-    yarp::os::RpcClient         rpcMotorKarma;      //rpc motor port KARMA    
+	// yarp::os::RpcClient         rpcMotorIol;        //rpc motor port IOL
+    yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA    
+    yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
 
-	yarp::os::RpcClient         rpcBlobPicker;	    //rpc motor port BlobPicker
-	yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter
-	yarp::os::RpcClient         rpcBlobInfo;	    //rpc motor port Blob3DInfo
+	//yarp::os::RpcClient         rpcBlobPicker;	    //rpc motor port BlobPicker
+	//yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter
 
-    //yarp::os::RpcClient         iolStateMachine;    //rpc to iol state machine
+    yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port BlobSpotter
+	yarp::os::RpcClient         rpcFeatExt;	    //rpc motor port Blob3DInfo
 
-	/* class variables */
+    /* class variables */
 
     //ParticleFilter              particleFilter;     //class to receive positions from the templateTracker module
     //SegmentationPoint           segmentPoint;       //class to request segmentation from activeSegmentation module
@@ -83,40 +89,59 @@ protected:
 
 	yarp::dev::PolyDriver					clientCart;
 	yarp::dev::ICartesianControl			*icart;
+    int                                     cartCntxt;
+
+    yarp::dev::PolyDriver                   clientGaze;
+    yarp::dev::IGazeControl                 *igaze;
+    int                                     gazeCntxt;
 
     yarp::os::BufferedPort<yarp::os::Bottle>        blobSpotter;
-	// yarp::os::BufferedPort<yarp::os::Bottle>        particleTracks;
+	// yarp::os::BufferedPort<yarp::os::Bottle>     particleTracks;
 	
 	// Flags
 	bool						running;
+    bool                        actionDone;
 	bool						lookingAtTool;
 	bool						lookingAtObject;
 	bool						toolInHand;
 
-	yarp::os::Bottle			blobsInReachList;
+	//yarp::os::Bottle			blobsInReachList;
 
-	cv::Point					target2Dcoords;
-	yarp::sig::Vector			target3Dcoords;		// Keeps the target position in 3D
-	yarp::sig::Vector			target3Dorient;		// Keeps the target orientation
+	yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D
+    yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D
+    yarp::sig::Vector			target3Dorient;		    // Keeps the target orientation
+
+    double                      effectAlpha;            // Angle in which the object has been moved by the action
+    double                      effectDist;             // Distance that the object has been moved by the action
+	
 	
 	/* motor functions */
-	void                        goHomeExe();
-	void						lookAtToolExe();
-	void						lookAtRackExe();
-	void						lookAtPointExe();
-	void						askForToolExe();
-	void						reachToolExe();
-	void						graspToolExe();
-	void						observeToolExe();
-	void						observeObjExe();
 	
+	//void						reachToolExe();
+	//void						lookAtRackExe();
+	//void						lookAtPointExe();
+    void                        goHomeExe();
+	void						askForToolExe();	
+	bool						graspToolExe();
+    void						lookAtToolExe();
+        void                        handToCenter();
+        void                        lookOverHand();	
+        void                        simTool();
 
+    void                        slideActionExe();
+    
 	/* perceptual functions*/
-	std::vector<int>			findToolsExe();
-	bool						selectToolExe();
-	bool						get3Dposition();
-	bool						get3Dorient();
-	yarp::os::Bottle			getBlobs();
+    void                        attachToolExe();
+    void						observeToolExe();
+	void						observeObjExe();
+
+	//std::vector<int>			findToolsExe();
+	//bool						selectToolExe();
+   
+    void                        computeEffect();
+	//bool						get3Dposition();
+	//bool						get3Dorient();
+	//yarp::os::Bottle			getBlobs();
 
 	
 public:
@@ -126,17 +151,27 @@ public:
 	bool						start();
 	bool						quit();
 	bool                        goHome();       //
+    bool                        getTool();       //
+    bool						askForTool();   //
+    bool						graspTool();    //
 	bool						lookAtTool();
-	bool						lookAtRack();
-	bool						lookAtPoint();
-	bool						askForTool();   //
-	bool						reachTool();
-	bool						graspTool();    //
+
+    bool                        doAction();
+    bool                        slideAction();
+
+	// bool						lookAtRack();
+	// bool						lookAtPoint();
+	// bool						reachTool();
+
+	bool						attachTool();
 	bool						observeTool();  //
 	bool						observeObj();   //
 
-	int							findTools();
-	bool						selectTool();
+    
+
+	//int							findTools();
+	//bool						selectTool();
+	
 
 	// RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);
@@ -145,5 +180,6 @@ public:
     bool						updateModule();
     double						getPeriod();
 };
+
 #endif
 
