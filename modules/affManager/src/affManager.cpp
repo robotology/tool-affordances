@@ -99,7 +99,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
     igaze->storeContext(&gazeCntxt);        // store the original the context
 
-    igaze->setNeckTraj-+Time(0.8);
+    igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
     igaze->setTrackingMode(true);
 
