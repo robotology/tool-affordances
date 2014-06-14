@@ -109,7 +109,8 @@ public:
         igaze->setNeckTrajTime(0.8);
         igaze->setEyesTrajTime(0.4);
         igaze->setTrackingMode(true);
-
+		
+		running = true;
 
         return true;
     }
@@ -140,9 +141,10 @@ public:
                 //Encode response                
                 responseCode = Vocab::encode("ack");
                 reply.addVocab(responseCode);
-                reply.addDouble(coords3D(0));
-                reply.addDouble(coords3D(1));
-                reply.addDouble(coords3D(2));
+                Bottle& bCoords = reply.addList();
+                bCoords.addDouble(coords3D(0));
+                bCoords.addDouble(coords3D(1));
+                bCoords.addDouble(coords3D(2));
             }
             return true;
         }        

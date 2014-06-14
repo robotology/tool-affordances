@@ -102,6 +102,9 @@ bool AffManager::configure(ResourceFinder &rf)
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
     igaze->setTrackingMode(true);
+    
+    target3DcoordsIni.resize(3);		// Keeps the target position in 3D
+    target3DcoordsAfter.resize(3);	// Keeps the target position in 3D
 
 	return true;
 }
@@ -248,7 +251,7 @@ bool AffManager::selectTool(){
 */
 
 bool AffManager::doAction(){
-	goHomeExe();
+	goHomeNoHandsExe();
 	observeObjExe();
     slideActionExe();
     observeObjExe();
@@ -527,6 +530,7 @@ void AffManager::slideActionExe()
     int drawAngle = (int)Rand::scalar(0,359);
     double drawDist = 0.2;
     cmdKM.addString("draw");
+    cmdKM.addDouble(target3DcoordsIni[0]);
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2]);
     cmdKM.addInt(drawAngle);
@@ -629,18 +633,23 @@ void AffManager::observeObjExe()
     lookingAtTool = false;
     lookingAtObject = true;
     fprintf(stdout,"3D point received!\n");
-    Bottle coords3dB = replyFinder.tail();
+    Bottle coords3dB = replyFinder.tail();    
     if (!actionDone){
+		cout << "3D coords before action are" << coords3dB.toString().c_str() << endl;
         target3DcoordsIni[0] = coords3dB.get(0).asDouble();
         target3DcoordsIni[1] = coords3dB.get(1).asDouble();
         target3DcoordsIni[2] = coords3dB.get(2).asDouble();
+        fprintf(stdout,"Object is located at %s:\n",target3DcoordsIni.toString().c_str());
         actionDone = true;
     }else{
+		cout << "3D coords after action are" << coords3dB.toString().c_str() << endl;
+		cout << "Writing " << coords3dB.get(5).asDouble() << endl;
         target3DcoordsAfter[0] = coords3dB.get(0).asDouble();
         target3DcoordsAfter[1] = coords3dB.get(1).asDouble();
         target3DcoordsAfter[2] = coords3dB.get(2).asDouble();
+        fprintf(stdout,"Object is located at %s:\n",target3DcoordsAfter.toString().c_str());
         }
-    fprintf(stdout,"Object is located at %s:\n",replyFinder.toString().c_str());
+    
 
     return;
 }
