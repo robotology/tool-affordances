@@ -28,6 +28,11 @@ public:
  */
   virtual bool goHome();
 /**
+ * Adopt home position while keeping hand pose
+ * @return true/false on success/failure
+ */
+  virtual bool goHomeNoHands();
+/**
  * performs the sequence to get the tool from user, look at it and extract its features.
  * @return true/false on success/failure of looking at that position
  */

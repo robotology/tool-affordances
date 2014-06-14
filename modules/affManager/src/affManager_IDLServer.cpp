@@ -46,6 +46,26 @@ public:
   }
 };
 
+class affManager_IDLServer_goHomeNoHands : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("goHomeNoHands",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class affManager_IDLServer_getTool : public yarp::os::Portable {
 public:
   bool _return;
@@ -284,6 +304,15 @@ bool affManager_IDLServer::goHome() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool affManager_IDLServer::goHomeNoHands() {
+  bool _return = false;
+  affManager_IDLServer_goHomeNoHands helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::goHomeNoHands()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool affManager_IDLServer::getTool() {
   bool _return = false;
   affManager_IDLServer_getTool helper;
@@ -405,6 +434,17 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "goHome") {
       bool _return;
       _return = goHome();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "goHomeNoHands") {
+      bool _return;
+      _return = goHomeNoHands();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -570,6 +610,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("*** Available commands:");
     helpString.push_back("start");
     helpString.push_back("goHome");
+    helpString.push_back("goHomeNoHands");
     helpString.push_back("getTool");
     helpString.push_back("askForTool");
     helpString.push_back("graspTool");
@@ -592,6 +633,11 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="goHome") {
       helpString.push_back("bool goHome() ");
       helpString.push_back("Adopt home position ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="goHomeNoHands") {
+      helpString.push_back("bool goHomeNoHands() ");
+      helpString.push_back("Adopt home position while keeping hand pose ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="getTool") {
