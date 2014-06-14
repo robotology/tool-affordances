@@ -41,11 +41,11 @@ bool AffManager::configure(ResourceFinder &rf)
 
     hand=rf.find("hand").asString().c_str();
     if ((hand!="left") && (hand!="right"))
-        hand="left";
+        hand="right";
 
 	robot = rf.find("robot").asString().c_str();
     if ((robot!="icubSim") && (robot!="icub"))
-        robot="icubSim";
+        robot="icub";
 
     //simMode=rf.check("simMode", Value("off"),"simMode (string)").asString();
 	
@@ -80,10 +80,8 @@ bool AffManager::configure(ResourceFinder &rf)
 	// Cartesian Controller Interface
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
-    optCart.put("remote","/"+robot+"/cartesianController/left_arm");
-    optCart.put("local","/"+name+"/cartesian_client/left_arm");
-    optCart.put("remote","/icub/cartesianController/left_arm");
-    optCart.put("local","/cartesian_client/left_arm");
+    optCart.put("remote","/"+robot+"/cartesianController/right_arm");
+    optCart.put("local","/"+name+"/cartesian_client/right_arm");
 	if (!clientCart.open(optCart))
 		return false;    
     clientCart.view(icart);	// open the view	
@@ -101,7 +99,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
     igaze->storeContext(&gazeCntxt);        // store the original the context
 
-    igaze->setNeckTrajTime(0.8);
+    igaze->setNeckTraj-+Time(0.8);
     igaze->setEyesTrajTime(0.4);
     igaze->setTrackingMode(true);
 
@@ -370,7 +368,7 @@ void AffManager::askForToolExe()
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("tato");
-    cmdAre.addString("left");
+    cmdAre.addString("right");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"Waiting for tool %s:\n",replyAre.toString().c_str());
     Time::delay(3);
@@ -398,15 +396,15 @@ bool AffManager::graspToolExe()
 {
     Time::delay(0.5);
 	// Close hand toolwise
-    fprintf(stdout,"Start 'clto' 'left' (close tool left) procedure:\n");
+    fprintf(stdout,"Start 'clto' 'right' (close tool right) procedure:\n");
     Bottle cmdAre,replyAre;
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("clto");
-    cmdAre.addString("left");
+    cmdAre.addString("right");
     fprintf(stdout,"%s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"'clto' 'left' action is %s:\n",replyAre.toString().c_str());
+    fprintf(stdout,"'clto' 'right' action is %s:\n",replyAre.toString().c_str());
 	Time::delay(0.5);
 
 	// Check if grasp was successful
@@ -438,7 +436,7 @@ void AffManager::lookAtToolExe()
 void AffManager::handToCenter()
 {
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
-    xd[0]=-0.3; xd[1]=-0.05; xd[2]=0.05;
+    xd[0]=-0.3; xd[1]=0.15; xd[2]=0.05;
     
     Vector oy(4), ox(4);
 
@@ -470,9 +468,13 @@ void AffManager::lookOverHand()
     fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
 
     igaze->lookAtFixationPoint(handPos);     
-    igaze->waitMotionDone();                                // wait until the operation is done
-    lookingAtTool = true;
-
+    igaze->waitMotionDone(0.04);                                // wait until the operation is done
+    
+    Vector fp;
+    igaze->getFixationPoint(fp); 							// retrieve the current fixation point
+    lookingAtTool = true;        
+	fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
+	
     return;
 }
 
@@ -491,7 +493,7 @@ void AffManager::simTool()
     simCmd.addString("world rot cyl 1 90 0 0");
     simCmd.clear();reply.clear();
     Time::delay(0.05);
-    simCmd.addString("world grab cyl 1 left 1");
+    simCmd.addString("world grab cyl 1 right 1");
     simPort.write(simCmd, reply);
     Network::disconnect(portName, "/icubSim/world");
     return;
@@ -544,8 +546,8 @@ void AffManager::attachToolExe()
     // find the dimensions and tooltip of the tool
     Bottle toolDim;
     cmdKM.addString("find");
-    cmdKM.addString("left");
-    cmdKM.addString("left");
+    cmdKM.addString("right");	// arm
+    cmdKM.addString("right");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
     toolDim = replyKM.tail();
@@ -559,7 +561,7 @@ void AffManager::attachToolExe()
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("attach");
-    cmdKM.addString("left");
+    cmdKM.addString("right");
     cmdKM.addDouble(toolDim.get(0).asDouble());
     cmdKM.addDouble(toolDim.get(1).asDouble());
     cmdKM.addDouble(toolDim.get(2).asDouble());

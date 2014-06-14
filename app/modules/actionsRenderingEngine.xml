@@ -147,18 +147,18 @@
             <port carrier="tcp">/actionsRenderingEngine/right/img:o</port>
             <description></description>
         </output>
- 	<output>
+ 	    <output>
             <type>unk</type>
             <port carrier="tcp">/actionsRenderingEngine/MIL/window:o</port>
             <description></description>
         </output>
-        <output>
-            <type>unk</type>
+        <output port_type="service">
+            <type>rpc</type>
             <port carrier="tcp">/actionsRenderingEngine/MIL/cmd:o</port>
             <description></description>
         </output>
- 	<output>
-            <type>unk</type>
+ 	    <output port_type="service">
+            <type>rpc</type>
             <port carrier="tcp">/actionsRenderingEngine/MSR/cmd:o</port>
             <description></description>
         </output>
@@ -167,7 +167,7 @@
             <port carrier="tcp">/actionsRenderingEngine/tracker:o</port>
             <description></description>
         </output>
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/actionsRenderingEngine/OPC:io</port>
             <description></description>

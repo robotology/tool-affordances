@@ -56,8 +56,8 @@
             <priority>no</priority>
             <description>Accepts the incoming images</description>
         </input>
-        <input>
-            <type port_type="service">Rpc</type>
+        <input port_type="service">
+            <type>Rpc</type>
             <port carrier="tcp">/motionCUT/rpc</port>
             <required>no</required>
             <priority>no</priority>

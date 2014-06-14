@@ -41,8 +41,8 @@
             <priority>no</priority>
             <description>Used to forward requests to the blob detector for image segmentation.</description>
 	</input>
-        <input>
-            <type port_type="service">Rpc</type>
+        <input port_type="service">
+            <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/human:rpc</port>
             <required>no</required>
             <priority>no</priority>
@@ -90,31 +90,31 @@
             <description>Used to forward requests to the blob detector for image segmentation.</description>
         </output -->
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/classify:rpc</port>
             <description>Sends out requests for object classification.Used to forward requests to the blob detector for image segmentation.</description>
         </output>
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/get3d:rpc</port>
             <description></description>
         </output>
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/wbd:rpc</port>
             <description></description>
         </output>
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/motor:rpc</port>
             <description>Sends out motor commands.</description>
         </output>
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/motor_stop:rpc</port>
             <description>Used to interrupt/restore motor capabilities.</description>
@@ -126,7 +126,7 @@
             <description>Streams out the robot's sentences that need to be spoken.</description>
         </output>
 
-        <output>
+        <output port_type="service">
             <type>Rpc</type>
             <port carrier="tcp">/iolStateMachineHandler/memory:rpc</port>
             <description>Used to communicate with the objects properties collector.</description>

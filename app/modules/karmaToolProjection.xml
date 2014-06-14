@@ -18,8 +18,8 @@
 
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
-        <input>
-            <type port_type="service">Rpc</type>
+        <input port_type="service">
+            <type>Rpc</type>
             <port carrier="tcp">/karmaToolProjection/human:rpc</port>
             <required>no</required>
             <priority>no</priority>

@@ -119,6 +119,7 @@
         <prefix>/imLeft</prefix>
         <geometry>(Pos (x 187.00) (y 251.90))</geometry>
     </module>
+    
     <connection>
         <from>/featExt/imgFeat:o</from>
         <to>/fExt/yarpview/img:i</to>
@@ -128,7 +129,7 @@
     <connection>
         <from>/stateMachine/rpc:o</from>
         <to>/affManager/rpc:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 214.50) (y 96.00)) ((x 210.00) (y 96.00)) ((x 240.00) (y 109.00))  )</geometry>
     </connection>
     <connection>
@@ -164,19 +165,19 @@
     <connection>
         <from>/affManager/affLearn:rpc</from>
         <to>/affLearn/rpc:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 507.00) (y 122.50)) ((x 409.00) (y 134.00)) ((x 626.00) (y 111.00))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/are:rpc</from>
         <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 712.50) (y 51.00)) ((x 409.00) (y 59.00)) ((x 1037.00) (y 43.00))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/karmaMotor:rpc</from>
         <to>/karmaMotor/rpc</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 509.00) (y 183.50)) ((x 409.00) (y 84.00)) ((x 630.00) (y 283.00))  )</geometry>
     </connection>
     <connection>
@@ -212,7 +213,7 @@
     <connection>
         <from>/karmaMotor/finder:rpc</from>
         <to>/karmaToolFinder/rpc</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 824.00) (y 340.00)) ((x 799.00) (y 308.00)) ((x 870.00) (y 372.00))  )</geometry>
     </connection>
     <connection>
@@ -242,7 +243,7 @@
     <connection>
         <from>/affManager/objFind:rpc</from>
         <to>/objectFinder/rpc:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 509.50) (y 166.00)) ((x 409.00) (y 159.00)) ((x 631.00) (y 173.00))  )</geometry>
     </connection>
     <connection>
