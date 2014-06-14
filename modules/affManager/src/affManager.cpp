@@ -573,8 +573,9 @@ void AffManager::attachToolExe()
     cmdKM.addString("right");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
-    toolDim = replyKM.tail();
+    toolDim = replyKM.tail();			// Check that this TAIL actually works!!!
     fprintf(stdout,"TOOL AT %s:\n", toolDim.toString().c_str());
+    
 
     cmdKM.clear();    replyKM.clear();
     cmdKM.addString("tool");
@@ -598,6 +599,12 @@ void AffManager::attachToolExe()
 /**********************************************************/
 void AffManager::observeToolExe()
 {
+	//XXX use the tool Dim Z axis to tell the icub where to look before getting the features
+	Vector handPos,handOr;
+    icart->getPose(handPos,handOr);
+    handPos[2] += 0.15;          // Tool center round 15 cm over the hand
+     // XXX <<
+	
     Bottle cmdFE,replyFE;
     cmdFE.clear();
     replyFE.clear();
@@ -633,20 +640,18 @@ void AffManager::observeObjExe()
     lookingAtTool = false;
     lookingAtObject = true;
     fprintf(stdout,"3D point received!\n");
-    Bottle coords3dB = replyFinder.tail();    
     if (!actionDone){
-		cout << "3D coords before action are" << coords3dB.toString().c_str() << endl;
-        target3DcoordsIni[0] = coords3dB.get(0).asDouble();
-        target3DcoordsIni[1] = coords3dB.get(1).asDouble();
-        target3DcoordsIni[2] = coords3dB.get(2).asDouble();
+		cout << "3D coords before action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+        target3DcoordsIni[0] = replyFinder.get(1).asList()->get(0).asDouble();
+        target3DcoordsIni[1] = replyFinder.get(1).asList()->get(1).asDouble();
+        target3DcoordsIni[2] = replyFinder.get(1).asList()->get(2).asDouble();
         fprintf(stdout,"Object is located at %s:\n",target3DcoordsIni.toString().c_str());
         actionDone = true;
     }else{
-		cout << "3D coords after action are" << coords3dB.toString().c_str() << endl;
-		cout << "Writing " << coords3dB.get(5).asDouble() << endl;
-        target3DcoordsAfter[0] = coords3dB.get(0).asDouble();
-        target3DcoordsAfter[1] = coords3dB.get(1).asDouble();
-        target3DcoordsAfter[2] = coords3dB.get(2).asDouble();
+		cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+        target3DcoordsAfter[0] = replyFinder.get(1).asList()->get(0).asDouble();
+        target3DcoordsAfter[1] = replyFinder.get(1).asList()->get(1).asDouble();
+        target3DcoordsAfter[2] = replyFinder.get(1).asList()->get(2).asDouble();
         fprintf(stdout,"Object is located at %s:\n",target3DcoordsAfter.toString().c_str());
         }
     

@@ -7,47 +7,40 @@
     <module>
         <name>dataDumper</name>
         <parameters>--type image --downsample 3 --dir camCalibRight --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/camCalibRight</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 728.682) (y 1493.76))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--downsample 10 --dir dumpRightEEF --rxTime</parameters>
-        <node>icub16</node>
-        <prefix>/dumpRightEEF</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 1656.85) (y 1570.16))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
         <parameters>--type image --downsample 3 --dir camCalibLeft --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/camCalibLeft</prefix>
         <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 1.44329e-15) (y 61.9))</geometry>
+        <geometry>(Pos (x 713.75) (y 310.65))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir rpcAffLEarn --rxTime</parameters>
-        <node>icub16</node>
+        <parameters> --dir rpcAffLEarn --rxTime</parameters>
+        <node>icub-b16</node>
         <prefix>/rpcAffLearn</prefix>
         <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 5.9) (y 1.9))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
         <parameters>---type image --dir ntdImgBin --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/ntdImgBin</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
     </module>
+
+
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir headState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/headState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
@@ -55,7 +48,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir rightArmState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/rightArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2065.68) (y 527.764))</geometry>
@@ -63,7 +56,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir leftArmState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/leftArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2036.85) (y 436.165))</geometry>
@@ -71,7 +64,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir ActualFixPoint --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/dumpActualFixPoint</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2048.25) (y 878.15))</geometry>
@@ -79,71 +72,80 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir dumpLeftEEF --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub-b16</node>
         <prefix>/dumpLeftEEF</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1699.86) (y 1415.13))</geometry>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--downsample 10 --dir dumpRightEEF --rxTime</parameters>
+        <node>icub-b16</node>
+        <prefix>/dumpRightEEF</prefix>
+        <workdir>/tmp/affData</workdir>
+        <geometry>(Pos (x 1656.85) (y 1570.16))</geometry>
     </module>
 
 
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
-        <to external="true">/camCalibLeft/dump</to>
+        <to>/camCalibLeft/dump</to>
         <protocol>mcast</protocol>
-        <geometry>(Pos ((x 514.5) (y 302)) ((x 366) (y 306)) ((x 698) (y 298))  )</geometry>
+        <geometry>(Pos ((x 531) (y 348.5)) ((x 383) (y 368)) ((x 714) (y 328))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/right/out</from>
-        <to external="true">/camCalibRight/dump</to>
+        <to>/camCalibRight/dump</to>
         <protocol>mcast</protocol>
-        <geometry>(Pos ((x 681) (y 1445)) ((x 638) (y 1357)) ((x 701) (y 1514)) ((x 737) (y 1510))  )</geometry>
+        <geometry>(Pos ((x 681) (y 1445)) ((x 638) (y 1358)) ((x 701) (y 1514)) ((x 729) (y 1511))  )</geometry>
     </connection>
     <connection>
         <from external="true">/affManager/affLearn:rpc</from>
-        <to external="true">/rpcAffLearn/dump</to>
+        <to>/rpcAffLearn/dump</to>
         <protocol>tcp+log.in:/</protocol>
-        <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
+        <geometry>(Pos ((x 531) (y 348.5)) ((x 383) (y 368)) ((x 714) (y 328))  )</geometry>
     </connection>
     <connection>
         <from external="true">/nearThingsDetector/imgBin:o</from>
-        <to external="true">/ntdImgBin/dump</to>
+        <to>/ntdImgBin/dump</to>
         <protocol>mcast</protocol>
-        <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
+        <geometry>(Pos ((x 531) (y 348.5)) ((x 383) (y 368)) ((x 714) (y 328))  )</geometry>
     </connection>
+
     <connection>
         <from external="true">/icub/cartesianController/right_arm/state:o</from>
-        <to external="true">/dumpRightEEF/dump</to>
+        <to>/dumpRightEEF/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 1609) (y 1559.5)) ((x 1582) (y 1527)) ((x 1665) (y 1587))  )</geometry>
+        <geometry>(Pos ((x 1609) (y 1559.5)) ((x 1582) (y 1528)) ((x 1657) (y 1588))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/cartesianController/left_arm/state:o</from>
-        <to external="true">/dumpLeftEEF/dump</to>
+        <to>/dumpLeftEEF/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 1642.5) (y 1405.5)) ((x 1606) (y 1374)) ((x 1708) (y 1432))  )</geometry>
+        <geometry>(Pos ((x 1642.5) (y 1405.5)) ((x 1606) (y 1375)) ((x 1700) (y 1433))  )</geometry>
     </connection>
     <connection>
         <from external="true">/iKinGazeCtrl/head/x:o</from>
-        <to external="true">/dumpActualFixPoint/dump</to>
+        <to>/dumpActualFixPoint/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 1995.5) (y 893.5)) ((x 1963) (y 887)) ((x 2057) (y 895))  )</geometry>
+        <geometry>(Pos ((x 1995.5) (y 893.5)) ((x 1963) (y 888)) ((x 2049) (y 896))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/left_arm/state:o</from>
-        <to external="true">/leftArmState/dump</to>
+        <to>/leftArmState/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 1992.5) (y 453.5)) ((x 1969) (y 449)) ((x 2045) (y 453))  )</geometry>
+        <geometry>(Pos ((x 1992.5) (y 453.5)) ((x 1969) (y 450)) ((x 2037) (y 454))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/right_arm/state:o</from>
-        <to external="true">/rightArmState/dump</to>
+        <to>/rightArmState/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 2020) (y 546.5)) ((x 1995) (y 544)) ((x 2074) (y 544))  )</geometry>
+        <geometry>(Pos ((x 2020) (y 546.5)) ((x 1995) (y 545)) ((x 2066) (y 545))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/head/state:o</from>
-        <to external="true">/headState/dump</to>
+        <to>/headState/dump</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 2014) (y 651)) ((x 1973) (y 638)) ((x 2084) (y 659))  )</geometry>
+        <geometry>(Pos ((x 2014) (y 651)) ((x 1973) (y 639)) ((x 2076) (y 660))  )</geometry>
     </connection>
 </application>
