@@ -176,6 +176,10 @@ bool AffManager::goHome(){
 	goHomeExe();
 	return true;
 }
+bool AffManager::goHomeNoHands(){
+	goHomeNoHandsExe();
+	return true;
+}
 
 bool AffManager::getTool(){
 	askForToolExe();
@@ -185,7 +189,7 @@ bool AffManager::getTool(){
     }
     lookAtToolExe();
 
-    attachToolExe();
+    //attachToolExe();
     observeToolExe();
 
 	return true;
@@ -244,6 +248,7 @@ bool AffManager::selectTool(){
 */
 
 bool AffManager::doAction(){
+	goHomeExe();
 	observeObjExe();
     slideActionExe();
     observeObjExe();
@@ -274,6 +279,20 @@ void AffManager::goHomeExe()
     replyAre.clear();
     cmdAre.addString("home");
     cmdAre.addString("all");
+    rpcMotorAre.write(cmdAre,replyAre);
+    fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
+}
+
+/**********************************************************/
+void AffManager::goHomeNoHandsExe()
+{
+	fprintf(stdout,"Start 'home' 'arms' 'head' proceedure:\n");
+    Bottle cmdAre, replyAre;
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("home");
+    cmdAre.addString("arms");
+    cmdAre.addString("head");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
 }

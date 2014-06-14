@@ -121,6 +121,7 @@ protected:
 	//void						lookAtRackExe();
 	//void						lookAtPointExe();
     void                        goHomeExe();
+    void                        goHomeNoHandsExe();
 	void						askForToolExe();	
 	bool						graspToolExe();
     void						lookAtToolExe();
@@ -151,6 +152,7 @@ public:
 	bool						start();
 	bool						quit();
 	bool                        goHome();       //
+	bool                        goHomeNoHands();       //
     bool                        getTool();       //
     bool						askForTool();   //
     bool						graspTool();    //
