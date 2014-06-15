@@ -101,6 +101,7 @@ protected:
 	// Flags
 	bool						running;
     bool                        actionDone;
+    bool						objFound;
 	bool						lookingAtTool;
 	bool						lookingAtObject;
 	bool						toolInHand;
@@ -134,7 +135,7 @@ protected:
 	/* perceptual functions*/
     void                        attachToolExe();
     void						observeToolExe();
-	void						observeObjExe();
+	bool						observeObjExe();
 
 	//std::vector<int>			findToolsExe();
 	//bool						selectToolExe();

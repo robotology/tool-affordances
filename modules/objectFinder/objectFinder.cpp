@@ -71,7 +71,7 @@ public:
         setName(name.c_str());
         camera = rf.check("camera", Value("left"), "Selecting the camera").asString().c_str();
         robot = rf.check("robot", Value("icub"), "Choosing a robot").asString().c_str();
-        tableHeight = rf.check("tableHeight", Value(-0.1)).asDouble();      // Height of the table in the robots coord frame
+        tableHeight = rf.check("tableHeight", Value(-0.15)).asDouble();      // Height of the table in the robots coord frame
         if (camera != "left") {
             camSel = 1;
         }else {

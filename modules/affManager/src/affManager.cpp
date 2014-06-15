@@ -53,6 +53,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	running=true;
 	lookingAtTool = false;
     actionDone = false;
+    objFound = false;
 
 	//incoming
 	/*bool ret = true;  
@@ -252,10 +253,14 @@ bool AffManager::selectTool(){
 
 bool AffManager::doAction(){
 	goHomeNoHandsExe();
-	observeObjExe();
-    slideActionExe();
-    observeObjExe();
-    computeEffect();
+	bool objLocated = observeObjExe();
+	if (objLocated)
+	{
+		slideActionExe();
+		goHomeNoHandsExe();
+		observeObjExe();
+		computeEffect();
+	}
 	return true;
 }
 
@@ -284,6 +289,18 @@ void AffManager::goHomeExe()
     cmdAre.addString("all");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
+    
+    // reinitialize some flags for next round
+    actionDone = false;
+    objFound = false;
+    lookingAtTool = false;
+    
+    target3DcoordsIni.clear();		// Keeps the target position in 3D before the action
+    target3DcoordsAfter.clear();	// Keeps the target position in 3D after the action
+    
+    target3DcoordsIni.resize(3);    // Keeps the target position in 3D before the action
+    target3DcoordsAfter.resize(3);	// Keeps the target position in 3D after the action
+    
 }
 
 /**********************************************************/
@@ -527,16 +544,20 @@ void AffManager::slideActionExe()
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
 
-    int drawAngle = (int)Rand::scalar(0,359);
+    int drawAngle = (int)Rand::scalar(0,180);
     double drawDist = 0.2;
+    double drawRadius = 0.05;
+    double minusTool = 0.15;
     cmdKM.addString("draw");
-    cmdKM.addDouble(target3DcoordsIni[0]);
+    cmdKM.addDouble(target3DcoordsIni[0]+minusTool); // Draw closer if tool has not been attached as endeffector
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2]);
     cmdKM.addInt(drawAngle);
     cmdKM.addDouble(drawDist);
+    cmdKM.addDouble(drawRadius);
     fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
+    actionDone = true;
 
 
     // Save the features of the action
@@ -627,7 +648,7 @@ void AffManager::observeToolExe()
 }
 
 /**********************************************************/
-void AffManager::observeObjExe()
+bool AffManager::observeObjExe()
 {
 	//Time::delay(0.5);
     fprintf(stdout,"Start 'observe' procedure:\n");
@@ -637,26 +658,29 @@ void AffManager::observeObjExe()
     cmdFinder.addString("getPoint");
 	// XXX So far point at the object. Improve to detect it automatically.
 	rpcObjFinder.write(cmdFinder, replyFinder);
-    lookingAtTool = false;
-    lookingAtObject = true;
-    fprintf(stdout,"3D point received!\n");
-    if (!actionDone){
-		cout << "3D coords before action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
-        target3DcoordsIni[0] = replyFinder.get(1).asList()->get(0).asDouble();
-        target3DcoordsIni[1] = replyFinder.get(1).asList()->get(1).asDouble();
-        target3DcoordsIni[2] = replyFinder.get(1).asList()->get(2).asDouble();
-        fprintf(stdout,"Object is located at %s:\n",target3DcoordsIni.toString().c_str());
-        actionDone = true;
-    }else{
-		cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
-        target3DcoordsAfter[0] = replyFinder.get(1).asList()->get(0).asDouble();
-        target3DcoordsAfter[1] = replyFinder.get(1).asList()->get(1).asDouble();
-        target3DcoordsAfter[2] = replyFinder.get(1).asList()->get(2).asDouble();
-        fprintf(stdout,"Object is located at %s:\n",target3DcoordsAfter.toString().c_str());
-        }
-    
-
-    return;
+	    
+    if (replyFinder.size() >1){
+		fprintf(stdout,"3D point received!\n");
+		lookingAtTool = false;
+		lookingAtObject = true;
+		if (!actionDone){			
+			cout << "3D coords before action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+			target3DcoordsIni[0] = replyFinder.get(1).asList()->get(0).asDouble();
+			target3DcoordsIni[1] = replyFinder.get(1).asList()->get(1).asDouble();
+			target3DcoordsIni[2] = replyFinder.get(1).asList()->get(2).asDouble();
+			fprintf(stdout,"Object is located at %s:\n",target3DcoordsIni.toString().c_str());
+			objFound = true;
+		}else{
+			cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+			target3DcoordsAfter[0] = replyFinder.get(1).asList()->get(0).asDouble();
+			target3DcoordsAfter[1] = replyFinder.get(1).asList()->get(1).asDouble();
+			target3DcoordsAfter[2] = replyFinder.get(1).asList()->get(2).asDouble();
+			fprintf(stdout,"Object is located at %s:\n",target3DcoordsAfter.toString().c_str());
+			}
+	} else {
+		cout << "No 3D point received" << endl;
+	}
+    return objFound;
 }
 
 /**********************************************************/
