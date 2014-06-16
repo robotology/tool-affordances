@@ -193,7 +193,7 @@ bool AffManager::getTool(){
     }
     lookAtToolExe();
 
-    //attachToolExe();
+    attachToolExe();
     observeToolExe();
 
 	return true;
@@ -591,7 +591,7 @@ void AffManager::attachToolExe()
     Bottle toolDim;
     cmdKM.addString("find");
     cmdKM.addString("right");	// arm
-    cmdKM.addString("right");	// eye
+    cmdKM.addString("left");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
     toolDim = replyKM.tail();			// Check that this TAIL actually works!!!
