@@ -75,24 +75,24 @@ bool FeatExt::close()
     
 	featPort.setStrict();
 	featPort.write();
-	
+	featPort.close();
 
     inImPort.close();
 	imPropOutPort.close();
 	imFeatOutPort.close();
 	//binImPort.close();
-    featPort.close();
+    
 	printf("Closed");
     return true;
 }
 
 bool FeatExt::interrupt()
 {
+    rpcCmd.interrupt();
+    featPort.interrupt();
 	inImPort.interrupt();
-	//binImPort.interrupt();
 	imFeatOutPort.interrupt();
 	imPropOutPort.interrupt();
-
 
     return true;
 }
