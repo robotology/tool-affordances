@@ -67,6 +67,7 @@ protected:
 	std::string                 hand;               //hand
 	std::string                 camera;             //camera
 	std::string                 robot;				//robot
+    double                      tableHeight;        // height of the table with respect to the robot frame
 
     yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
 
@@ -135,12 +136,14 @@ protected:
 	/* perceptual functions*/
     void                        attachToolExe();
     void						observeToolExe();
-	bool						observeObjExe();
+	bool						locateObjExe();
+    void						trackObjExe();
 
 	//std::vector<int>			findToolsExe();
 	//bool						selectToolExe();
    
     void                        computeEffect();
+    void                        finishRound();
 	//bool						get3Dposition();
 	//bool						get3Dorient();
 	//yarp::os::Bottle			getBlobs();
@@ -162,14 +165,10 @@ public:
     bool                        doAction();
     bool                        slideAction();
 
-	// bool						lookAtRack();
-	// bool						lookAtPoint();
-	// bool						reachTool();
-
 	bool						attachTool();
 	bool						observeTool();  //
-	bool						observeObj();   //
-
+	bool						locateObj();   //
+    bool						trackObj();   //
     
 
 	//int							findTools();

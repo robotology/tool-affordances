@@ -33,18 +33,6 @@ service affManager_IDLServer
     bool getTool();
 
     /**
-     * Look at predefined rack position
-     * @return true/false on success/failure of looking at that position    
-    * bool lookAtRack();
-     */
-
-    /**
-     * Look at user given coordinates
-     * @return true/false on success/failure of looking at that position     
-    * bool lookAtPoint();
-     */
-
-    /**
      * Asks for tool and move the arm to receiving position
      * @return true/false on success/failure on going to receive position
      */
@@ -63,10 +51,16 @@ service affManager_IDLServer
     bool lookAtTool();
 
     /**
-     * Look at the target object
+     * Gets user object box and learns it for tracking
      * @return true/false on success/failure of finding/looking at object
      */
-    bool lookAtObject();
+    bool  trackObj();
+
+    /**
+     * Look and locate in 3D the target object
+     * @return true/false on success/failure of finding/looking at object
+     */
+    bool  locateObj();
 
     /**
      * Robot reaches for the tool without grasping
@@ -83,21 +77,9 @@ service affManager_IDLServer
     /**
      * Observes (extracts some features) of target object
      * @return true/false on success/failure finding and extracting feats from object
-     */
-    bool observeObj();
+     * bool observeObj();
+    */
     
-    /**
-     * Attempts to recognise a tool on the actual visual field
-     * @returns the number of potential tools found.    
-    * i32 findTools();   
-     */
-
-    /**
-     * Selects one tool among many
-     * @return true/false on success/failure to select      
-    * bool selectTool();
-     */
-
     /**
      * Uses active exploration and non-linear optimization to copmute the tool dimensions and attach its end-effector to the robot's arm.
      * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
@@ -105,7 +87,6 @@ service affManager_IDLServer
      * to select 
      */
     bool attachTool();
-
 
     /**
      * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.

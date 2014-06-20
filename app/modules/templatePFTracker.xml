@@ -30,7 +30,7 @@ Particle filtering is a Monte Carlo sampling approach to Bayesian filtering.The 
             <!-- priority forces the execution of module to be delayed
                  until the required data becomes available on the port -->
             <priority>no</priority>
-            <description></description>
+            <description> Receives a cropped image containing the object to track </description>
         </input>
 
         <input>
@@ -38,7 +38,7 @@ Particle filtering is a Monte Carlo sampling approach to Bayesian filtering.The 
             <port carrier="udp">/templatePFTracker/left/image:i</port>
             <required>yes</required>
             <priority>no</priority>
-            <description></description>
+            <description> Receives the image from the  left camera</description>
         </input>
 
         <input>
@@ -46,10 +46,10 @@ Particle filtering is a Monte Carlo sampling approach to Bayesian filtering.The 
             <port carrier="udp">/templatePFTracker/right/image:i</port>
             <required>yes</required>
             <priority>no</priority>
-            <description></description>
+            <description> Receives the image from the right camera </description>
         </input>
 
-    	<input port_type="service">
+	<input>
             <type>Rpc</type>
             <port carrier="tcp">/templatePFTracker</port>
             <!-- required input means the execution of module depends on

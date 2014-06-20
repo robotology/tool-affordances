@@ -47,6 +47,8 @@ bool AffManager::configure(ResourceFinder &rf)
     if ((robot!="icubSim") && (robot!="icub"))
         robot="icub";
 
+    tableHeight = rf.check("tableHeight", Value(-0.15)).asDouble();      // Height of the table in the robots coord frame
+
     //simMode=rf.check("simMode", Value("off"),"simMode (string)").asString();
 	
 	attach(rpcCmd);
@@ -81,8 +83,8 @@ bool AffManager::configure(ResourceFinder &rf)
 	// Cartesian Controller Interface
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
-    optCart.put("remote","/"+robot+"/cartesianController/right_arm");
-    optCart.put("local","/"+name+"/cartesian_client/right_arm");
+    optCart.put("remote","/"+robot+"/cartesianController/"+hand+"_arm");
+    optCart.put("local","/"+name+"/cartesian_client/"+hand+"_arm");
 	if (!clientCart.open(optCart))
 		return false;    
     clientCart.view(icart);	// open the view	
@@ -211,56 +213,33 @@ bool AffManager::lookAtTool(){
 	lookAtToolExe();
 	return true;
 }
-/*
-bool AffManager::lookAtPoint(){
-	lookAtPointExe();
-	return lookingAtTool;
-}
-*/
-/*
-bool AffManager::lookAtRack(){
-	lookAtRackExe();
-	return lookingAtTool;
-}
-*/
-/*
-bool AffManager::reachTool(){
-	reachToolExe();
-	return true;
-}
-*/
-
 bool AffManager::observeTool(){
 	observeToolExe();
 	return true;
 }
-bool AffManager::observeObj(){
-	observeObjExe();
+
+bool AffManager::trackObj(){
+	trackObjExe();
 	return true;
 }
-/*
-int  AffManager::findTools(){
-	vector<int> blobsInReachIndices = findToolsExe();	
-	return blobsInReachIndices.size();
-}
-*/
-/*
-bool AffManager::selectTool(){
-	selectToolExe();
+
+bool AffManager::locateObj(){
+	locateObjExe();
 	return true;
 }
-*/
 
 bool AffManager::doAction(){
 	goHomeNoHandsExe();
-	bool objLocated = observeObjExe();
+    trackObjExe();
+	bool objLocated = locateObjExe();
 	if (objLocated)
 	{
 		slideActionExe();
 		goHomeNoHandsExe();
-		observeObjExe();
+		locateObjExe();
 		computeEffect();
 	}
+    finishRound();
 	return true;
 }
 
@@ -288,19 +267,9 @@ void AffManager::goHomeExe()
     cmdAre.addString("home");
     cmdAre.addString("all");
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
-    
-    // reinitialize some flags for next round
-    actionDone = false;
-    objFound = false;
+    fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());   
     lookingAtTool = false;
-    
-    target3DcoordsIni.clear();		// Keeps the target position in 3D before the action
-    target3DcoordsAfter.clear();	// Keeps the target position in 3D after the action
-    
-    target3DcoordsIni.resize(3);    // Keeps the target position in 3D before the action
-    target3DcoordsAfter.resize(3);	// Keeps the target position in 3D after the action
-    
+    lookingAtObject = false;
 }
 
 /**********************************************************/
@@ -315,6 +284,8 @@ void AffManager::goHomeNoHandsExe()
     cmdAre.addString("head");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str());
+    lookingAtTool = false;
+    lookingAtObject = false;
 }
 
 /**********************************************************/
@@ -594,7 +565,7 @@ void AffManager::attachToolExe()
     cmdKM.addString("left");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
-    toolDim = replyKM.tail();			// Check that this TAIL actually works!!!
+    toolDim = replyKM.tail();			// XXX Check that this TAIL actually works!!!
     fprintf(stdout,"TOOL AT %s:\n", toolDim.toString().c_str());
     
 
@@ -612,74 +583,163 @@ void AffManager::attachToolExe()
     cmdKM.addDouble(toolDim.get(2).asDouble());
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-
     fprintf(stdout,"reply is %s:\n",replyKM.toString().c_str());
+
     return;
 }
 
 /**********************************************************/
 void AffManager::observeToolExe()
 {
-	//XXX use the tool Dim Z axis to tell the icub where to look before getting the features
-	Vector handPos,handOr;
-    icart->getPose(handPos,handOr);
-    handPos[2] += 0.15;          // Tool center round 15 cm over the hand
-     // XXX <<
-	
+    // XXX Check that the ROI extraction works properly on the robot.
+    // Get Hand coordinates on image 
+    Vector handPose, handOr, handPixel;
+    icart->getPose(handPose, handOr);
+    igaze->get2DPixel(0, handPose, handPixel);
+
+    // Get ToolTip coordinates on image
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();   replyKM.clear();
+    Bottle toolDimB;
+    cmdKM.addString("tool");
+    cmdKM.addString("get");	// arm
+    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    toolDimB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
+
+    Vector toolDim(3), toolTipPose(3), toolTipPix(2);
+    toolDim[0] = toolDimB.get(0).asDouble();
+    toolDim[1] = toolDimB.get(1).asDouble();
+    toolDim[2] = toolDimB.get(2).asDouble();
+    toolTipPose[0] = handPose[0] + toolDim[0];
+    toolTipPose[1] = handPose[1] + toolDim[1];
+    toolTipPose[2] = handPose[2] + toolDim[2];
+    igaze->get2DPixel(0, toolTipPose, toolTipPix);
+
+
+    // Set the ROI to bound the tool and crop the arm away
+
+    Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
+	ROI[0] = toolTipPix[0] - toolDim[0]/2;  // ROI left side half of the tools width to the left of the tip
+    ROI[1] = toolTipPix[1]; // ROI top side at the same height of the tooltip
+    ROI[2] = toolTipPix[0] + toolDim[0]/2;  // ROI right side half of the tools width to the right of the tip
+    ROI[3] = handPixel[1]; // ROI bottom side at the same height of the hands center
+    
     Bottle cmdFE,replyFE;
+    cmdFE.clear();
+    replyFE.clear();
+    cmdFE.addString("setROI");
+    cmdFE.addInt((int)ROI[0]);
+    cmdFE.addInt((int)ROI[1]);
+    cmdFE.addInt((int)ROI[2]);
+    cmdFE.addInt((int)ROI[3]);
+    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+   
+    // Get the features
     cmdFE.clear();
     replyFE.clear();
     cmdFE.addString("snapshot");
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    // At this point, NearThingdetector, which will be running on parallel, should separate the tool blob from the rest using disparity
+    // At this point, NearThingdetector or any other moduel running on parallel, should be providing the featExt module a clear blob segmentation of the tool
 
+    // Send them to Afflearn to be analyzed
     Bottle cmdLearn,replyLearn;
     cmdLearn.clear();
     replyLearn.clear();
     cmdLearn.addString("addData");
     cmdLearn.addString("toolFeats");
     cmdLearn.append(replyFE);
-
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
    
     return;
 }
 
-/**********************************************************/
-bool AffManager::observeObjExe()
+void AffManager::trackObjExe()
 {
-	//Time::delay(0.5);
-    fprintf(stdout,"Start 'observe' procedure:\n");
+    // Select the target object to be tracked
+    printf("\n \n Click first TOP LEFT and then BOTTOM RIGHT from the object to set the tracking template. Please.\n");
     Bottle cmdFinder,replyFinder;
     cmdFinder.clear();
     replyFinder.clear();
-    cmdFinder.addString("getPoint");
-	// XXX So far point at the object. Improve to detect it automatically.
+    cmdFinder.addString("getBox");
+	// XXX So far track at the object. Improve to detect it automatically.
 	rpcObjFinder.write(cmdFinder, replyFinder);
-	    
+    printf("Object template has been set properly\n");
+    return;
+
+    // Set ARE to constantly track the object
+    Bottle cmdAre, replyAre;
+    cmdAre.addString("track");
+    cmdAre.addString("track");
+    cmdAre.addString("no_sacc");
+    rpcMotorAre.write(cmdAre,replyAre);
+    fprintf(stdout,"tracking started%s:\n",replyAre.toString().c_str());
+
+}
+
+/**********************************************************/
+bool AffManager::locateObjExe()
+{
+
+    // Get the 2D coordinates of the object from objectFinder
+    Vector coords2D(2);
+    
+    Bottle cmdFinder,replyFinder;
+    fprintf(stdout,"Get 2D coords of tracked object:\n");
+    cmdFinder.clear();
+    replyFinder.clear();
+    cmdFinder.addString("getPointTrack");
+	rpcObjFinder.write(cmdFinder, replyFinder);
+    printf("Received from rpc: %s \n", replyFinder.toString().c_str());
+
     if (replyFinder.size() >1){
-		fprintf(stdout,"3D point received!\n");
-		lookingAtTool = false;
-		lookingAtObject = true;
-		if (!actionDone){			
-			cout << "3D coords before action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
-			target3DcoordsIni[0] = replyFinder.get(1).asList()->get(0).asDouble();
-			target3DcoordsIni[1] = replyFinder.get(1).asList()->get(1).asDouble();
-			target3DcoordsIni[2] = replyFinder.get(1).asList()->get(2).asDouble();
-			fprintf(stdout,"Object is located at %s:\n",target3DcoordsIni.toString().c_str());
-			objFound = true;
-		}else{
-			cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
-			target3DcoordsAfter[0] = replyFinder.get(1).asList()->get(0).asDouble();
-			target3DcoordsAfter[1] = replyFinder.get(1).asList()->get(1).asDouble();
-			target3DcoordsAfter[2] = replyFinder.get(1).asList()->get(2).asDouble();
-			fprintf(stdout,"Object is located at %s:\n",target3DcoordsAfter.toString().c_str());
-			}
-	} else {
-		cout << "No 3D point received" << endl;
+        coords2D(0) = replyFinder.get(1).asList()->get(0).asInt();
+        coords2D(1) = replyFinder.get(1).asList()->get(1).asInt();
+        printf("Point in 2D read: %g, %g\n", coords2D(0), coords2D(1));
+    } else {
+		cout << "No 2D point received" << endl;
+        return false;
 	}
+       
+    // Transform the 2D coordinates into 3D
+    Vector coords3D(3);
+    Vector table(4);  // specify the plane in the root reference frame as ax+by+cz+d=0; z=-tableHeight in this case
+    table[0] = 0.0; table[1] = 0.0; table[2] = 1.0;  
+    table[3] = -tableHeight;    // d -> so th eequation of the table plane is z=-h
+
+    int camSel;
+    if (camera != "left") {
+           camSel = 1;}
+    else { camSel = 0;}    
+
+    if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){   // XXX check this on the robot, it crashes on simulator
+        igaze->lookAtFixationPoint(coords3D);                 // move the gaze to the desired fixation point
+        igaze->waitMotionDone();                              // wait until the operation is done
+        printf(" Looking done\n");
+    
+        lookingAtObject = true;
+
+	    if (!actionDone){			
+            printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
+		    target3DcoordsIni[0] = coords3D[0];
+		    target3DcoordsIni[1] = coords3D[1];
+		    target3DcoordsIni[2] = coords3D[2];
+		    fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
+		    objFound = true;
+	    }else{
+		    cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+		    target3DcoordsAfter[0] = coords3D[0];
+		    target3DcoordsAfter[1] = coords3D[1];
+		    target3DcoordsAfter[2] = coords3D[2];
+		    fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
+		    }
+	} else  {
+        printf("3D point couldnt be computed\n");
+        objFound = false;
+    }
     return objFound;
 }
 
@@ -710,6 +770,40 @@ void AffManager::computeEffect()
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
     
     return;
+}
+
+void AffManager::finishRound()
+{
+    // reinitialize some flags for next round
+    actionDone = false;
+    objFound = false;
+    lookingAtTool = false;
+    
+    target3DcoordsIni.clear();		// Keeps the target position in 3D before the action
+    target3DcoordsAfter.clear();	// Keeps the target position in 3D after the action
+    
+    target3DcoordsIni.resize(3);    // Keeps the target position in 3D before the action
+    target3DcoordsAfter.resize(3);	// Keeps the target position in 3D after the action
+
+    // Remove the tool from the "body schema"
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();   replyKM.clear();
+    cmdKM.addString("tool ");
+    cmdKM.addString("remove");	    
+    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    fprintf(stdout,"Tool removed \n");
+    
+    
+    Bottle cmdAre,replyAre;
+    cmdAre.clear();    replyAre.clear();
+    cmdAre.addString("drop");
+    cmdAre.addString("away");
+    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre, replyAre);
+    fprintf(stdout,"Tool dropped \n");
+
+
 }
 
 

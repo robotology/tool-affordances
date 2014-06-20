@@ -53,20 +53,20 @@ public:
  */
   virtual bool lookAtTool();
 /**
- * Look at the target object
+ * Gets user object box and learns it for tracking
  * @return true/false on success/failure of finding/looking at object
  */
-  virtual bool lookAtObject();
+  virtual bool trackObj();
+/**
+ * Look and locate in 3D the target object
+ * @return true/false on success/failure of finding/looking at object
+ */
+  virtual bool locateObj();
 /**
  * Finds tool in hand and observes it extracting features)
  * @return true/false on success/failure finding and extracting feats from tool
  */
   virtual bool observeTool();
-/**
- * Observes (extracts some features) of target object
- * @return true/false on success/failure finding and extracting feats from object
- */
-  virtual bool observeObj();
 /**
  * Uses active exploration and non-linear optimization to copmute the tool dimensions and attach its end-effector to the robot's arm.
  * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder

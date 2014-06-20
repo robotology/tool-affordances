@@ -2,6 +2,11 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Image.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Semaphore.h>
+
+#include <cv.h>
+#include <fstream>
+#include <iostream>
 
 #include "VecVec.h"
 #include "Feature.h"
@@ -13,9 +18,14 @@ class FeatExt
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	binImPort; // port for reading binary images
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imPropOutPort; // port for sending output images
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imFeatOutPort; // port for sending output images
-    yarp::os::BufferedPort<VecVec> featPort;
+    yarp::os::Port                                                      featPort;
 
+    yarp::os::Semaphore         mutex;
     bool processing;
+    cv::Rect ROI;
+    bool ROIinit;
+
+    bool verbose;
 
 public:
 

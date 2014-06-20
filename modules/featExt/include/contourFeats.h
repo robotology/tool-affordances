@@ -75,6 +75,7 @@ public:
 	void convDefs(std::vector<cv::Vec4i>& outDefs);
 	void convDefPos(const std::vector<cv::Vec4i>& convDefs, std::vector<double>& defDepth, std::vector<int>& defIndx );
 	void convDir(const std::vector<int>& defIndx, std::vector<double>& defDirs);	
+    void convDirHist(const std::vector<double>& defDirs, std::vector<double>& dirsHist);	
 	
 	// From the Thinning algorithm
 	void jointPoints(std::vector<cv::Point>& outJoints, std::vector<cv::Point>& ends, bool drawJointsF = false);

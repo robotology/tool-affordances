@@ -34,6 +34,12 @@
             <port carrier="udp">/affLearn/plot:o</port>
             <description></description>
         </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/affLearn/feats:o</port>
+            <description> Sends out the received data, one sample at a time</description>
+        </output>
+        
     </data>
 
     <dependencies>

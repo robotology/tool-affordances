@@ -269,10 +269,12 @@ void Contour::convDefs(vector<Vec4i>& convexDefects)
 	}
 }
 
-
+bool sortDown (int i,int j) { return (i>j); }
 
 void Contour::convDefPos(const std::vector<Vec4i>& convDefs, std::vector<double>& defDepth, std::vector<int>& defIndx )
 {
+    
+
 	for(int j=0; j<convDefs.size();j++)				// Save depth of convexity defects
 	{				
 		if (convDefs[j].val[3] > 1024){			// min depth of 4 points (256*4)
@@ -281,6 +283,7 @@ void Contour::convDefPos(const std::vector<Vec4i>& convDefs, std::vector<double>
 			// XXXX Find a way to represent in a meaningful way the convex points. Like polar coords from the tip or from the base...
 		}
 	}
+    sort(defDepth.begin(), defDepth.end(), sortDown);   // sort the depths from bigger to smaller
 }
 
 // Get the direction of the convexity defects
@@ -293,11 +296,27 @@ void Contour::convDir(const std::vector<int>& defIndx, std::vector<double>& defD
 		vector<double> angleSeg = getAngleSig();
 		for(int j=0; j<defIndx.size();j++){
 			//Use the indices of the convexity defects to check the direction of the convex points using the normal at those points.
-			double tanAng = (angleSeg[defIndx[j]]+angleSeg[defIndx[j]-1])/2;
+			double tanAng = 180 + (angleSeg[defIndx[j]]+angleSeg[defIndx[j]-1])/2;
 			defDirs.push_back(tanAng);
 		}
 	}
 }
+
+// Compute a histogram from the directions 
+void Contour::convDirHist(const std::vector<double>& defDirs, std::vector<double>& dirsHist)
+{
+    //initialize histogram
+    int numBins = 8;        // bin angles into 45 degree bins
+    double binWidth = 360 / numBins;
+    dirsHist.resize(numBins, 0.0);
+
+    // fill in bins
+    for(int j=0; j<defDirs.size();j++){
+        int binIdx = (int)floor(defDirs[j] / binWidth);
+		dirsHist[binIdx] += 1;
+	}
+}
+
 
 // From the Thinning algorithm
 void Contour::computeSkeleton()
@@ -314,7 +333,7 @@ void Contour::computeSkeleton()
 void Contour::jointPoints(vector<Point>& joints, vector<Point>& ends, bool drawJointsF)
 {	// Takes a 1-pixel wide skeleton binary image
 	// Finds the end and joint points (pixels from where either only one or 3 or more branches emerge, respectively) 
-	computeSkeleton();
+    computeSkeleton();
 	for( int y = 1; y < skeleton->rows-1; y++ ){ 
 		for( int x = 1; x < skeleton->cols-1; x++ ){
 			if (skeleton->at<uchar>(y,x)==255){			// We only look for branches from white pixels for effciency.

@@ -38,16 +38,28 @@
             <port carrier="udp">/objectFinder/coords:i</port>
             <required>no</required>
             <priority>no</priority>
-            <description> Receives the camera image.</description>
+            <description> receives coords from yarpview out</description>
+        </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/objectFinder/track:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives coordinates from the tracker</description>
         </input>
         
         
         <!-- output data if available -->
         <output>
             <type>Bottle</type>
-            <port carrier="udp">/objectFinder/coords3D:o</port>
-            <description>Streams out the 3D coords of the tracked/detected object</description>
-        </output>        
+            <port carrier="udp">/objectFinder/coords:o</port>
+            <description>Sends out the coords of the object</description>
+        </output> 
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/objectFinder/crop:o</port>
+            <description>Sends out the desired image crop to initialize a tracker</description>
+        </output> 
     </data>
 
     <dependencies>

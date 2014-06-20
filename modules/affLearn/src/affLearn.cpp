@@ -125,14 +125,16 @@ bool AffLearn::dataCollector(const string &matName, const yarp::os::Bottle *data
 {
     //Check the number of samples in the bottle
     int sampleN = data->size();
-    cout << sampleN << " samples have been received" << endl;
+    cout << sampleN << " samples have been received\n\n" << endl;
 
     for (int sampleI = 0; sampleI < sampleN; sampleI++ ){
         Bottle* sample = data->get(sampleI).asList();
         string label = sample->get(0).asString();  // save the label of the object
         cout << "Sample " << sampleI <<" label is " << label << endl;
-        Mat newRow(1,sample->get(1).asList()->size(), CV_32FC1);
-        list2mat(sample->get(1).asList(), newRow);
+        Bottle *sampleDataB = sample->get(1).asList();
+        printf("Sample has %i features \n", sampleDataB->size());
+        Mat newRow(1,sample->get(1).asList()->size(), CV_32FC1);    //initialize empty  row matrix
+        list2mat(sampleDataB, newRow);
 
         if(this->dataset.find(matName) == this->dataset.end()) // Check if the desired matrix exists already
         {
@@ -148,9 +150,10 @@ bool AffLearn::dataCollector(const string &matName, const yarp::os::Bottle *data
             dataset[matName].push_back(newRow);
             labelSet[matName].push_back(label);
         }
+    featsPort.write(*sample);
     }
-    cout << "Mat = "<< endl << " "  << dataset[matName] << endl;
-
+    //cout << "Mat = "<< endl << " "  << dataset[matName] << endl << endl;
+    
     return true;
 }
 
@@ -223,9 +226,9 @@ bool AffLearn::respond(const Bottle &command, Bottle &reply)
             if (payload.size()>=2)
             {
                 string matName = payload.get(0).asString().c_str();
-                cout << "Saving data to matrix " << matName << endl;
-                Bottle* data = payload.get(1).asList();
-                cout << "Data: " << data->toString() << endl;
+                cout << "Saving data to matrix " << matName << endl << endl;
+                Bottle* data = payload.get(1).asList();                
+                //cout << "Data: " << data->toString() << endl;
                 dataCollector(matName, data);
                 reply.addVocab(Vocab::encode("ack"));
             }
@@ -240,7 +243,7 @@ bool AffLearn::respond(const Bottle &command, Bottle &reply)
 
 /**********************************  Utils  *******************************************/
 
-void AffLearn::list2vector(const Bottle* bot, std::vector<float>& vec)
+void AffLearn::list2vector(const Bottle* bot, std::vector<double>& vec)
 {
     vec.clear();
     for (int i = 0; i< bot->size(); i++ ){
@@ -265,6 +268,7 @@ bool AffLearn::configure(ResourceFinder &rf)
 {
     name = "affLearn";
     plotPort.open(("/"+name+"/plot:o").c_str());
+    featsPort.open(("/"+name+"/feats:o").c_str());
     rpcPort.open(("/"+name+"/rpc:i").c_str());
     attach(rpcPort);
     return true;
@@ -275,6 +279,7 @@ bool  AffLearn::interruptModule()
 {
     plotPort.interrupt();
     rpcPort.interrupt();
+    featsPort.interrupt();
     return true;
 }
 
@@ -283,6 +288,7 @@ bool  AffLearn::close()
 {
     save();
     clear();
+    featsPort.close();
     plotPort.close();
     rpcPort.close();
     return true;

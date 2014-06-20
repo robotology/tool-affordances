@@ -1,12 +1,6 @@
 
 #include "featExt.h"
-#include <cv.h>
-//#include "opencv2/opencv.hpp"
-
 #include "contourFeats.h"
-
-#include <fstream>
-#include <iostream>
 
 using namespace yarp::sig;
 using namespace yarp::os;
@@ -15,8 +9,10 @@ using namespace std;
 
 void FeatExt::loop()
 {
-    if (processing){        
-		ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+
+    // XXX TODO: Improve it so that respond is asynchronous, or at least, streaming processing can be stopped.
+    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+    if (processing){        		
 		if(imageIn == NULL)		{
 			printf("No input image \n"); 
 			return;
@@ -31,22 +27,89 @@ void FeatExt::loop()
 	    rpcCmd.read(cmd, true);
 	    int rxCmd=processRpcCmd(cmd,val);
 
-	    if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
+        if (rxCmd==Vocab::encode("setROI")){
+            Point tl,br;
+			tl.x=(int)val.get(0).asInt();
+            printf("Setting tl x to = %d \n", tl.x);
+			tl.y=(int)val.get(1).asInt();
+            printf("Setting tl y to = %d \n", tl.y);
+			br.x=(int)val.get(2).asInt();
+            printf("Setting br x to = %d \n", br.x);
+			br.y=(int)val.get(3).asInt();
+            printf("Setting br y to = %d \n", br.y);
+
+            if (tl.x < 0) {tl.x = 0; printf("ROI tl x smaller than 0, set to 0 \n");}
+            if (tl.y < 0) {tl.y = 0; printf("ROI tl y smaller than 0, set to 0 \n");}
+            if (br.x > imageIn->width()) {br.x = imageIn->width(); printf("ROI br x outside boundaries. Max = %d \n", imageIn->width());}
+            if (br.y > imageIn->height()) {br.y = imageIn->height(); printf("ROI br y outside boundaries. Max = %d \n", imageIn->height());}
+            
+			ROI= Rect(tl,br);
+            ROIinit = true;
+
+            reply.addString("ack");
+            reply.addString(" ROI set to given values");
+            rpcCmd.reply(reply);
+            return;
+
+        } else if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
 		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
 		    if(imageIn == NULL)		    {
 			    printf("No input image \n"); 
-                reply.addString("ack");
+                reply.addString("nack");
 			    return;
 		    }		    
             VecVec feats;
 		    featExtractor(*imageIn, feats);
             rpcCmd.reply(feats);
-           
+            return;
+
+        } else if (rxCmd==Vocab::encode("verbose")){        
+            string verb = val.get(0).asString();
+            if (verb == "ON"){
+                verbose = true;
+                fprintf(stdout,"Verbose is : %s\n", verb.c_str());
+                reply.addString("ack");
+                rpcCmd.reply(reply);
+                return;
+            } else if (verb == "OFF"){
+                verbose = false;
+                fprintf(stdout,"Verbose is : %s\n", verb.c_str());
+                reply.addString("ack");
+                rpcCmd.reply(reply);
+                return;
+            }   
+            fprintf(stdout,"Verbose can only be set to ON or OFF. \n");
+            reply.addString("nack");
+            rpcCmd.reply(reply);
+			return;
+
 	    } else if (rxCmd==Vocab::encode("go")){        
             processing = true;
-	    }
-    return;
-    
+            reply.addString("ack");
+            rpcCmd.reply(reply);
+			return;
+
+	    } else if (rxCmd==Vocab::encode("stop")){        
+            processing = false;
+            reply.addString("ack");
+            rpcCmd.reply(reply);
+			return;
+
+        } else if (rxCmd==Vocab::encode("help")){ 
+            reply.addVocab(Vocab::encode("many"));
+            reply.addString("Available commands are: \n");
+            reply.addString("setROI (int) (int) (int) (int) - sets a region of interest of feature extraction");
+            reply.addString("snapshot - Performs feature extracton on a single frame.");
+            reply.addString("go - Enables feature extraction on streaming images.");
+            //reply.addString("stop - Disables feature extraction on streaming images.");
+            reply.addString("help - Produces this help.");
+            //reply.addString("quit -Quits the module. \n");
+            rpcCmd.reply(reply);
+			return;
+        } else {
+            reply.addString("command not recognized, try 'help': \n");
+            return;
+        }    
     }
 
 }
@@ -62,7 +125,8 @@ bool FeatExt::open()
 	ret = ret && featPort.open("/featExt/feats:o");			//port to receive info confirming reception of template.
 
 	processing = false;
-
+    ROIinit = false;
+    verbose = false;
     return ret;
 }
 
@@ -73,8 +137,8 @@ bool FeatExt::close()
 
 	rpcCmd.close();
     
-	featPort.setStrict();
-	featPort.write();
+	//featPort.setStrict();
+	//featPort.write();
 	featPort.close();
 
     inImPort.close();
@@ -116,20 +180,30 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	//ofstream featFile;
 	//featFile.open ("features.txt");
 	
+    mutex.wait();
+
 	//prepare ports
-	featSend= featPort.prepare();						// Prepare port to send features	
-	ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
+	//featSend = featPort.prepare();						    // Prepare port to send features	
+    ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
 	ImageOf<PixelRgb> &imFeatOut = imFeatOutPort.prepare();	// Prepare the port for features output image	
 
-	imFeatOut.resize(imageIn.width(), imageIn.height());	// Initialize features image
-	imFeatOut.zero();
-	Mat contoursIm = cvarrToMat(imFeatOut.getIplImage(),false);
-	//Mat contoursIm((IplImage*) imFeatOut.getIplImage());	// Create an image to draw the visual features
-	imPropOut = imageIn;									// Set the pointer to the original image which will be modified
+    // Set the pointer to the original image which will be modified
+	imPropOut = imageIn;									
 	Mat src = cvarrToMat(imPropOut.getIplImage(),false);
 	//Mat src((IplImage*) imPropOut.getIplImage());				// Create the src image form the received frame		
-	
-	//Prepare random generator
+
+
+    // Create an image to draw the visual features
+    imFeatOut.resize(imageIn.width(), imageIn.height());	
+	imFeatOut.zero();
+	Mat contoursIm = cvarrToMat(imFeatOut.getIplImage(),false);
+	//Mat contoursIm((IplImage*) imFeatOut.getIplImage());	
+
+    if (ROIinit){
+        src = src(ROI);
+    }
+
+    	//Prepare random generator
 	RNG rng(12345);
 		
 	// Find contours out of the received blobs
@@ -178,7 +252,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		for( int j = 0; j < contours.size(); j++ ){
 			double similarity = matchShapes(contours[i].getPoints(),contours[j].getPoints(),CV_CONTOURS_MATCH_I3,0);
 			similarityMatrix.at<float>(i,j) = similarity;
-			feats[i].content.push_back(similarity);
+			//feats[i].content.push_back(similarity);
 		}
 	}
 	//featFile << "Similarity Matrix \n";
@@ -195,39 +269,65 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		Rect boundRect = boundingRect( contours[i].getPoints());
 
 		//==== Convex Hull and Convexity Defects ====
+        int convDepthNum = 5;                       // Number of values of depth in convexity defects to keep.
 		vector<Vec4i> convDefVec;					// Convexity defects
-		vector<double> defsDepth;					// Depth of convexity defects points
+		vector<double> defsDepth;                   // Depth of convexity defects points. 
 		vector<int> defsIndx;						// Index of Convexity defect points
-		vector<double> defsDirs;					// Bisector of convexity defect
-		
+		vector<double> defsDirs;					// Bisector angle of convexity defect
+		vector<double> defsDirsHist;	    		// Histogram of bisector angles
+
+        // XXX toDo, printout convDir to see how many possible vaule sit gets. Given the 8 connected graphs, it might be that it is intrinsically histogramized
 		contours[i].convDefs(convDefVec);
-		contours[i].convDefPos(convDefVec, defsDepth,defsIndx);
-		contours[i].convDir(defsIndx, defsDirs);
-		for ( int c = 0; c < defsDepth.size(); c++ ){
-			feats[i].content.push_back(defsDepth[c]);
-			feats[i].content.push_back(defsDirs[c]);
-			circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 5, Scalar(0, 255, 0), -1, 8, 0 );
+		contours[i].convDefPos(convDefVec, defsDepth, defsIndx);
+        while (defsDepth.size()<convDepthNum) {      // Pad with 0s up to size convDepthNum
+            defsDepth.push_back(0.0);
+        }  
+
+        // Push in the convexity defects depths features
+		for ( int c = 0; c < convDepthNum; c++ ){
+			feats[i].content.push_back(defsDepth[c]);			
+            if (verbose) {printf("Depth conv point %i = %g \n", c, defsDepth[c]);}
+            if (c < defsIndx.size()){
+                circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 5, Scalar(0, 255, 0), -1, 8, 0 );}
 		}
 
+        contours[i].convDir(defsIndx, defsDirs);
+        contours[i].convDirHist(defsDirs, defsDirsHist);
+        for ( int h = 0; h < defsDirsHist.size(); h++ ){
+            feats[i].content.push_back(defsDirsHist[h]);
+            if (verbose) {printf(" Histogram bin  %i = %g \n", h, defsDirsHist[h]); }
+        }
+        
 		// ==== Skeleton and joints ====
 		vector<Point> jntPoints;					// Skeleton Joint Points
 		vector<Point> endPoints;					// Skeleton End Points
+        double jntLeft = 0.0, jntRight = 0.0, jntBelow = 0.0, jntOver = 0.0;   // # of joints left/right/over/below the center of mass, respectively
+        double endLeft = 0.0, endRight = 0.0, endBelow = 0.0, endOver = 0.0;    // # of end points left/right/over/below the center of mass, respectively
+
 		contours[i].jointPoints(jntPoints, endPoints);
 		Point mc = contours[i].massCenter(true);
-		for(int m=0; m < jntPoints.size(); m++) {
-			feats[i].content.push_back(jntPoints[m].x-mc.x);	//Normalize the points to the blobs center of mass
-			feats[i].content.push_back(jntPoints[m].y-mc.y);
-			circle(contoursIm, jntPoints[m]+boundRect.tl(), 4, Scalar(0, 255, 0), 1, 8, 0 );
-
+        for(int m=0; m < jntPoints.size(); m++) { // Compare position of joints wrt center of mass
+            if (verbose){printf(" Jnt Point [%i, %i] \n", jntPoints[m].x,  jntPoints[m].y);}
+            if (jntPoints[m].x-mc.x <= 0 ) {jntLeft += 1;} else {jntRight += 1;}
+            if (jntPoints[m].y-mc.y <= 0 ) {jntBelow += 1;} else {jntOver += 1;}
+			circle(contoursIm, jntPoints[m]+boundRect.tl(), 4, Scalar(255, 255, 255), 2, 8, 0 );
 		}
-		for(int n=0; n < endPoints.size(); n++) {
-			feats[i].content.push_back(endPoints[n].x-mc.x);
-			feats[i].content.push_back(endPoints[n].y-mc.y);
-			circle(contoursIm, endPoints[n]+boundRect.tl(), 4, Scalar(255, 0, 0), 1, 8, 0 );
+		feats[i].content.push_back(jntLeft);	
+        feats[i].content.push_back(jntRight);	
+        feats[i].content.push_back(jntBelow);	
+        feats[i].content.push_back(jntOver);
+        
+        for(int n=0; n < endPoints.size(); n++) { // Compare position of endPoints wrt center of mass
+            if (verbose){printf(" End Point [%i, %i] \n", endPoints[n].x,  endPoints[n].y);}
+            if (endPoints[n].x-mc.x <= 0 ) {endLeft += 1;} else {endRight += 1;}
+            if (endPoints[n].y-mc.y <= 0 ) {endBelow += 1;} else {endOver += 1;}
+			circle(contoursIm, endPoints[n]+boundRect.tl(), 4, Scalar(255, 255, 255), 2, 8, 0 );
 		}
-
-
-	
+		feats[i].content.push_back(endLeft);	
+        feats[i].content.push_back(endRight);	
+        feats[i].content.push_back(endBelow);	
+        feats[i].content.push_back(endOver);	
+        	
 		// ==== Polygon approximation + Bounding rects and circles ====
 				
 		// ====  Moments ====
@@ -278,14 +378,23 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		contours[i].drawText(contoursIm, cntN.str() , color);	
 
 		featSend.content.push_back(feats[i]);
-	} //end contours loop
+
+        if (verbose){}
+        printf("Feature Vector of length %i \n", feats[i].content.size());
+    } //end contours loop
 	
+    if (ROIinit){
+        rectangle(src, Point (0,0), Point(src.cols,src.rows),  Scalar(255,0,0),2);
+    }
 
 	printf("\n DONE \n");
-	
-	featPort.write();
+	featPort.write(featSend);
 	imPropOutPort.write();
 	imFeatOutPort.write();
+
+
+    mutex.post();
+
 }
 
 

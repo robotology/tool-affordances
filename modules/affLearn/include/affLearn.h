@@ -22,6 +22,7 @@ protected:
     yarp::os::Semaphore mutex;
     yarp::os::RpcServer rpcPort;
     yarp::os::Port      plotPort;
+    yarp::os::Port      featsPort;
 
     std::string name;
     std::string configFileName;
@@ -41,7 +42,7 @@ protected:
 
     void clear();
 
-    void list2vector(const yarp::os::Bottle* bot, std::vector<float>& vec);
+    void list2vector(const yarp::os::Bottle* bot, std::vector<double>& vec);
     void list2mat(const yarp::os::Bottle* bot, cv::Mat& mat);
 
 public:
