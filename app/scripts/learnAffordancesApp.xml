@@ -1,63 +1,157 @@
 <application>
-    <name>learnAffordancesApp(1)</name>
+    <name>learnAffordancesApp</name>
     <module>
-        <name>actionsRenderingEngine</name>
-        <parameters>--from configSim.ini</parameters>
-        <node>localhost</node>
+        <name>affLearn</name>
+        <parameters></parameters>
+        <node></node>
         <prefix></prefix>
-        <geometry>(Pos (x 550) (y 130.9))</geometry>
+        <geometry>(Pos (x 511.00) (y 151.90))</geometry>
     </module>
     <module>
         <name>affManager</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <workdir>C:\ProgramsTanis\IIT\VS\Affordances\affManager\build\bin\Release</workdir>
-        <geometry>(Pos (x 272) (y 130.9))</geometry>
-    </module>
-    <module>
-        <name>affStateMachine</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 0) (y 155.9))</geometry>
+        <geometry>(Pos (x 114.00) (y 73.90))</geometry>
     </module>
     <module>
         <name>featExt</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 379) (y 460.9))</geometry>
+        <geometry>(Pos (x 329.00) (y 525.90))</geometry>
+    </module>
+    <module>
+        <name>objectFinder</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 525.00) (y 239.90))</geometry>
+    </module>
+    <module>
+        <name>templatePFTracker</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 743.00) (y 342.90))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 1050 --y 0</parameters>
+        <parameters>--x 1050 --y 0 --out /yarpview/out</parameters>
         <node>localhost</node>
-        <prefix>/imProp</prefix>
-        <geometry>(Pos (x 679) (y 510.9))</geometry>
+        <prefix>/imLeft</prefix>
+        <geometry>(Pos (x 335.00) (y 469.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/tracked</prefix>
+        <geometry>(Pos (x 1003.00) (y 372.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/crop</prefix>
+        <geometry>(Pos (x 774.00) (y 263.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/fext</prefix>
+        <geometry>(Pos (x 566.00) (y 636.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/fExtProp</prefix>
+        <geometry>(Pos (x 566.00) (y 582.90))</geometry>
     </module>
     <connection>
-        <from>/affManager/are:rpc</from>
-        <to external="true">/actionsRenderingEngine/cmd:io</to>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/objectFinder/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 352.00) (y 378.50)) ((x 199.00) (y 473.00)) ((x 526.00) (y 283.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objectFinder/crop:o</from>
+        <to>/templatePFTracker/template/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 717.00) (y 353.00)) ((x 711.00) (y 308.00)) ((x 744.00) (y 398.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/templatePFTracker/left/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 461.00) (y 448.50)) ((x 199.00) (y 473.00)) ((x 744.00) (y 423.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/imLeft/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 257.00) (y 481.50)) ((x 199.00) (y 473.00)) ((x 336.00) (y 488.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/imLeft/yarpview/out</from>
+        <to>/objectFinder/coords:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 497.00) (y 398.00)) ((x 489.00) (y 488.00)) ((x 526.00) (y 308.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/templatePFTracker/left/image:o</from>
+        <to>/tracked/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 976.00) (y 376.00)) ((x 969.00) (y 361.00)) ((x 1004.00) (y 391.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objectFinder/crop:o</from>
+        <to>/crop/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 732.50) (y 295.00)) ((x 711.00) (y 308.00)) ((x 775.00) (y 282.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/templatePFTracker/target:o</from>
+        <to>/objectFinder/track:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 490) (y 130.5)) ((x 442) (y 149)) ((x 559) (y 112))  )</geometry>
+        <geometry>(Pos ((x 737.00) (y 397.00)) ((x 969.00) (y 461.00)) ((x 526.00) (y 333.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/affManager/objFind:rpc</from>
+        <to>/objectFinder/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 391.50) (y 224.00)) ((x 279.00) (y 191.00)) ((x 525.00) (y 257.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/featExt/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 254.00) (y 527.50)) ((x 199.00) (y 473.00)) ((x 330.00) (y 581.00))  )</geometry>
     </connection>
     <connection>
         <from>/featExt/imgFeat:o</from>
-        <to>/imProp/yarpview/img:i</to>
+        <to>/fext/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 592) (y 529)) ((x 525) (y 529)) ((x 680) (y 529))  )</geometry>
+        <geometry>(Pos ((x 510.50) (y 624.50)) ((x 475.00) (y 594.00)) ((x 567.00) (y 655.00))  )</geometry>
     </connection>
     <connection>
-        <from>/stateMachine/rpc:o</from>
-        <to>/affManager/rpc:i</to>
+        <from>/featExt/imgProp:o</from>
+        <to>/fExtProp/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 231) (y 174)) ((x 210) (y 174)) ((x 273) (y 174))  )</geometry>
+        <geometry>(Pos ((x 510.50) (y 585.00)) ((x 475.00) (y 569.00)) ((x 567.00) (y 601.00))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/featExt/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 275.5) (y 491)) ((x 192) (y 491)) ((x 380) (y 491))  )</geometry>
+        <from>/affManager/affLearn:rpc</from>
+        <to>/affLearn/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 384.50) (y 167.50)) ((x 279.00) (y 166.00)) ((x 511.00) (y 182.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/affManager/featExt:rpc</from>
+        <to>/featExt/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 293.50) (y 348.50)) ((x 279.00) (y 141.00)) ((x 329.00) (y 556.00))  )</geometry>
     </connection>
 </application>
