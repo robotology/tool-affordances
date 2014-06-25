@@ -4,9 +4,9 @@
 
 add_subdirectory(affManager)
 add_subdirectory(affLearn)
-add_subdirectory(blobSpotter)
 add_subdirectory(objectFinder)
 add_subdirectory(featExt)
+add_subdirectory(toolBlobber)
 ##add_subdirectory(exploreAffordances)
 ##add_subdirectory(learnAffordance)
-add_subdirectory(affStateMachine)
+## add_subdirectory(affStateMachine)

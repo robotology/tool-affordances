@@ -228,7 +228,7 @@ bool AffLearn::respond(const Bottle &command, Bottle &reply)
                 string matName = payload.get(0).asString().c_str();
                 cout << "Saving data to matrix " << matName << endl << endl;
                 Bottle* data = payload.get(1).asList();                
-                //cout << "Data: " << data->toString() << endl;
+                cout << "Data: " << data->toString() << endl;
                 dataCollector(matName, data);
                 reply.addVocab(Vocab::encode("ack"));
             }

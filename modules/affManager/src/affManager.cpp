@@ -539,8 +539,9 @@ void AffManager::slideActionExe()
     cmdLearn.addString("actionFeats");
     // Add the action data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
     Bottle& bData = cmdLearn.addList();
-    bData.addString("action 1");
-    Bottle &toolData = bData.addList();
+    Bottle& bSample = bData.addList();
+    bSample.addString("action 1");
+    Bottle &toolData = bSample.addList();
     toolData.addInt(drawAngle);
     
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
@@ -564,7 +565,8 @@ void AffManager::attachToolExe()
     cmdKM.addString("right");	// arm
     cmdKM.addString("left");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    rpcKarmaMotor.write(cmdKM, replyKM); // Call karma Motor to find the tool
+    fprintf(stdout,"Tool frame found\n");
     toolDim = replyKM.tail();			// XXX Check that this TAIL actually works!!!
     fprintf(stdout,"TOOL AT %s:\n", toolDim.toString().c_str());
     
@@ -767,8 +769,9 @@ void AffManager::computeEffect()
     cmdLearn.addString("effectFeats");
     // Add the effect data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
     Bottle& bData = cmdLearn.addList();
-    bData.addString("effect 1");
-    Bottle &effData = bData.addList();
+    Bottle& bSample = bData.addList();
+    bSample.addString("effect");
+    Bottle &effData = bSample.addList();
     effData.addDouble(effectAlpha);
     effData.addDouble(effectDist);
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());

@@ -34,16 +34,6 @@
             <description> Receives the camera image.</description>
         </input>
         
-        <!--
-        <input>
-            <type>ImageOfPixelRgb</type>
-            <port carrier="udp">/featExt/binImg:i</port>
-            <required>no</required>
-            <priority>no</priority>
-            <description> Receives blob image</description>
-        </input>
-        -->
-        
         <!-- output data if available -->
         <output>
             <type>Vector(Vector(double))</type>

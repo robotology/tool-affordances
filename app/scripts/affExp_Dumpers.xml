@@ -38,9 +38,17 @@
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --dir ntdImgBin --rxTime</parameters>
+        <parameters>--type image --dir imgBin --rxTime</parameters>
         <node>icub15</node>
-        <prefix>/ntdImgBin</prefix>
+        <prefix>/imgBin</prefix>
+        <workdir>/tmp/affData</workdir>
+        <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--type image --dir disp --rxTime</parameters>
+        <node>icub15</node>
+        <prefix>/disp</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
     </module>
@@ -67,14 +75,6 @@
         <prefix>/leftArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2036.85) (y 436.165))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--downsample 10 --dir ActualFixPoint --rxTime</parameters>
-        <node>icub15</node>
-        <prefix>/dumpActualFixPoint</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 2048.25) (y 878.15))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
@@ -105,8 +105,14 @@
         <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/nearThingsDetector/imgBin:o</from>
-        <to external="true">/ntdImgBin/dump</to>
+        <from external="true">/toolBlobber/imgBin:o</from>
+        <to external="true">/imgBin/dump</to>
+        <protocol>mcast</protocol>
+        <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to external="true">/disp/dump</to>
         <protocol>mcast</protocol>
         <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
     </connection>
@@ -121,12 +127,6 @@
         <to external="true">/dumpLeftEEF/dump</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1642.5) (y 1405.5)) ((x 1606) (y 1374)) ((x 1708) (y 1432))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/iKinGazeCtrl/head/x:o</from>
-        <to external="true">/dumpActualFixPoint/dump</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 1995.5) (y 893.5)) ((x 1963) (y 887)) ((x 2057) (y 895))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/left_arm/state:o</from>

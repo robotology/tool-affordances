@@ -71,8 +71,8 @@
         <geometry>(Pos (x 361.00) (y 433.90))</geometry>
     </module>
     <module>
-        <name>nearThingsDetector</name>
-        <parameters>--from NTDforToolDetection.ini</parameters>
+        <name>toolBlobber</name>
+        <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 452.00) (y 666.90))</geometry>
@@ -137,7 +137,7 @@
         <name>yarpview</name>
         <parameters>--x 700 --y 0</parameters>
         <node>localhost</node>
-        <prefix>/ntdBin</prefix>
+        <prefix>/imgBin</prefix>
         <geometry>(Pos (x 1209.00) (y 680.90))</geometry>
     </module>
 
@@ -167,19 +167,19 @@
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
-        <to>/nearThingsDetector/imLeft:i</to>
+        <to>/toolBlobber/imLeft:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 318.00) (y 559.50)) ((x 204.00) (y 409.00)) ((x 453.00) (y 710.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/right/out</from>
-        <to>/nearThingsDetector/imRight:i</to>
+        <to>/toolBlobber/imRight:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 315.50) (y 641.00)) ((x 199.00) (y 547.00)) ((x 453.00) (y 735.00))  )</geometry>
     </connection>
     <connection>
         <from>/SFM/disp:o</from>
-        <to>/nearThingsDetector/disp:i</to>
+        <to>/toolBlobber/disp:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 416.00) (y 727.50)) ((x 400.00) (y 695.00)) ((x 453.00) (y 760.00))  )</geometry>
     </connection>
@@ -304,7 +304,7 @@
         <geometry>(Pos ((x 401.50) (y 290.50)) ((x 204.00) (y 409.00)) ((x 620.00) (y 172.00))  )</geometry>
     </connection>
     <connection>
-        <from>/nearThingsDetector/imgBin:o</from>
+        <from>/toolBlobber/imgBin:o</from>
         <to>/featExt/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 846.50) (y 745.00)) ((x 686.00) (y 747.00)) ((x 1028.00) (y 743.00))  )</geometry>
@@ -316,8 +316,8 @@
         <geometry>(Pos ((x 818.50) (y 252.00)) ((x 1038.00) (y 282.00)) ((x 620.00) (y 222.00))  )</geometry>
     </connection>
     <connection>
-        <from>/nearThingsDetector/imgBin:o</from>
-        <to>/ntdBin/view</to>
+        <from>/toolBlobber/imgBin:o</from>
+        <to>/imgBin/view</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1181.00) (y 715.00)) ((x 1173.00) (y 731.00)) ((x 1210.00) (y 699.00))  )</geometry>
     </connection>

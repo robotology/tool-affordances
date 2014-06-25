@@ -1,0 +1,87 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>toolBlobber</name>
+    <description> Uses Stereo Vision on images from both eyes to find closest object, its distance and position in 3D.</description>
+    <version>2.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+        <param desc="Name of the module" default="toolBlobber"> name</param>
+        <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="AffordancesProject"> context </param>
+        <param desc="Configuration file" default="toolBlobber.ini"> from </param>        
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email=""> Tanis Mar</author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <!-- input data if available -->
+        <input type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/toolBlobber/rpc:i</port>
+            <description>takes RPC commands from Human or stateMachine</description>
+        </input>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/toolBlobber/imLeft:i</port>
+            <description>Left camera image to feed stereoVision Library</description>
+        </input>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/toolBlobber/imRight:i</port>
+            <description>Right camera image to feed stereoVision Library</description>
+        </input>        
+        <input>
+            <type>ImageOfPixelMono</type>
+            <port carrier="udp">/toolBlobber/disp:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>StereoDisparity disparity image</description>
+        </input>
+        <!--
+        <input>
+            <type>ImageOfPixelFloat</type>
+            <port carrier="udp">/nearThingsDetector/world:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>stereo disparity world image</description>
+        </input>
+        -->
+        
+        <!-- output data if available -->
+        <output>
+            <type>ImageOfPixelBgr</type>
+            <port carrier="udp">/toolBlobber/img:o</port>
+            <description> Send out the closest blob and coordinates superposed on the disparity image</description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/toolBlobber/target:o</port>
+            <description> Coordinates of closest object</description>
+        </output>
+        <output>
+            <type>ImageOfPixelMono</type>
+            <port carrier="udp">/toolBlobber/imgBin:o</port>
+            <description> Send out the binary image of selected blob</description>
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+         <library>OpenCV</library>
+    </development>
+
+</module>
+
