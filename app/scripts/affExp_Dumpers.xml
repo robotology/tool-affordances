@@ -7,7 +7,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--type image --downsample 3 --dir camCalibRight --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/camCalibRight</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 728.682) (y 1493.76))</geometry>
@@ -15,7 +15,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir dumpRightEEF --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/dumpRightEEF</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1656.85) (y 1570.16))</geometry>
@@ -23,23 +23,23 @@
     <module>
         <name>dataDumper</name>
         <parameters>--type image --downsample 3 --dir camCalibLeft --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/camCalibLeft</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1.44329e-15) (y 61.9))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir rpcAffLEarn --rxTime</parameters>
-        <node>icub16</node>
-        <prefix>/rpcAffLearn</prefix>
+        <parameters>--dir affLEarn --rxTime</parameters>
+        <node>icub15</node>
+        <prefix>/affLearn</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 5.9) (y 1.9))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>---type image --dir ntdImgBin --rxTime</parameters>
-        <node>icub16</node>
+        <parameters>--type image --dir ntdImgBin --rxTime</parameters>
+        <node>icub15</node>
         <prefix>/ntdImgBin</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
@@ -47,7 +47,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir headState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/headState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
@@ -55,7 +55,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir rightArmState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/rightArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2065.68) (y 527.764))</geometry>
@@ -63,7 +63,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir leftArmState --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/leftArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2036.85) (y 436.165))</geometry>
@@ -71,7 +71,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir ActualFixPoint --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/dumpActualFixPoint</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2048.25) (y 878.15))</geometry>
@@ -79,7 +79,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir dumpLeftEEF --rxTime</parameters>
-        <node>icub16</node>
+        <node>icub15</node>
         <prefix>/dumpLeftEEF</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1699.86) (y 1415.13))</geometry>
@@ -99,9 +99,9 @@
         <geometry>(Pos ((x 681) (y 1445)) ((x 638) (y 1357)) ((x 701) (y 1514)) ((x 737) (y 1510))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/affManager/affLearn:rpc</from>
-        <to external="true">/rpcAffLearn/dump</to>
-        <protocol>tcp+log.in:/</protocol>
+        <from external="true">/affLearn/feats:o</from>
+        <to external="true">/affLearn/dump</to>
+        <protocol>udp</protocol>
         <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
     </connection>
     <connection>

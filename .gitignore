@@ -8,6 +8,7 @@
 
 ## build dirs
 build*/
+data*/
 *kdev*
 
 ## others

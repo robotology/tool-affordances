@@ -195,9 +195,9 @@ bool AffManager::getTool(){
     }
     lookAtToolExe();
 
-    attachToolExe();
+    //attachToolExe();
     observeToolExe();
-
+    goHomeNoHandsExe();
 	return true;
 }
 
@@ -591,6 +591,7 @@ void AffManager::attachToolExe()
 /**********************************************************/
 void AffManager::observeToolExe()
 {
+    /*
     // XXX Check that the ROI extraction works properly on the robot.
     // Get Hand coordinates on image 
     Vector handPose, handOr, handPixel;
@@ -636,6 +637,10 @@ void AffManager::observeToolExe()
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
    
+    */
+    Bottle cmdFE,replyFE;
+    cmdFE.clear();
+    replyFE.clear();
     // Get the features
     cmdFE.clear();
     replyFE.clear();

@@ -25,7 +25,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 #message ("Message opencvLIBS " ${OpenCV_LIBRARIES} )
                     
 add_executable(${PROJECTNAME} ${source} ${header} ${idl} )
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}  icubmod)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}  icubmod ctrlLib)
 
 add_executable(startAffEnv startAffEnv.cpp)
 target_link_libraries(startAffEnv ${YARP_LIBRARIES})
