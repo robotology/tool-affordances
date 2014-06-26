@@ -236,6 +236,9 @@ bool ToolBlobber::open()
 
     /* Output ports */
 
+    rpcGBSPortName = "/" + moduleName + "/rpcGBS:o";
+    rpcGBS.open(rpcGBSPortName);
+
     imageOutPortName = "/" + moduleName + "/img:o";
     imageOutPort.open(imageOutPortName);
 
@@ -405,8 +408,8 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     /* Find closest valid blob */
     double minVal, maxVal; 
     Point minLoc, maxLoc;	
-    int fillFlags = 8; 
-    if (fixedRange){                                           // Set the flags for floodfill
+    int fillFlags = 8;                                          // pixel connectivity
+    if (fixedRange){                                            // Set the flags for floodfill
         fillFlags += FLOODFILL_FIXED_RANGE;}
 
     int fillSize = 0;	
@@ -418,6 +421,8 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     }
 
     floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
+    
+    // XXX Smooth the image so that it connect components, and so that it wont cut the GBS blob
     GaussianBlur(fillMask, fillMask, Size(3,3), 1.5, 1.5);
 
     /* Find Contours */
@@ -445,17 +450,16 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         drawContours(cntMask, contours, blobI, Scalar(1), CV_FILLED, 8);  // Mask ignoring points outside the contours
         leftIm.copyTo(imOut,cntMask);
 
-
         /* check and plt the ROI */
         Rect blobBox = boundingRect(contours[blobI]);
         if(verbose)
             {cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;}
-        rectangle(imOut, blobBox, blue, 2 );
+        rectangle(imgBin, blobBox, blue, 2 );
 
         Point center2DCoords;
         Moments mu = moments( contours[blobI], false );		
         center2DCoords = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
-        circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
+        // circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
 
         /* Send Target coordinates*/
         if(verbose)
@@ -464,7 +468,25 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         target.addInt(center2DCoords.x);
         target.addInt(center2DCoords.y);
 
+
+        // Gt graphBased segmenenation within the close blob
+        Bottle cmdGBS,replyGBS;
+        cmdGBS.clear();    replyGBS.clear();
+        cmdGBS.addString("get_component_around");
+        cmdGBS.addInt(center2DCoords.x);
+        cmdGBS.addInt(center2DCoords.y);
+        rpcGBS.write(cmdGBS, replyGBS);
+        Bottle *segPixels = replyGBS.get(0).asList();
+
+        // XXX Go through all the returned pixels and make a mask out of them. 
+        // Multiply this mask with the one obtained from disparity
+
+        // Put the result as the desired blob
+
     }
+
+
+
     
     mutex.post();
 

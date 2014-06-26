@@ -26,6 +26,8 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/Stamp.h>
+#include <yarp/os/Port.h>
+#include <yarp/os/RpcClient.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Image.h>
 
@@ -52,7 +54,8 @@ private:
     std::string imRightInPortName;              // string containing right input image port name
     std::string targetOutPortName;              // string containing output target port name
     std::string imageOutPortName;               // string containing output image port name
-    std::string imgBinOutPortName;              // string containing output image port name
+    std::string imgBinOutPortName;              // string containing output binary image port name
+    std::string rpcGBSPortName;              // string containing output binary image port name
     
     //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
 
@@ -61,6 +64,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imageOutPort;	// output image Port with info drawn over
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >	imgBinOutPort;	// output binary image of closest blob
     yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.      
+
+    yarp::os::RpcClient                                                 rpcGBS;	    //rpc motor port GraphBasedSegmentation
     
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;

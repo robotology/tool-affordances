@@ -1,0 +1,63 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>graphBasedSegmentation</name>
+    <description>Wrapper module that performs graph-based image segmentation exploiting the algorithm developed by Felzenszwalb and Huttenlocher (Brown University)</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="graphBasedSegmentation"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="graphBasedSegmentation/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email="">  Elena Ceseracciu  </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/GBSeg/rawImg:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description> Receives the image from a camera.</description>
+        </input>
+       
+        <input>
+            <type>Rpc</type>
+            <port carrier="tcp">/GBSeg/conf</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Accepts configuration options.</description>
+        </input>
+
+
+        <!-- output datas if available -->
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/GBSeg/viewImg:o</port>
+            <description> Streams out segmented images</description>
+        </output>
+
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+
