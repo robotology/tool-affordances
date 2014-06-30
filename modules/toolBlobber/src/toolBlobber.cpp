@@ -177,7 +177,7 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
 /**********************************************************/
 double ToolBlobberModule::getPeriod()
 {
-    return 0.1;
+    return 0.3;
 }
 
 /**********************************************************/
@@ -236,7 +236,7 @@ bool ToolBlobber::open()
 
     /* Output ports */
 
-    rpcGBSPortName = "/" + moduleName + "/rpcGBS:o";
+    rpcGBSPortName = "/" + moduleName + "/gbs:rpc";
     rpcGBS.open(rpcGBSPortName);
 
     imageOutPortName = "/" + moduleName + "/img:o";
@@ -275,6 +275,7 @@ void ToolBlobber::close()
     imageOutPort.close();
     imgBinOutPort.close();
     targetOutPort.close();
+    rpcGBS.close();
 
 
     fprintf(stdout,"finished closing input and output ports...\n");
@@ -293,6 +294,7 @@ void ToolBlobber::interrupt()
     imageOutPort.interrupt();
     imgBinOutPort.interrupt();
     targetOutPort.interrupt();
+    rpcGBS.interrupt();
     
     fprintf(stdout,"finished interrupt ports\n");
 }
@@ -444,7 +446,7 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         }
         /* Mark closest blob for visualization*/        
         //drawContours(imOut, contours, blobI, white, 2, 8); 
-        drawContours(imgBin, contours, blobI, white, -1, 8); 
+        //drawContours(imgBin, contours, blobI, white, -1, 8); 
 
         Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
         drawContours(cntMask, contours, blobI, Scalar(1), CV_FILLED, 8);  // Mask ignoring points outside the contours
@@ -468,26 +470,34 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         target.addInt(center2DCoords.x);
         target.addInt(center2DCoords.y);
 
-
-        // Gt graphBased segmenenation within the close blob
+        cout << "Getting pixels from GBS" << endl;
+        // Get graphBased segmenenation within the close blob
         Bottle cmdGBS,replyGBS;
         cmdGBS.clear();    replyGBS.clear();
         cmdGBS.addString("get_component_around");
         cmdGBS.addInt(center2DCoords.x);
         cmdGBS.addInt(center2DCoords.y);
         rpcGBS.write(cmdGBS, replyGBS);
+        cout << "Received " << replyGBS.get(0).asString() << endl; 
         Bottle *segPixels = replyGBS.get(0).asList();
 
+        //cout << "Received " << segPixels->size() << " pixel locations. Creating mask from received pixels" << endl;
         // XXX Go through all the returned pixels and make a mask out of them. 
+        Mat segMask(disp.size(), CV_8UC1, Scalar(0));
+        for( int sp = 0; sp < segPixels->size(); sp++ ){
+            Bottle *pointB = segPixels->get(sp).asList();
+            Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
+            circle(segMask, segPoint, 0, Scalar(255));
+            //circle(imgBin, segPoint, 0, Scalar(255));
+        }
+        
+        
         // Multiply this mask with the one obtained from disparity
-
+        multiply(cntMask, segMask, imgBin);
         // Put the result as the desired blob
 
     }
-
-
-
-    
+        
     mutex.post();
 
     /* write info on output ports */
