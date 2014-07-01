@@ -401,7 +401,10 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     target.clear();
 
     /* Filter disparity image to reduce noise */
-    GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
+
+    dilate(disp, disp,Mat(), Point(-1,-1), 5);
+    GaussianBlur(disp, disp, Size(11 ,11), 10, 10);
+    erode(disp, disp, Mat(), Point(-1,-1), 3);
     Mat threshIm;
     threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
     multiply(disp, threshIm, disp);	
