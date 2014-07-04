@@ -442,18 +442,23 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         cmdGBS.addInt(targetBlob.x);
         cmdGBS.addInt(targetBlob.y);
         rpcGBS.write(cmdGBS, replyGBS);
-        cout << "Received " << replyGBS.get(0).asString() << endl; 
-        Bottle *segPixels = replyGBS.get(0).asList();
-
-        //cout << "Received " << segPixels->size() << " pixel locations. Creating mask from received pixels" << endl;
-        // Go through all the returned pixels and make a mask out of them. 
-        Mat segMask(disp.size(), CV_8UC1, Scalar(0));
-        for( int sp = 0; sp < segPixels->size(); sp++ ){
-            Bottle *pointB = segPixels->get(sp).asList();
-            Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
-            circle(segMask, segPoint, 0, Scalar(255));
-        }             
-        multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
+        if (replyGBS.size() > 0)
+        {
+            if (verbose) {cout << "Received " << replyGBS.size() <<  "bottles from GBS " << endl;} 
+            Bottle *segPixels = replyGBS.get(0).asList();
+            // Go through all the returned pixels and make a mask out of them. 
+            Mat segMask(disp.size(), CV_8UC1, Scalar(0));
+            for( int sp = 0; sp < segPixels->size(); sp++ ){
+                Bottle *pointB = segPixels->get(sp).asList();
+                Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
+                circle(segMask, segPoint, 0, Scalar(255));
+            }             
+            multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
+        }else{
+            if (verbose) {cout << "Nothing received from GBS" << endl;}
+        }
+    }else{
+            if (verbose) {cout << "No contours detected" << endl;}
     }
         
     mutex.post();
