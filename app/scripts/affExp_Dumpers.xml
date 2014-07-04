@@ -6,32 +6,40 @@
     </authors>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --downsample 3 --dir camCalibRight --rxTime</parameters>
-        <node>icub15</node>
+        <parameters>--type image --dir camCalibRight --rxTime</parameters>
+        <node>localhost</node>
         <prefix>/camCalibRight</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 728.682) (y 1493.76))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--downsample 10 --dir dumpRightEEF --rxTime</parameters>
-        <node>icub15</node>
+        <parameters>--dir dumpRightEEF --rxTime</parameters>
+        <node>localhost</node>
         <prefix>/dumpRightEEF</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1656.85) (y 1570.16))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --downsample 3 --dir camCalibLeft --rxTime</parameters>
-        <node>icub15</node>
+        <parameters>--type image --dir camCalibLeft --rxTime</parameters>
+        <node>localhost</node>
         <prefix>/camCalibLeft</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1.44329e-15) (y 61.9))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
+        <parameters>--dir dumpLeftEEF --rxTime</parameters>
+        <node>localhost</node>
+        <prefix>/dumpLeftEEF</prefix>
+        <workdir>/tmp/affData</workdir>
+        <geometry>(Pos (x 1699.86) (y 1415.13))</geometry>
+    </module>
+    <module>
+        <name>dataDumper</name>
         <parameters>--dir affLEarn --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/affLearn</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 5.9) (y 1.9))</geometry>
@@ -39,7 +47,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--type image --dir imgBin --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/imgBin</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
@@ -47,15 +55,23 @@
     <module>
         <name>dataDumper</name>
         <parameters>--type image --dir disp --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/disp</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
+        <parameters>--dir tooltip --rxTime</parameters>
+        <node>localhost</node>
+        <prefix>/tooltip</prefix>
+        <workdir>/tmp/tooltip</workdir>
+        <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
+    </module>    
+    <module>
+        <name>dataDumper</name>
         <parameters>--downsample 10 --dir headState --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/headState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
@@ -63,7 +79,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir rightArmState --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/rightArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2065.68) (y 527.764))</geometry>
@@ -71,19 +87,12 @@
     <module>
         <name>dataDumper</name>
         <parameters>--downsample 10 --dir leftArmState --rxTime</parameters>
-        <node>icub15</node>
+        <node>localhost</node>
         <prefix>/leftArmState</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 2036.85) (y 436.165))</geometry>
     </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--downsample 10 --dir dumpLeftEEF --rxTime</parameters>
-        <node>icub15</node>
-        <prefix>/dumpLeftEEF</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 1699.86) (y 1415.13))</geometry>
-    </module>
+
 
 
     <connection>
@@ -115,6 +124,12 @@
         <to external="true">/disp/dump</to>
         <protocol>mcast</protocol>
         <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaToolProjection/target:o</from>
+        <to external="true">/tooltip/dump</to>
+        <protocol>udp</protocol>
+        <geometry></geometry>
     </connection>
     <connection>
         <from external="true">/icub/cartesianController/right_arm/state:o</from>

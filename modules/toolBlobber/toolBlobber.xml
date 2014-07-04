@@ -24,7 +24,11 @@
             <port carrier="tcp">/toolBlobber/rpc:i</port>
             <description>takes RPC commands from Human or stateMachine</description>
         </input>
-        
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/toolBlobber/tooltip:i</port>
+            <description>Receives tooltip coordinates from ToolProjection module</description>
+        </input>        
         <input>
             <type>ImageOfPixelRgb</type>
             <port carrier="udp">/toolBlobber/imLeft:i</port>

@@ -33,6 +33,13 @@
             <priority>no</priority>
             <description> Receives the camera image.</description>
         </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/featExt/coords:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives image pixel coordinates.</description>
+        </input>
         
         <!-- output data if available -->
         <output>

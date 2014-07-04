@@ -54,8 +54,6 @@
 #include <affManager_IDLServer.h>
 
 YARP_DECLARE_DEVICES(icubmod)
-#define PI 3.14159265
-
 
 /**********************************************************/
 class AffManager : public yarp::os::RFModule, public affManager_IDLServer
@@ -76,11 +74,11 @@ protected:
     yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA    
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
 
-	//yarp::os::RpcClient         rpcBlobPicker;	    //rpc motor port BlobPicker
+	//yarp::os::RpcClient         rpcBlobPicker;	//rpc motor port BlobPicker
 	//yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter
 
     yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port BlobSpotter
-	yarp::os::RpcClient         rpcFeatExt;	    //rpc motor port Blob3DInfo
+	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port Blob3DInfo
 
     /* class variables */
 
@@ -112,6 +110,8 @@ protected:
 	yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D
     yarp::sig::Vector			target3Dorient;		    // Keeps the target orientation
+
+    yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
 
     double                      effectAlpha;            // Angle in which the object has been moved by the action
     double                      effectDist;             // Distance that the object has been moved by the action

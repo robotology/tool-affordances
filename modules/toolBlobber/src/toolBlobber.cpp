@@ -86,25 +86,8 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
     /* Get command string */
     string receivedCmd = command.get(0).asString().c_str();
     int responseCode;   //Will contain Vocab-encoded response
-    if (receivedCmd == "origin"){
-        if (command.size() == 4){
-            vector<double> origCoords(3);
-            for (int i=1; i<=3; i++){
-                origCoords[i-1] = command.get(i).asDouble();            
-            }
-            bool ok = blobber->setOrigin(origCoords);
-            if (ok)
-                responseCode = Vocab::encode("ack");
-            else {
-                fprintf(stdout,"Coordinates format not accepted. Try [origin X Y Z]. \n");
-                responseCode = Vocab::encode("nack");
-            }
-        }else
-            responseCode = Vocab::encode("nack");
-        reply.addVocab(responseCode);
-        return true;
 
-    }else if (receivedCmd == "range"){
+    if (receivedCmd == "range"){
         bool ok = blobber->setRange(command.get(1).asDouble());
         if (ok)
             responseCode = Vocab::encode("ack");
@@ -152,7 +135,6 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(Vocab::encode("many"));
         responseCode = Vocab::encode("ack");
         reply.addString("Available commands are:");
-        reply.addString("origin (int) (int) (int)- set the coordinates from where the 3D distance is computed.");        
         reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
         reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
         reply.addString("confidence (double) - Sets the confidence value [0-1] over which the obtained coordinates are sent.");
@@ -200,14 +182,6 @@ bool ToolBlobber::open()
     this->useCallback();
     fprintf(stdout,"Parsing parameters\n");	
 
-    Bottle originFrame = moduleRF->findGroup("origin");    
-    if (originFrame.size()>0){
-        for (int i=0; i<originFrame.size(); i++)
-            origin[i] = originFrame.get(i+1).asDouble();
-    }else{
-        origin = Scalar(0,0,0);
-    }
-    fprintf(stdout,"Frame used : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );
     verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
@@ -228,12 +202,12 @@ bool ToolBlobber::open()
     dispInPortName = "/" + moduleName + "/disp:i";
     BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );    
 
-    imLeftInPortName = "/" + moduleName + "/imLeft:i";
-    imagePortInLeft.open(imLeftInPortName);
-    
-    imRightInPortName = "/" + moduleName + "/imRight:i";
-    imagePortInRight.open(imRightInPortName);
+    toolTipInPortName = "/" + moduleName + "/tooltip:i";
+    toolTipInPort.open(toolTipInPortName);
 
+    imInLeftPortName = "/" + moduleName + "/imLeft:i";
+    imInLeftPort.open(imInLeftPortName);
+    
     /* Output ports */
 
     rpcGBSPortName = "/" + moduleName + "/gbs:rpc";
@@ -269,8 +243,8 @@ void ToolBlobber::close()
     fprintf(stdout,"now closing ports...\n");
     
     BufferedPort<ImageOf<PixelBgr>  >::close();
-    imagePortInLeft.close();
-    imagePortInRight.close();
+    toolTipInPort.close();
+    imInLeftPort.close();
 
     imageOutPort.close();
     imgBinOutPort.close();
@@ -288,8 +262,8 @@ void ToolBlobber::interrupt()
     fprintf(stdout,"attempting to interrupt ports\n");
    
     BufferedPort<ImageOf<PixelBgr>  >::interrupt();
-    imagePortInLeft.close();
-    imagePortInRight.close();
+    toolTipInPort.interrupt();
+    imInLeftPort.interrupt();
 
     imageOutPort.interrupt();
     imgBinOutPort.interrupt();
@@ -299,18 +273,6 @@ void ToolBlobber::interrupt()
     fprintf(stdout,"finished interrupt ports\n");
 }
 
-bool ToolBlobber::setOrigin(vector<double> o)
-{   
-    if (o.size()!=3){
-        fprintf(stdout,"Coordinates format not valid, origin not modified. \n");
-        return false;
-    }
-
-    for (int i=0; i<o.size(); i++)
-        this->origin[i] = o[i];
-    fprintf(stdout,"New origin Coords are : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );
-    return true;
-}
 
 bool ToolBlobber::setRange(double r)
 {
@@ -378,16 +340,27 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
 
     /* Read camera Images */
-    ImageOf<PixelRgb> *imInLeft = imagePortInLeft.read();  // read an image
+    ImageOf<PixelRgb> *imInLeft = imInLeftPort.read();  // read an image
+    if(imInLeft == NULL)		{
+        printf("No input camera image \n");
+		return;
+	}
     Mat leftIm((IplImage*) imInLeft->getIplImage());	
-    ImageOf<PixelRgb> *imInRight = imagePortInRight.read();  // read an image
-    Mat rightIm((IplImage*) imInRight->getIplImage());
+
+    /* Read tooltip coordinates */
+    Bottle *toolTipIn = toolTipInPort.read();
+    if (toolTipIn == NULL)  {  
+        printf("no tooltip data received, working without it");
+        return;
+    }
+    yarp::sig::Vector toolTip(2);
+    toolTip[0] = toolTipIn->get(0).asInt();
+    toolTip[1] = toolTipIn->get(1).asInt();
 
     /* Prepare output image for visualization */
     ImageOf<PixelRgb> &imageOut  = imageOutPort.prepare();
     imageOut.resize(imInLeft->width(), imInLeft->height());		// Initialize features image
     imageOut.zero();
-    //imageOut = disparity;	
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
 
     /* Prepare binary image to ouput closest blob */
@@ -400,10 +373,10 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     Bottle &target = targetOutPort.prepare();
     target.clear();
 
-    /* Filter disparity image to reduce noise */
-
+    /* Filter disparity image to reduce noise an produce smoother blob */
+    //  Smooth the image so that it connect components, and so that it wont cut the GBS blob
     dilate(disp, disp,Mat(), Point(-1,-1), 5);
-    GaussianBlur(disp, disp, Size(11 ,11), 10, 10);
+    GaussianBlur(disp, disp, Size(11 ,11), 10, 10); 
     erode(disp, disp, Mat(), Point(-1,-1), 3);
     Mat threshIm;
     threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
@@ -426,16 +399,13 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     }
 
     floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
-    
-    // XXX Smooth the image so that it connect components, and so that it wont cut the GBS blob
-    GaussianBlur(fillMask, fillMask, Size(3,3), 1.5, 1.5);
-
+ 
     /* Find Contours */
     Mat edges;	
     vector<vector<Point > > contours;
     vector<Vec4i> hierarchy;
     //Canny( disp, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny	
-    findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+    findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );
 	
     /* If any blob is found */
     if (contours.size()>0){
@@ -455,56 +425,41 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         drawContours(cntMask, contours, blobI, Scalar(1), CV_FILLED, 8);  // Mask ignoring points outside the contours
         leftIm.copyTo(imOut,cntMask);
 
-        /* check and plt the ROI */
-        Rect blobBox = boundingRect(contours[blobI]);
-        if(verbose)
-            {cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;}
-        rectangle(imgBin, blobBox, blue, 2 );
+        /* Get Target blob coordinates for seeding GBS*/
+        Point targetBlob; 
+        targetBlob.x = toolTip[0];  
+        targetBlob.y = toolTip[1] + 15; //Search for the tool blob slighly under the detected tooltip
+        circle( imOut, targetBlob, 4, red, -1, 8, 0 );
 
-        Point center2DCoords;
-        Moments mu = moments( contours[blobI], false );		
-        center2DCoords = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
-        // circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
-
-        /* Send Target coordinates*/
-        if(verbose)
-        {cout << "coords of the center of closest blob are : " << center2DCoords.x << ", "<< center2DCoords.y << endl;}
-        
-        target.addInt(center2DCoords.x);
-        target.addInt(center2DCoords.y);
+        target.addInt(targetBlob.x);
+        target.addInt(targetBlob.y);       
 
         cout << "Getting pixels from GBS" << endl;
         // Get graphBased segmenenation within the close blob
         Bottle cmdGBS,replyGBS;
         cmdGBS.clear();    replyGBS.clear();
         cmdGBS.addString("get_component_around");
-        cmdGBS.addInt(center2DCoords.x);
-        cmdGBS.addInt(center2DCoords.y);
+        cmdGBS.addInt(targetBlob.x);
+        cmdGBS.addInt(targetBlob.y);
         rpcGBS.write(cmdGBS, replyGBS);
         cout << "Received " << replyGBS.get(0).asString() << endl; 
         Bottle *segPixels = replyGBS.get(0).asList();
 
         //cout << "Received " << segPixels->size() << " pixel locations. Creating mask from received pixels" << endl;
-        // XXX Go through all the returned pixels and make a mask out of them. 
+        // Go through all the returned pixels and make a mask out of them. 
         Mat segMask(disp.size(), CV_8UC1, Scalar(0));
         for( int sp = 0; sp < segPixels->size(); sp++ ){
             Bottle *pointB = segPixels->get(sp).asList();
             Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
             circle(segMask, segPoint, 0, Scalar(255));
-            //circle(imgBin, segPoint, 0, Scalar(255));
-        }
-        
-        
-        // Multiply this mask with the one obtained from disparity
-        multiply(cntMask, segMask, imgBin);
-        // Put the result as the desired blob
-
+        }             
+        multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
     }
         
     mutex.post();
 
     /* write info on output ports */
-    imageOutPort.setEnvelope(ts);
+    //imageOutPort.setEnvelope(ts);
     imageOutPort.write();
     imgBinOutPort.write();
     targetOutPort.write();

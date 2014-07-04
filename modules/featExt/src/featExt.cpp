@@ -11,18 +11,21 @@ void FeatExt::loop()
 {
 
     // XXX TODO: Improve it so that respond is asynchronous, or at least, streaming processing can be stopped.
-    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+   
     if (processing){        		
+        ImageOf<PixelRgb> *imageIn = inImPort.read(false);  // read an image
 		if(imageIn == NULL)		{
-			printf("No input image \n"); 
+            printf("No input image \n");
 			return;
 		}		
         VecVec feats;
+        printf("Calling Extractor \n"); 
 		featExtractor(*imageIn, feats);
         return;
 	}
     else            //accept commands if the module is idle
     {
+        
 	    Bottle cmd, val, reply;
 	    rpcCmd.read(cmd, true);
 	    int rxCmd=processRpcCmd(cmd,val);
@@ -38,18 +41,33 @@ void FeatExt::loop()
 			br.y=(int)val.get(3).asInt();
             printf("Setting br y to = %d \n", br.y);
 
+            ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+            imWidth = imageIn->width();
+            imHeight = imageIn->height();
+
             if (tl.x < 0) {tl.x = 0; printf("ROI tl x smaller than 0, set to 0 \n");}
             if (tl.y < 0) {tl.y = 0; printf("ROI tl y smaller than 0, set to 0 \n");}
-            if (br.x > imageIn->width()) {br.x = imageIn->width(); printf("ROI br x outside boundaries. Max = %d \n", imageIn->width());}
-            if (br.y > imageIn->height()) {br.y = imageIn->height(); printf("ROI br y outside boundaries. Max = %d \n", imageIn->height());}
+            if (br.x > imWidth) {br.x = imWidth; printf("ROI br x outside boundaries. Max = %d \n", imWidth);}
+            if (br.y > imHeight) {br.y = imHeight; printf("ROI br y outside boundaries. Max = %d \n", imHeight);}
             
-			ROI= Rect(tl,br);
+			ROI = Rect(tl,br);
             ROIinit = true;
 
             reply.addString("ack");
             reply.addString(" ROI set to given values");
             rpcCmd.reply(reply);
             return;
+
+        } else if (rxCmd==Vocab::encode("refAngle")){
+            Point tl,br;
+			refAngle = (int)val.get(0).asInt();
+            printf("reference Angle set to %i \n", refAngle);
+
+            reply.addString("ack");
+            reply.addString("reference angle set to given value");
+            rpcCmd.reply(reply);
+            return;
+
 
         } else if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
 		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
@@ -62,6 +80,27 @@ void FeatExt::loop()
 		    featExtractor(*imageIn, feats);
             rpcCmd.reply(feats);
             return;
+
+        } else if (rxCmd==Vocab::encode("click")){              //process only one and return feats in rpc reply
+		    
+            printf("Click on the image \n"); 
+            Bottle *coordsIn = coordsInPort.read();             // read coordinates            
+            coords.x = coordsIn->get(0).asInt();
+            coords.y = coordsIn->get(1).asInt();
+            printf("Selected coords are %i, %i \n", coords.x, coords.y); 
+            coordsInit = true;
+            ImageOf<PixelRgb> *imageIn = inImPort.read();       // read an image
+		    if(imageIn == NULL)		    {
+			    printf("No input image \n"); 
+                reply.addString("nack");
+			    return;
+		    }		    
+            VecVec feats;
+		    featExtractor(*imageIn, feats);
+            rpcCmd.reply(feats);
+            coordsInit = false;
+            return;
+
 
         } else if (rxCmd==Vocab::encode("verbose")){        
             string verb = val.get(0).asString();
@@ -83,6 +122,15 @@ void FeatExt::loop()
             rpcCmd.reply(reply);
 			return;
 
+        } else if (rxCmd==Vocab::encode("reset")){        
+            processing = false;
+            coordsInit = false;
+            ROI = Rect(0,0, imWidth, imHeight);
+            ROIinit = false;
+            reply.addString("ack");
+            rpcCmd.reply(reply);
+			return;
+
 	    } else if (rxCmd==Vocab::encode("go")){        
             processing = true;
             reply.addString("ack");
@@ -100,6 +148,8 @@ void FeatExt::loop()
             reply.addString("Available commands are: \n");
             reply.addString("setROI (int) (int) (int) (int) - sets a region of interest of feature extraction");
             reply.addString("snapshot - Performs feature extracton on a single frame.");
+            reply.addString("click - Ask user to click on vieer and performs feature extraction on the selected blob.");
+            reply.addString("reset - Resets ROI and all other set values.");
             reply.addString("go - Enables feature extraction on streaming images.");
             //reply.addString("stop - Disables feature extraction on streaming images.");
             reply.addString("help - Produces this help.");
@@ -119,14 +169,16 @@ bool FeatExt::open()
     bool ret=true;
     ret = rpcCmd.open("/featExt/rpc:i");					// Port for receiving rpc commands
 	ret = ret && inImPort.open("/featExt/img:i");			// give the port a name
-    //ret = ret && binImPort.open("/featExt/binImg:i");		//port to receive info about the blobs in the image.
+    ret = ret && coordsInPort.open("/featExt/coords:i");	//port to receive coordinates to specify blob
 	ret = ret && imPropOutPort.open("/featExt/imgProp:o");
 	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");
 	ret = ret && featPort.open("/featExt/feats:o");			//port to receive info confirming reception of template.
 
 	processing = false;
     ROIinit = false;
+    coordsInit = false;
     verbose = false;
+    refAngle = 0.0;
     return ret;
 }
 
@@ -217,25 +269,34 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	cvtColor(src, edges, CV_BGR2GRAY);								// Create greyscale image for further analysis
 	GaussianBlur(edges, edges, Size(3,3), 1.5, 1.5);				// Blur to smooth contours	
 	Canny( edges, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny
-	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );
 	//printf(" Found %d contours\n", contoursPoint.size() );
 
 	// draw it on offset and thick line to close possible apertures
-	drawContours( contoursIm, contoursPoint, -1, Scalar(128), 2, 8); 
+	//drawContours( contoursIm, contoursPoint, -1, Scalar(0, 0, 255), 2, 8); 
+    drawContours( edges, contoursPoint, -1, Scalar(255, 255, 255), 2, 8); //
 	// Recomputing the contour needed to close possible open contours
-	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-	drawContours( edges, contoursPoint, -1, Scalar(255), 1 , 8); 
-
+	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0));
+	drawContours( contoursIm, contoursPoint, -1, Scalar(255, 255, 255), 1 , 8); // Paint all found contours in thin white
 
 	//Mat contoursIm = Mat::zeros( edges.size(), CV_8UC3 );
 	
 	for( int i = 0; i< contoursPoint.size(); i++ )					// Iterate through each contour. 
 	{
-		double a=contourArea(contoursPoint[i]);						// Find the area of contour
-		if(a>minBlobSize){											// Keep only big contours
-			contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
-			drawContours( contoursIm, contoursPoint, i, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
-		}
+        if (coordsInit){
+           double in = pointPolygonTest( contoursPoint[i], coords, false );
+           if (in>=0){
+               contours.push_back(Contour(contoursPoint[i]));			// Include only the contour that contains the coords, i.e. the one we clicked on.
+               circle(contoursIm, coords, 2, Scalar(255, 0 ,0),-1);
+               drawContours( contoursIm, contoursPoint, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point() );    // paint the seleted contour in thick red
+           }
+        } else{            
+		    double a=contourArea(contoursPoint[i]);						// Find the area of contour
+		    if(a>minBlobSize){											// Keep only big contours
+			    contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
+			    drawContours( contoursIm, contoursPoint, i, Scalar(0,0,255), 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
+            }
+        }
 	}
 	printf(" Found %d large contours out of %d contours \n", contours.size(), contoursPoint.size() );
 	//featFile << " Found " << contours.size() << " large contours out of " << contoursPoint.size() << " contours. \n";
@@ -243,7 +304,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	// Initializationg vector of features
 	vector<Feature> feats (contours.size() );
 
-	// ==== Mutual similarities ====
+	/*// ==== Mutual similarities ====
 	Mat similarityMatrix = Mat::zeros(contours.size(),contours.size(), CV_32F);
 	for( int i = 0; i < contours.size(); i++ ){
 		std::ostringstream cntNum; 
@@ -255,17 +316,18 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 			//feats[i].content.push_back(similarity);
 		}
 	}
-	//featFile << "Similarity Matrix \n";
-	//featFile << "M = "<< endl << " "  << similarityMatrix << endl << endl;		
-	//printf("Similarity Matrix:");
-	//cout << "M = "<< endl << " "  << similarityMatrix << endl << endl;
-
+	printf("Similarity Matrix:");
+	cout << "M = "<< endl << " "  << similarityMatrix << endl << endl;
+    */
+    
+    
 	// ++++++++++ LOOP THROUGH CONTOURS +++++++++++++
 	for( int i = 0; i < contours.size(); i++ )
 	{
-		//printf(" * Contour[%d] \n", i);
+        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+		printf(" * Contour[%i] \n", i);
 		//featFile << "\n CONTOUR " << i << "\n";
-		Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );	
+			
 		Rect boundRect = boundingRect( contours[i].getPoints());
 
 		//==== Convex Hull and Convexity Defects ====
@@ -276,10 +338,12 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		vector<double> defsDirs;					// Bisector angle of convexity defect
 		vector<double> defsDirsHist;	    		// Histogram of bisector angles
 
-        // XXX toDo, printout convDir to see how many possible vaule sit gets. Given the 8 connected graphs, it might be that it is intrinsically histogramized
+        // compute the convexity defects, their depth and their bisector angles 
 		contours[i].convDefs(convDefVec);
 		contours[i].convDefPos(convDefVec, defsDepth, defsIndx);
-        while (defsDepth.size()<convDepthNum) {      // Pad with 0s up to size convDepthNum
+        contours[i].convDir(defsIndx, defsDirs, refAngle);
+
+        while (defsDepth.size()<convDepthNum) {      // Pad defsDepth vector with 0s up to size convDepthNum
             defsDepth.push_back(0.0);
         }  
 
@@ -288,14 +352,16 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 			feats[i].content.push_back(defsDepth[c]);			
             if (verbose) {printf("Depth conv point %i = %g \n", c, defsDepth[c]);}
             if (c < defsIndx.size()){
-                circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 5, Scalar(0, 255, 0), -1, 8, 0 );}
+                circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 3, Scalar(0, 255, 0), -1, 8, 0 );
+                contours[i].drawArrow(contoursIm,contours[i].getPoints()[defsIndx[c]], defsDirs[c], Scalar(255,0,0), 15);
+            }
 		}
 
-        contours[i].convDir(defsIndx, defsDirs);
+        // Compute and push the histogram of the bisector angles at the convexity defects
         contours[i].convDirHist(defsDirs, defsDirsHist);
         for ( int h = 0; h < defsDirsHist.size(); h++ ){
             feats[i].content.push_back(defsDirsHist[h]);
-            if (verbose) {printf(" Histogram bin  %i = %g \n", h, defsDirsHist[h]); }
+            if (verbose) {printf(" Conv Def Histogram bin  %i = %g \n", h, defsDirsHist[h]); }
         }
         
 		// ==== Skeleton and joints ====
@@ -347,19 +413,29 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		feats[i].content.push_back(contours[i].xtLeft());			// Extension of the object to the left w.r.t the mass center
 		feats[i].content.push_back(contours[i].elongation());		// Elongation
 		feats[i].content.push_back(contours[i].rectangularity());	// Rectangularity
-		//Convex Hull Area
+		
+        //Convex Hull Area
 		feats[i].content.push_back(contours[i].convHullArea());		// Convex Hull area
 		feats[i].content.push_back(contours[i].solidity());			// Solidity
-		// From centroid distance signature
-		contours[i].normalize();
-		feats[i].content.push_back(contours[i].contourNorm->bendEnergy());	// Bending Energy
 		
+        // From amgle signature
+        vector<double> angSigHist;	                                  		// Histogram contour angles
+		    //contours[i].normalize();                                          // Compute histogram from same number of total points
+        feats[i].content.push_back(contours[i].bendEnergy());	            // Bending Energy
+            //contours[i].contourNorm->getAngleSigHist(angSigHist);	            // angle histogram Energy
+        contours[i].getAngleSigHist(angSigHist);	                        // Angle histogram 
+        for ( int h = 0; h < angSigHist.size(); h++ ){
+           feats[i].content.push_back(angSigHist[h]);
+           if (verbose) {printf(" Norm Angle Histogram bin  %i = %g \n", h, angSigHist[h]); }
+        }	
 
 		// ==== Transformed Domain Features from Signature ====		
 		vector<double> fourierDesc;											// Fourier descriptors
 		vector<double> waveletDesc;											// Wavelet descriptors
 		int P = 15;		//Number of FD to save
+        if (verbose) {printf(" Computing DFT \n");}
 		contours[i].getDFT(fourierDesc);
+        if (verbose) {printf(" Computing Waveltet\n");}
 		contours[i].getWavelet(waveletDesc);
 
 		for ( int p = 0; p <P; p++ ){
@@ -367,22 +443,20 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 			feats[i].content.push_back(waveletDesc[p]);
 		}
 
-
 		// Draw results on images
 		contours[i].drawOnImg(src, color);
-		contours[i].convHull->drawOnImg(contoursIm, color);
-		contours[i].contourNorm->drawOnImg(contoursIm,color);
+		contours[i].convHull->drawOnImg(contoursIm, color, 1);
+		//contours[i].contourNorm->drawOnImg(contoursIm, color);
 
 		std::ostringstream cntN; 
         cntN << i;
 		contours[i].drawText(contoursIm, cntN.str() , color);	
+        contours[i].drawArrow(contoursIm,contours[i].getPoints()[0], refAngle, color, 30, 2);
 
 		featSend.content.push_back(feats[i]);
-
-        if (verbose){}
-        printf("Feature Vector of length %i \n", feats[i].content.size());
+        if (verbose){printf("Feature Vector of length %i \n", feats[i].content.size());}
     } //end contours loop
-	
+
     if (ROIinit){
         rectangle(src, Point (0,0), Point(src.cols,src.rows),  Scalar(255,0,0),2);
     }
@@ -396,5 +470,3 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
     mutex.post();
 
 }
-
-

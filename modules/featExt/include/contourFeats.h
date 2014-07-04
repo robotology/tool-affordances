@@ -20,7 +20,7 @@ class Contour
 	void computeMoments();		
 	void computeSkeleton();
 	void computeCentDist();
-	void computeAngleSig();
+	void computeAngleSig(double refAngle = 0);
 	void computeImg();
 
 protected:
@@ -54,7 +54,7 @@ public:
 	const cv::Moments& getMoments();		
 	const cv::Mat& getSkeleton();
 	const std::vector<double>& getCentDist();
-	const std::vector<double>& getAngleSig();
+	const std::vector<double>& getAngleSig(const double refAngle = 0);
 	const cv::Mat& getImg();
 	
 	// Directly from contour
@@ -74,7 +74,7 @@ public:
 	double solidity();
 	void convDefs(std::vector<cv::Vec4i>& outDefs);
 	void convDefPos(const std::vector<cv::Vec4i>& convDefs, std::vector<double>& defDepth, std::vector<int>& defIndx );
-	void convDir(const std::vector<int>& defIndx, std::vector<double>& defDirs);	
+	void convDir(const std::vector<int>& defIndx, std::vector<double>& defDirs, const double refAngle = 0);	
     void convDirHist(const std::vector<double>& defDirs, std::vector<double>& dirsHist);	
 	
 	// From the Thinning algorithm
@@ -91,14 +91,19 @@ public:
 	// Polygonal Approximation
 
 	// From the segments angle's signature
+    void getAngleSigHist(std::vector<double>& angleHist);
 	double bendEnergy();		
 
 	// From 1D centroid distance Signature
 	void getDFT(std::vector<double>& outDFT , int P = -1);
 	void getWavelet(std::vector<double>& outWL);
 
-	void drawOnImg(cv::Mat img, const cv::Scalar& color = cv::Scalar(255,0,0));
-	void drawText(cv::Mat img, std::string text,  const cv::Scalar& color = cv::Scalar(255,0,0));	
+    // Utils
+	void drawOnImg(cv::Mat img, const cv::Scalar& color = cv::Scalar(255, 255, 255), const int thickness = 2 );
+	void drawText(cv::Mat img, std::string text,  const cv::Scalar& color = cv::Scalar(255, 255, 255));	
+    void drawArrow(cv::Mat image, cv::Point ini, double angle, cv::Scalar color, int arrowMagnitude = 9, int thickness=1, int line_type=8, int shift=0);
+    void drawArrow(cv::Mat image, cv::Point ini, cv::Point end, cv::Scalar color, int arrowMagnitude = 9, int thickness=1, int line_type=8, int shift=0);
+
 };
 
 class PolyApproxContour : public Contour

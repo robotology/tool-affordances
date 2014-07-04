@@ -302,9 +302,7 @@ public:
         return 0.1;
     }
 
-
-    // we don't need a thread since the actions library already
-    // incapsulates one inside dealing with all the tight time constraints
+    
     /************************************************************************/
     bool updateModule()
     {
@@ -316,7 +314,7 @@ public:
            Bottle *coords = trackInPort.read(true);
            Bottle coordsSend;
            coordsSend.addInt(coords->get(0).asInt());
-           coordsSend.addInt(coords->get(0).asInt());
+           coordsSend.addInt(coords->get(1).asInt());
            coordsOutPort.write(coordsSend);
         }
 

@@ -57,14 +57,9 @@ bool AffManager::configure(ResourceFinder &rf)
     actionDone = false;
     objFound = false;
 
-	//incoming
-	/*bool ret = true;  
-	ret = blobSpotter.open(("/"+name+"/blobSpot:i").c_str());
-	if (!ret){
-		printf("Problems opening incoming ports\n");
-		return false;
-	}
-	*/
+    toolDim.resize(3, 0.0);
+    target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D
+    target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D
 
 	//rpc
 	bool retRPC = true;    
@@ -105,9 +100,7 @@ bool AffManager::configure(ResourceFinder &rf)
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
     igaze->setTrackingMode(true);
-    
-    target3DcoordsIni.resize(3);		// Keeps the target position in 3D
-    target3DcoordsAfter.resize(3);	// Keeps the target position in 3D
+
 
 	return true;
 }
@@ -560,73 +553,69 @@ void AffManager::attachToolExe()
     cmdKM.clear();   replyKM.clear();
 
     // find the dimensions and tooltip of the tool
-    Bottle toolDim;
     cmdKM.addString("find");
     cmdKM.addString("right");	// arm
     cmdKM.addString("left");	// eye
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call karma Motor to find the tool
     fprintf(stdout,"Tool frame found\n");
-    toolDim = replyKM.tail();			// XXX Check that this TAIL actually works!!!
-    fprintf(stdout,"TOOL AT %s:\n", toolDim.toString().c_str());
-    
 
-    cmdKM.clear();    replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("remove");
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    Bottle toolDimB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
+    toolDim[0] = toolDimB.get(0).asDouble();
+    toolDim[1] = toolDimB.get(1).asDouble();
+    toolDim[2] = toolDimB.get(2).asDouble();    
+    cout << "Tool dims are" << toolDim.toString().c_str() << endl;
 
+    // Attach the new tooltip to the "body schema"  
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("attach");
     cmdKM.addString("right");
-    cmdKM.addDouble(toolDim.get(0).asDouble());
-    cmdKM.addDouble(toolDim.get(1).asDouble());
-    cmdKM.addDouble(toolDim.get(2).asDouble());
+    cmdKM.addDouble(toolDim[0]);
+    cmdKM.addDouble(toolDim[1]);
+    cmdKM.addDouble(toolDim[2]);
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"reply is %s:\n",replyKM.toString().c_str());
-
+    fprintf(stdout,"Tool attached \n ");
     return;
 }
 
 /**********************************************************/
 void AffManager::observeToolExe()
 {
-    /*
+    
     // XXX Check that the ROI extraction works properly on the robot.
     // Get Hand coordinates on image 
-    Vector handPose, handOr, handPixel;
+    Vector handPose, handOr, handPix;
     icart->getPose(handPose, handOr);
-    igaze->get2DPixel(0, handPose, handPixel);
+    igaze->get2DPixel(0, handPose, handPix);
 
     // Get ToolTip coordinates on image
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
-    Bottle toolDimB;
+    Bottle toolTipB;
     cmdKM.addString("tool");
     cmdKM.addString("get");	// arm
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
-    toolDimB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
+    toolTipB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
+    cout << toolTipB.toString().c_str() << endl;
 
-    Vector toolDim(3), toolTipPose(3), toolTipPix(2);
-    toolDim[0] = toolDimB.get(0).asDouble();
-    toolDim[1] = toolDimB.get(1).asDouble();
-    toolDim[2] = toolDimB.get(2).asDouble();
-    toolTipPose[0] = handPose[0] + toolDim[0];
-    toolTipPose[1] = handPose[1] + toolDim[1];
-    toolTipPose[2] = handPose[2] + toolDim[2];
+    Vector toolTipPose(3), toolTipPix(2);
+    string arm;
+    cout << "Tool dims are" << toolDim.toString().c_str() << endl;
+    toolTipPose[0] = toolTipB.get(0).asDouble();
+    toolTipPose[1] = toolTipB.get(1).asDouble();
+    toolTipPose[2] = toolTipB.get(2).asDouble();    
     igaze->get2DPixel(0, toolTipPose, toolTipPix);
 
-
     // Set the ROI to bound the tool and crop the arm away
-
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
 	ROI[0] = toolTipPix[0] - toolDim[0]/2;  // ROI left side half of the tools width to the left of the tip
     ROI[1] = toolTipPix[1]; // ROI top side at the same height of the tooltip
     ROI[2] = toolTipPix[0] + toolDim[0]/2;  // ROI right side half of the tools width to the right of the tip
-    ROI[3] = handPixel[1]; // ROI bottom side at the same height of the hands center
+    ROI[3] = handPix[1]; // ROI bottom side at the same height of the hands center
     
     Bottle cmdFE,replyFE;
     cmdFE.clear();
@@ -638,18 +627,26 @@ void AffManager::observeToolExe()
     cmdFE.addInt((int)ROI[3]);
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-   
-    */
-    Bottle cmdFE,replyFE;
+
+    // Set the tool orientation as reference angle for feature extraction
+    Vector tipDif(2);
+    tipDif [0]= handPix[0] - toolTipPix[0];
+    tipDif [1]= handPix[1] - toolTipPix[1];
+    double handAngle = atan2(double(tipDif[1]), double(tipDif[0])) * 180.0 / M_PI;  
+    
     cmdFE.clear();
     replyFE.clear();
+    cmdFE.addString("refAngle");
+    cmdFE.addInt((int)handAngle);
+    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+
     // Get the features
     cmdFE.clear();
     replyFE.clear();
     cmdFE.addString("snapshot");
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    // At this point, NearThingdetector or any other moduel running on parallel, should be providing the featExt module a clear blob segmentation of the tool
+    // At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
 
     // Send them to Afflearn to be analyzed
     Bottle cmdLearn,replyLearn;
@@ -758,7 +755,7 @@ void AffManager::computeEffect()
     double dx = delta[0];
     double dy = delta[1];
 
-    effectAlpha = atan2 (dy,dx) * 180 / PI;
+    effectAlpha = atan2 (dy,dx) * 180 / M_PI;
     effectDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
 
     // save the effect features
@@ -767,7 +764,7 @@ void AffManager::computeEffect()
     replyLearn.clear();
     cmdLearn.addString("addData");
     cmdLearn.addString("effectFeats");
-    // Add the effect data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
+    // Add the effect data in the format accepted by affLearn: ("Obj1" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
     Bottle& bData = cmdLearn.addList();
     Bottle& bSample = bData.addList();
     bSample.addString("effect");
@@ -801,7 +798,8 @@ void AffManager::finishRound()
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
     fprintf(stdout,"Tool removed \n");
-    
+
+    toolDim.resize(3, 0.0);    
     
     Bottle cmdAre,replyAre;
     cmdAre.clear();    replyAre.clear();
@@ -811,6 +809,23 @@ void AffManager::finishRound()
     rpcMotorAre.write(cmdAre, replyAre);
     fprintf(stdout,"Tool dropped \n");
 
+    // Send command to templatePFTracker to reset tracker
+    Port cmdPort;
+    cmdPort.open("/templatePFTracker");
+    Bottle cmd;
+    cmd.addString("reset");
+    cmdPort.write(cmd);      // Send the command
+    cmdPort.close();
+
+
+    // Send command to featExt to reset ROI.
+    Bottle cmdFE, replyFE;
+    cmdFE.clear();
+    replyFE.clear();
+    cmdFE.addString("reset");
+    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+    fprintf(stdout,"featExt reseted \n");
 
 }
 

@@ -137,9 +137,9 @@ const vector<double>& Contour::getCentDist()
 	computeCentDist();
 	return *centroidDist;
 }
-const vector<double>& Contour::getAngleSig()
+const vector<double>& Contour::getAngleSig(double refAngle )
 {
-	computeAngleSig();
+	computeAngleSig(refAngle);
 	return *angleSig;
 }
 
@@ -280,24 +280,25 @@ void Contour::convDefPos(const std::vector<Vec4i>& convDefs, std::vector<double>
 		if (convDefs[j].val[3] > 1024){			// min depth of 4 points (256*4)
 			defDepth.push_back(convDefs[j].val[3]/256.0);
 			defIndx.push_back(convDefs[j].val[2]);
-			// XXXX Find a way to represent in a meaningful way the convex points. Like polar coords from the tip or from the base...
 		}
 	}
     sort(defDepth.begin(), defDepth.end(), sortDown);   // sort the depths from bigger to smaller
 }
 
 // Get the direction of the convexity defects
-void Contour::convDir(const std::vector<int>& defIndx, std::vector<double>& defDirs)
+void Contour::convDir(const std::vector<int>& defIndx, std::vector<double>& defDirs, const double refAngle)
 {
 	if (defIndx.size()==0){
 		defDirs.clear();
 	}
 	else{
-		vector<double> angleSeg = getAngleSig();
+		vector<double> angleSeg = getAngleSig(refAngle);
 		for(int j=0; j<defIndx.size();j++){
 			//Use the indices of the convexity defects to check the direction of the convex points using the normal at those points.
-			double tanAng = 180 + (angleSeg[defIndx[j]]+angleSeg[defIndx[j]-1])/2;
-			defDirs.push_back(tanAng);
+
+			double bisecAngle = (angleSeg[defIndx[j]] + angleSeg[defIndx[j]-1])/2;   // Compute the angle of the bisector between the segments around the conv def point                
+            bisecAngle = bisecAngle - floor(bisecAngle/360) * 360;                  // compute the modulus to keep positive angle values
+			defDirs.push_back(bisecAngle);
 		}
 	}
 }
@@ -305,7 +306,7 @@ void Contour::convDir(const std::vector<int>& defIndx, std::vector<double>& defD
 // Compute a histogram from the directions 
 void Contour::convDirHist(const std::vector<double>& defDirs, std::vector<double>& dirsHist)
 {
-    //initialize histogram
+    //initialize histogram    
     int numBins = 8;        // bin angles into 45 degree bins
     double binWidth = 360 / numBins;
     dirsHist.resize(numBins, 0.0);
@@ -397,21 +398,47 @@ void Contour::computeCentDist()
 }
 
 // Compute the normal vector to the contour at each point, and return its angle.
-void Contour::computeAngleSig()
+void Contour::computeAngleSig(double refAngle)
 {
 	//normalize();
-	if (this->angleSig==NULL){		
+    
+	if (this->angleSig==NULL){	
 		angleSig = new vector<double>;
 		vector<Point> pp = points;	
 		for( int i = 0; i < pp.size(); i++ ){	
-			double angle;
-			if (i==pp.size())
-				angle = atan2(double(pp[0].y - pp[i].y),double( pp[0].x - pp[i].x)) * 180.0 / CV_PI; 
-			else
-				angle = atan2(double(pp[i+1].y - pp[i].y),double( pp[i+1].x - pp[i].x)) * 180.0 / CV_PI;
-			angleSig->push_back(angle);
+			double angle;  
+            Point pDif;
+			if (i==pp.size()){
+                pDif= Point(pp[0].x - pp[i].x, pp[0].y - pp[i].y);                
+            }
+			else{
+                pDif= Point(pp[i+1].x - pp[i].x, pp[i+1].y - pp[i].y);		
+            }
+            angle = atan2(double(pDif.y),double(pDif.x)) * 180.0 / CV_PI;               // Compute angle between two consectuvie points w.r.t x axis
+            double angleDif = angle + 90 + refAngle;                                    // get the normal (+90 because points are ordered clockwise), and normalize w.r.t to the reference angle
+            double normAngle = angleDif - floor(angleDif/360) * 360;                  // compute the modulus to keep positive angle values
+            angleSig->push_back(normAngle);
 		}
 	}
+    
+}
+
+// Add histogram of the angles, optionally normalized with respect to a reference angle (for eg the hand orientation)
+void Contour::getAngleSigHist(std::vector<double>& angleHist)
+{
+    computeAngleSig();
+    vector<double> angles = *(this->angleSig);
+
+    //initialize histogram
+    int numBins = 8;        // bin angles into 45 degree bins
+    double binWidth = 360 / numBins;
+    angleHist.resize(numBins, 0.0);
+
+    // fill in bins
+    for(int j=0; j<angles.size();j++){        
+        int binIdx = (int)floor(angles[j] / binWidth);
+		angleHist[binIdx] += 1;
+    }
 }
 
 double Contour::bendEnergy()
@@ -465,20 +492,63 @@ void Contour::getWavelet(vector<double>& outWL)
 
 
 // Utils
-void Contour::drawOnImg(Mat img, const Scalar& color)
+void Contour::drawOnImg(Mat img, const Scalar& color, const int thickness)
 {
 	vector<vector<Point> > all;
 	all.push_back(points);
-	drawContours( img, all, -1,  color, 2, 8);
+	drawContours( img, all, -1,  color, thickness, 8);
 }
 
 void Contour::drawText(Mat img, string text, const Scalar& color)
 {
 	putText( img, text, massCenter(), CV_FONT_HERSHEY_COMPLEX, 0.5,color);
-	vector<vector<Point> > all;
-	all.push_back(points);
-	drawContours( img, all, -1,  color, 2, 8);
+	//vector<vector<Point> > all;
+	//all.push_back(points);
+	//drawContours( img, all, -1,  color, 2, 8);
 }
+
+void Contour::drawArrow(Mat image, Point ini, double angle, Scalar color, int arrowLength, int thickness, int line_type, int shift) 
+{
+    // Get the end point from the initial point and the angle
+    Point end;
+    angle = angle * CV_PI / 180.0; // Express the angle in radians
+    end.x =  (int)cvRound(ini.x + arrowLength * cos(angle));
+    end.y =  (int)cvRound(ini.y + arrowLength * sin(angle));
+
+    //Draw the principle line
+    line(image, ini, end, color, thickness, line_type, shift);
+
+    //compute the coordinates of the first segment
+    ini.x = (int) ( end.x -  arrowLength/2 * cos(angle + CV_PI/4));
+    ini.y = (int) ( end.y -  arrowLength/2 * sin(angle + CV_PI/4));
+    //Draw the first segment
+    line(image, ini, end, color, thickness, line_type, shift);
+    //compute the coordinates of the second segment
+    ini.x = (int) (end.x -  arrowLength/2 * cos(angle - CV_PI/4));
+    ini.y = (int) (end.y -  arrowLength/2 * sin(angle - CV_PI/4));
+    //Draw the second segment
+    line(image, ini, end, color, thickness, line_type, shift);
+}  
+
+void Contour::drawArrow(Mat image, Point ini, Point end, Scalar color, int arrowLength, int thickness, int line_type, int shift) 
+{
+    //Draw the principle line
+    line(image, ini, end, color, thickness, line_type, shift);
+
+    //compute the angle alpha 
+    double angle = atan2((double)ini.y-end.y, (double)ini.x-end.x);
+
+    //compute the coordinates of the first segment
+    ini.x = (int) ( end.x +  arrowLength/2 * cos(angle + CV_PI/4));
+    ini.y = (int) ( end.y +  arrowLength/2 * sin(angle + CV_PI/4));
+    //Draw the first segment
+    line(image, ini, end, color, thickness, line_type, shift);
+    //compute the coordinates of the second segment
+    ini.x = (int) (end.x +  arrowLength/2 * cos(angle - CV_PI/4));
+    ini.y = (int) (end.y +  arrowLength/2 * sin(angle - CV_PI/4));
+    //Draw the second segment
+    line(image, ini, end, color, thickness, line_type, shift);
+}  
 
 void Contour::computeImg()
 {	// Prepares a Mat image from the vector<Point> contour, of size the upright bounding rectangle

@@ -16,7 +16,7 @@
  */
 
 /** 
-\defgroup toolBlobber
+\defgroup toolPointer
  
 @ingroup icub_module  
  
@@ -29,8 +29,6 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 \section intro_sec Description 
 Module which uses 3D coordinates and disparity information from to find the closest object, and computes euclidean distance to it.
 
-1) Image disparity is required.  
-  
 \section lib_sec Libraries 
 - YARP libraries. 
 - OPENCV library. 
@@ -43,12 +41,10 @@ The module is assumed to work on the output of a disparity computation module, w
 \section portsc_sec Ports Created 
 
 Input ports
-- \e /<modName>/disp:i receives a BRG image containing the disparity of the image obtained through stereo vision.
+- \e /<modName>/coords:i receives the coordinates of the tool blob from a click on yarpview
 - \e /<modName>/rpc:i can be used to issue commands to the robot.
     Recognized remote commands:
-        - 'range R' to set the range considered as reachable by the robot.
-        - 'thresh T' to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.
-        - 'help' produces this help.
+ - 'help' produces this help.
         - 'quit' closes the module.
 
 Output ports
@@ -72,13 +68,8 @@ should look like as follows:
 \code 
 name                toolBlobber
 robot               icub
-range               0.5
-backgroundThresh    50
-cannyThresh         20
+origin              0 0 0.2
 minBlobSize         400
-gaussSize           5
-dispThreshRatioLow  10
-dispThreshRatioHigh 20
 \endcode 
 
 \section tested_os_sec Tested OS
@@ -89,7 +80,7 @@ Linux, Windows
 */
 
 
-#include "toolBlobber.h"
+#include "toolPointer.h"
 
 #include <yarp/dev/all.h>
 //YARP_DECLARE_DEVICES(icubmod)
@@ -102,16 +93,14 @@ int main(int argc, char * argv[])
     Network::init();
 
     /* create the module */
-    ToolBlobberModule module;
-
-    //YARP_REGISTER_DEVICES(icubmod)
+    ToolPointerModule module;
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
     rf.setVerbose( true );
     rf.setDefaultContext( "AffordancesProject" );
-    rf.setDefaultConfigFile( "toolBlobber.ini" );
-    rf.setDefault("name","toolBlobber");
+    rf.setDefaultConfigFile( "toolPointer.ini" );
+    rf.setDefault("name","toolPointer");
     rf.configure( argc, argv );
 
     /* run the module: runModule() calls configure first and, if successful, it then runs */
@@ -121,4 +110,3 @@ int main(int argc, char * argv[])
     return 0;
 }
 //empty line to make gcc happy
-

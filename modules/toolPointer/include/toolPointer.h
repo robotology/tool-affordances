@@ -15,8 +15,8 @@
  * Public License for more details
  */
 
-#ifndef __TOOLBLOBBER_H__
-#define __TOOLBLOBBER_H__
+#ifndef __TOOLPOINTER_H__
+#define __TOOLPOINTER_H__
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
@@ -43,29 +43,26 @@
 #include <highgui.h>
 
 
-class ToolBlobber : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >
+class ToolPointer : public yarp::os::BufferedPort<yarp::os::Bottle>
 {
 private:
 
-    std::string moduleName;                     // string containing module name
-    // std::string worldInPortName;             // string containing world in info port name
-    std::string dispInPortName;                 // string containing disparity image port name
-    std::string toolTipInPortName;              // string containing toolProjection tooltip port name
-    std::string imInLeftPortName;               // string containing left input image port name
-    std::string targetOutPortName;              // string containing output target port name
-    std::string imageOutPortName;               // string containing output image port name
-    std::string imgBinOutPortName;              // string containing output binary image port name
-    std::string rpcGBSPortName;                 // string containing rpc port name for GBS communication
-    
-    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
+    std::string moduleName;                                 // string containing module name
 
-    yarp::os::BufferedPort<yarp::os::Bottle>	                        toolTipInPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    imInLeftPort;
+    std::string coordsInPortName;                           // string containing incoming coords port name
+    std::string segImgPortName;                             // string containing segmentation image port name
+    std::string targetOutPortName;                          // string containing output target port name
+    std::string imageOutPortName;                           // string containing output image port name
+    std::string imgBinOutPortName;                          // string containing output binary image port name
+    std::string rpcGBSPortName;                             // string containing rpc port name for GBS communication
+    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    segImgPort;     // input port to receive segmenteatoin images
+
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imageOutPort;	// output image Port with info drawn over
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >	imgBinOutPort;	// output binary image of closest blob
     yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.      
 
-    yarp::os::RpcClient                                                 rpcGBS;	    //rpc motor port GraphBasedSegmentation
+    yarp::os::RpcClient                                                 rpcGBS;	        //rpc motor port GraphBasedSegmentation
     
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
@@ -73,46 +70,34 @@ private:
     //DisparityThread* dispThr;
 
     /* Algorithm Variables */
-    int backgroundThresh;
-    int cannyThresh;
+ 
     int minBlobSize;
     bool verbose;
     float confidenceMin;
     
-    int dispThreshRatioLow;
-    int dispThreshRatioHigh;
-    
-    int gaussSize;
-    float range;
-    bool fixedRange;
-
 protected:
 
-    //cv::Rect blobBox; //(int x=5, int y=5, int width=5, int height=5); //create and dumm initialize blob bounding box
-	
 public:
     /**
      * constructor
      * @param moduleName is passed to the thread in order to initialise all the ports correctly
      */
-    ToolBlobber( const std::string &moduleName, yarp::os::ResourceFinder &module );
-    ~ToolBlobber();
+    ToolPointer( const std::string &moduleName, yarp::os::ResourceFinder &module );
+    ~ToolPointer();
 
-    bool setRange(double range);
-    bool setThresh(int thresh);
     bool setVerbose(std::string verb);
     bool setConfMin(float confid);
     
     bool        open();
     void        close();
-    void        onRead( yarp::sig::ImageOf<yarp::sig::PixelBgr> &img );
+    void        onRead( yarp::os::Bottle &coords );
     void        interrupt();
     
     yarp::os::Semaphore         mutex;          //semaphore for accessing/modifying within the callback
        
 };
 
-class ToolBlobberModule:public yarp::os::RFModule
+class ToolPointerModule:public yarp::os::RFModule
 {
     /* module parameters */
     std::string             moduleName;
@@ -120,7 +105,7 @@ class ToolBlobberModule:public yarp::os::RFModule
     yarp::os::RpcServer     rpcInPort;
 
     /* pointer to a new thread */
-    ToolBlobber             *blobber;
+    ToolPointer             *pointer;
     bool                    closing;
 
 public:
