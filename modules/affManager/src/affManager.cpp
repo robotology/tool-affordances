@@ -552,7 +552,9 @@ void AffManager::attachToolExe()
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
 
-    // find the dimensions and tooltip of the tool
+    // If it is not working, bridge the "find" command by measuring the tool by hand and adding those values to toolDim.
+    // Tooldim cooresponds to the difference in x, y, z between the hand end-effector and the tool end-effector, so does not really measure the tool dimensions
+    // Then, to check, set the arm in idle and move it in front of the camera, to check if the dot still is in place.
     cmdKM.addString("find");
     cmdKM.addString("right");	// arm
     cmdKM.addString("left");	// eye
@@ -560,6 +562,7 @@ void AffManager::attachToolExe()
     rpcKarmaMotor.write(cmdKM, replyKM); // Call karma Motor to find the tool
     fprintf(stdout,"Tool frame found\n");
 
+    // XXX if find not working, substitute here the values by hand measured ones.
     Bottle toolDimB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
     toolDim[0] = toolDimB.get(0).asDouble();
     toolDim[1] = toolDimB.get(1).asDouble();
@@ -596,15 +599,14 @@ void AffManager::observeToolExe()
     cmdKM.clear();   replyKM.clear();
     Bottle toolTipB;
     cmdKM.addString("tool");
-    cmdKM.addString("get");	// arm
+    cmdKM.addString("get");	
     fprintf(stdout,"%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
+    cout <<"Response: " << replyKM.toString().c_str() << endl;
     toolTipB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
-    cout << toolTipB.toString().c_str() << endl;
+    cout <<"Tooltip coordinates: " << toolTipB.toString().c_str() << endl;
 
     Vector toolTipPose(3), toolTipPix(2);
-    string arm;
-    cout << "Tool dims are" << toolDim.toString().c_str() << endl;
     toolTipPose[0] = toolTipB.get(0).asDouble();
     toolTipPose[1] = toolTipB.get(1).asDouble();
     toolTipPose[2] = toolTipB.get(2).asDouble();    
@@ -612,9 +614,9 @@ void AffManager::observeToolExe()
 
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
-	ROI[0] = toolTipPix[0] - toolDim[0]/2;  // ROI left side half of the tools width to the left of the tip
+	ROI[0] = toolTipPix[0] - 40;  // ROI left side some pixels to the left of the tooltip
     ROI[1] = toolTipPix[1]; // ROI top side at the same height of the tooltip
-    ROI[2] = toolTipPix[0] + toolDim[0]/2;  // ROI right side half of the tools width to the right of the tip
+    ROI[2] = toolTipPix[0] + 40;  // ROI right side some pixels to the right of the tooltip
     ROI[3] = handPix[1]; // ROI bottom side at the same height of the hands center
     
     Bottle cmdFE,replyFE;
