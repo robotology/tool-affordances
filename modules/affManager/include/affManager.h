@@ -71,7 +71,9 @@ protected:
 
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
 	// yarp::os::RpcClient         rpcMotorIol;        //rpc motor port IOL
-    yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA    
+    yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
+    yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
+
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
 
 	//yarp::os::RpcClient         rpcBlobPicker;	//rpc motor port BlobPicker
@@ -79,6 +81,8 @@ protected:
 
     yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port BlobSpotter
 	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port Blob3DInfo
+
+    yarp::os::BufferedPort<Bottle >  userDataPort;  //port to receive user data.
 
     /* class variables */
 
@@ -101,6 +105,7 @@ protected:
 	bool						running;
     bool                        actionDone;
     bool						objFound;
+    bool						toolFound;
 	bool						lookingAtTool;
 	bool						lookingAtObject;
 	bool						toolInHand;

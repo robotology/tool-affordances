@@ -62,8 +62,9 @@ bool AffManager::configure(ResourceFinder &rf)
     target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D
 
 	//rpc
-	bool retRPC = true;    
-    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
+	bool retRPC = true;  
+    retRPC = userDataPort.open(("/"+name+"/user:i").c_str());	
+    retRPC = retRPC && rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());            //rpc server to query Karma Motor    
 	// retRPC = retRPC && rpcBlobPicker.open(("/"+name+"/blobPick:rpc").c_str());      //rpc server to query blobPicker
@@ -551,7 +552,7 @@ void AffManager::attachToolExe()
 {
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
-
+    /*
     // If it is not working, bridge the "find" command by measuring the tool by hand and adding those values to toolDim.
     // Tooldim cooresponds to the difference in x, y, z between the hand end-effector and the tool end-effector, so does not really measure the tool dimensions
     // Then, to check, set the arm in idle and move it in front of the camera, to check if the dot still is in place.
@@ -568,6 +569,23 @@ void AffManager::attachToolExe()
     toolDim[1] = toolDimB.get(1).asDouble();
     toolDim[2] = toolDimB.get(2).asDouble();    
     cout << "Tool dims are" << toolDim.toString().c_str() << endl;
+    */
+    printf ("measure the tool coordinates from the robot frame and input them as X Y Z");
+    Bottle *toolDimB = userDataPort.read(true);
+    toolDim[0] = toolDimB->get(0).asDouble();
+    toolDim[1] = toolDimB->get(1).asDouble();
+    toolDim[2] = toolDimB->get(2).asDouble();   
+    cout << "Tool dims are" << toolDim.toString().c_str() << endl;
+
+    // Send the coordinates to Karmafinder to display it and get the tip pixel
+    Bottle cmdKF,replyKF;       // bottles for Karma Motor
+    cmdKF.clear();replyKF.clear();
+    cmdKF.addString("show");
+    cmdKF.addDouble(toolDim[0]);
+    cmdKF.addDouble(toolDim[1]);
+    cmdKF.addDouble(toolDim[2]);
+    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+    rpcKarmaFinder.write(cmdKF, replyKF);
 
     // Attach the new tooltip to the "body schema"  
     cmdKM.clear();replyKM.clear();
@@ -585,8 +603,7 @@ void AffManager::attachToolExe()
 }
 
 /**********************************************************/
-void AffManager::observeToolExe()
-{
+void AffManager::observeToolExe(){
     
     // XXX Check that the ROI extraction works properly on the robot.
     // Get Hand coordinates on image 
@@ -595,22 +612,26 @@ void AffManager::observeToolExe()
     igaze->get2DPixel(0, handPose, handPix);
 
     // Get ToolTip coordinates on image
-    Bottle cmdKM,replyKM;       // bottles for Karma Motor
-    cmdKM.clear();   replyKM.clear();
     Bottle toolTipB;
-    cmdKM.addString("tool");
-    cmdKM.addString("get");	
-    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
-    cout <<"Response: " << replyKM.toString().c_str() << endl;
-    toolTipB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
-    cout <<"Tooltip coordinates: " << toolTipB.toString().c_str() << endl;
+    Bottle cmdKF, replyKF;                                  // bottles for Karma Motor
+    cmdKF.clear();   replyKF.clear();
+    cmdKF.addString("tippoint");
+    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+    rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
+    toolTipB = replyKF.tail();			                    // XXX Check that this TAIL actually works!!!
+    cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
+        
+    Vector toolTipPix(2);
+    toolTipPix[0] = toolTipB.get(0).asInt();
+    toolTipPix[1] = toolTipB.get(1).asInt();
 
+    /*
     Vector toolTipPose(3), toolTipPix(2);
     toolTipPose[0] = toolTipB.get(0).asDouble();
     toolTipPose[1] = toolTipB.get(1).asDouble();
     toolTipPose[2] = toolTipB.get(2).asDouble();    
     igaze->get2DPixel(0, toolTipPose, toolTipPix);
+    */
 
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
@@ -629,6 +650,7 @@ void AffManager::observeToolExe()
     cmdFE.addInt((int)ROI[3]);
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+    
 
     // Set the tool orientation as reference angle for feature extraction
     Vector tipDif(2);

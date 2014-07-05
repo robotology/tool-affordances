@@ -39,6 +39,11 @@
             <port>/affManager/karmaMotor:rpc</port>
             <description> Send commands to the Karma motor for tool use related actions</description>
         </output>
+         <output port_type="service">
+            <type>rpc</type>
+            <port>/affManager/karmaFinder:rpc</port>
+            <description> Send commands to the finder part of the KARMA application in order to display and locate the tooltip.</description>
+        </output>
         <output port_type="service">
             <type>rpc</type>
             <port>/affManager/featExt:rpc</port>
