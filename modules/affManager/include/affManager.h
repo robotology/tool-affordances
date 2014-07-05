@@ -82,7 +82,7 @@ protected:
     yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port BlobSpotter
 	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port Blob3DInfo
 
-    yarp::os::BufferedPort<Bottle >  userDataPort;  //port to receive user data.
+    yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  //port to receive user data.
 
     /* class variables */
 
