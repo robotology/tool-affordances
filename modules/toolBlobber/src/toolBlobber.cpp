@@ -325,6 +325,7 @@ bool ToolBlobber::setConfMin(float confid)
 
 /**********************************************************/
 void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
+// XXX change by an update module and read the disparity normally, in order to slow down the module sending commands
 {
     yarp::os::Stamp ts;
     
@@ -434,7 +435,6 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
         target.addInt(targetBlob.x);
         target.addInt(targetBlob.y);       
 
-        cout << "Getting pixels from GBS" << endl;
         // Get graphBased segmenenation within the close blob
         Bottle cmdGBS,replyGBS;
         cmdGBS.clear();    replyGBS.clear();

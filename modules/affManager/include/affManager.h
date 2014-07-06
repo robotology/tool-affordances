@@ -79,8 +79,8 @@ protected:
 	//yarp::os::RpcClient         rpcBlobPicker;	//rpc motor port BlobPicker
 	//yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter
 
-    yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port BlobSpotter
-	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port Blob3DInfo
+    yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port affLearn
+	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port featExtractor
 
     yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  //port to receive user data.
 

@@ -62,7 +62,15 @@
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir tooltip --rxTime</parameters>
+        <parameters>--type image --dir featIm --rxTime</parameters>
+        <node>localhost</node>
+        <prefix>/featIm</prefix>
+        <workdir>/tmp/affData</workdir>
+        <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--dir tooltip --downsample 10 --rxTime</parameters>
         <node>localhost</node>
         <prefix>/tooltip</prefix>
         <workdir>/tmp/tooltip</workdir>
@@ -126,7 +134,13 @@
         <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/karmaToolProjection/target:o</from>
+        <from external="true">/featExt/imgFeat:o</from>
+        <to external="true">/disp/featIm</to>
+        <protocol>mcast</protocol>
+        <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/karmaToolFinder/tip:o</from>
         <to external="true">/tooltip/dump</to>
         <protocol>udp</protocol>
         <geometry></geometry>

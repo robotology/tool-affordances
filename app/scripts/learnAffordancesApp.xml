@@ -5,249 +5,243 @@
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 511.00) (y 151.90))</geometry>
+        <geometry>(Pos (x 511) (y 151.9))</geometry>
     </module>
     <module>
         <name>affManager</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 114.00) (y 73.90))</geometry>
+        <geometry>(Pos (x 114) (y 73.9))</geometry>
     </module>
     <module>
         <name>featExt</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 684.00) (y 535.90))</geometry>
+        <geometry>(Pos (x 684) (y 535.9))</geometry>
     </module>
     <module>
         <name>graphBasedSegmentation</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 386.00) (y 731.90))</geometry>
+        <geometry>(Pos (x 453) (y 752.9))</geometry>
     </module>
     <module>
         <name>objectFinder</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 525.00) (y 239.90))</geometry>
+        <geometry>(Pos (x 525) (y 239.9))</geometry>
     </module>
     <module>
         <name>templatePFTracker</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 743.00) (y 342.90))</geometry>
+        <geometry>(Pos (x 743) (y 342.9))</geometry>
     </module>
     <module>
         <name>toolBlobber</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 399.00) (y 586.90))</geometry>
+        <geometry>(Pos (x 396) (y 561.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters>--x 1050 --y 0 --out /yarpview/out</parameters>
         <node>localhost</node>
         <prefix>/imLeft</prefix>
-        <geometry>(Pos (x 291.00) (y 454.90))</geometry>
+        <geometry>(Pos (x 291) (y 454.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/tracked</prefix>
-        <geometry>(Pos (x 1003.00) (y 372.90))</geometry>
+        <geometry>(Pos (x 1003) (y 372.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/crop</prefix>
-        <geometry>(Pos (x 774.00) (y 263.90))</geometry>
+        <geometry>(Pos (x 774) (y 263.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/fext</prefix>
-        <geometry>(Pos (x 929.00) (y 624.90))</geometry>
+        <geometry>(Pos (x 929) (y 624.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/fExtProp</prefix>
-        <geometry>(Pos (x 918.00) (y 562.90))</geometry>
+        <geometry>(Pos (x 918) (y 562.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/gbs</prefix>
-        <geometry>(Pos (x 703.00) (y 799.90))</geometry>
+        <geometry>(Pos (x 913) (y 800.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/toolBlob</prefix>
-        <geometry>(Pos (x 902.00) (y 749.90))</geometry>
+        <geometry>(Pos (x 902) (y 749.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/dispView</prefix>
-        <geometry>(Pos (x 169.00) (y 737.90))</geometry>
+        <geometry>(Pos (x 169) (y 737.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix>/closeBlob</prefix>
-        <geometry>(Pos (x 919.00) (y 708.90))</geometry>
+        <geometry>(Pos (x 919) (y 708.9))</geometry>
     </module>
     <connection>
         <from>/objectFinder/crop:o</from>
         <to>/templatePFTracker/template/image:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 717.00) (y 353.00)) ((x 711.00) (y 308.00)) ((x 744.00) (y 398.00))  )</geometry>
+        <geometry>(Pos ((x 717) (y 353)) ((x 711) (y 308)) ((x 744) (y 398))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/objectFinder/coords:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 493.00) (y 406.00)) ((x 481.00) (y 504.00)) ((x 526.00) (y 308.00))  )</geometry>
+        <geometry>(Pos ((x 493) (y 406)) ((x 481) (y 503)) ((x 526) (y 308))  )</geometry>
     </connection>
     <connection>
         <from>/templatePFTracker/left/image:o</from>
         <to>/tracked/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 976.00) (y 376.00)) ((x 969.00) (y 361.00)) ((x 1004.00) (y 391.00))  )</geometry>
+        <geometry>(Pos ((x 976) (y 376)) ((x 969) (y 361)) ((x 1004) (y 391))  )</geometry>
     </connection>
     <connection>
         <from>/objectFinder/crop:o</from>
         <to>/crop/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 732.50) (y 295.00)) ((x 711.00) (y 308.00)) ((x 775.00) (y 282.00))  )</geometry>
+        <geometry>(Pos ((x 732.5) (y 295)) ((x 711) (y 308)) ((x 775) (y 282))  )</geometry>
     </connection>
     <connection>
         <from>/templatePFTracker/target:o</from>
         <to>/objectFinder/track:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 737.00) (y 397.00)) ((x 969.00) (y 461.00)) ((x 526.00) (y 333.00))  )</geometry>
+        <geometry>(Pos ((x 737) (y 397)) ((x 969) (y 461)) ((x 526) (y 333))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/objFind:rpc</from>
         <to>/objectFinder/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 391.50) (y 224.00)) ((x 279.00) (y 191.00)) ((x 525.00) (y 257.00))  )</geometry>
+        <geometry>(Pos ((x 391.5) (y 224)) ((x 279) (y 216)) ((x 525) (y 257))  )</geometry>
     </connection>
     <connection>
         <from>/featExt/imgFeat:o</from>
         <to>/fext/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 869.50) (y 623.50)) ((x 830.00) (y 604.00)) ((x 930.00) (y 643.00))  )</geometry>
+        <geometry>(Pos ((x 869.5) (y 623.5)) ((x 830) (y 604)) ((x 930) (y 643))  )</geometry>
     </connection>
     <connection>
         <from>/featExt/imgProp:o</from>
         <to>/fExtProp/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 864.00) (y 580.00)) ((x 830.00) (y 579.00)) ((x 919.00) (y 581.00))  )</geometry>
+        <geometry>(Pos ((x 864) (y 580)) ((x 830) (y 579)) ((x 919) (y 581))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/affLearn:rpc</from>
         <to>/affLearn/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 384.50) (y 174.00)) ((x 279.00) (y 166.00)) ((x 511.00) (y 182.00))  )</geometry>
+        <geometry>(Pos ((x 384.5) (y 174)) ((x 279) (y 191)) ((x 511) (y 182))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/featExt:rpc</from>
         <to>/featExt/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 471.00) (y 347.00)) ((x 279.00) (y 141.00)) ((x 684.00) (y 553.00))  )</geometry>
+        <geometry>(Pos ((x 471) (y 347)) ((x 279) (y 166)) ((x 684) (y 553))  )</geometry>
     </connection>
     <connection>
         <from>/GBSeg/viewImg:o</from>
         <to>/gbs/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 667.50) (y 790.00)) ((x 652.00) (y 762.00)) ((x 704.00) (y 818.00))  )</geometry>
+        <geometry>(Pos ((x 806) (y 801)) ((x 719) (y 783)) ((x 914) (y 819))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 233.00) (y 498.00)) ((x 195.00) (y 522.00)) ((x 292.00) (y 473.00))  )</geometry>
+        <geometry>(Pos ((x 233) (y 498)) ((x 195) (y 521)) ((x 292) (y 473))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/GBSeg/rawImg:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 280.50) (y 636.50)) ((x 195.00) (y 522.00)) ((x 387.00) (y 750.00))  )</geometry>
+        <geometry>(Pos ((x 314) (y 646)) ((x 195) (y 521)) ((x 454) (y 771))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/dispView/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 130.50) (y 755.50)) ((x 112.00) (y 753.00)) ((x 170.00) (y 756.00))  )</geometry>
+        <geometry>(Pos ((x 130.5) (y 755.5)) ((x 112) (y 752)) ((x 170) (y 756))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/featExt/coords:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 572.50) (y 554.00)) ((x 481.00) (y 504.00)) ((x 685.00) (y 604.00))  )</geometry>
+        <geometry>(Pos ((x 572.5) (y 554)) ((x 481) (y 503)) ((x 685) (y 604))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/toolBlobber/disp:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 245.50) (y 729.00)) ((x 112.00) (y 753.00)) ((x 400.00) (y 705.00))  )</geometry>
+        <geometry>(Pos ((x 244) (y 716)) ((x 112) (y 752)) ((x 397) (y 680))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/gbs:rpc</from>
         <to>/GBSeg/conf</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 469.00) (y 733.00)) ((x 572.00) (y 691.00)) ((x 387.00) (y 775.00))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/right/out</from>
-        <to>/toolBlobber/imRight:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 289.00) (y 640.00)) ((x 199.00) (y 600.00)) ((x 400.00) (y 680.00))  )</geometry>
+        <geometry>(Pos ((x 501) (y 731)) ((x 569) (y 666)) ((x 454) (y 796))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/toolBlobber/imLeft:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 287.00) (y 588.50)) ((x 195.00) (y 522.00)) ((x 400.00) (y 655.00))  )</geometry>
+        <geometry>(Pos ((x 285.5) (y 575.5)) ((x 195) (y 521)) ((x 397) (y 630))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/img:o</from>
         <to>/closeBlob/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 738.00) (y 672.00)) ((x 577.00) (y 617.00)) ((x 920.00) (y 727.00))  )</geometry>
+        <geometry>(Pos ((x 736.5) (y 659.5)) ((x 574) (y 592)) ((x 920) (y 727))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
         <to>/featExt/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 620.50) (y 623.00)) ((x 577.00) (y 667.00)) ((x 685.00) (y 579.00))  )</geometry>
+        <geometry>(Pos ((x 619) (y 610.5)) ((x 574) (y 642)) ((x 685) (y 579))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
         <to>/toolBlob/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 729.50) (y 717.50)) ((x 577.00) (y 667.00)) ((x 903.00) (y 768.00))  )</geometry>
+        <geometry>(Pos ((x 728) (y 705)) ((x 574) (y 642)) ((x 903) (y 768))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/toolBlobber/tooltip:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 430.00) (y 567.00)) ((x 481.00) (y 504.00)) ((x 400.00) (y 630.00))  )</geometry>
+        <geometry>(Pos ((x 428.5) (y 554)) ((x 481) (y 503)) ((x 397) (y 605))  )</geometry>
     </connection>
 </application>

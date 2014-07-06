@@ -66,7 +66,8 @@ bool AffManager::configure(ResourceFinder &rf)
     retRPC = userDataPort.open(("/"+name+"/user:i").c_str());	
     retRPC = retRPC && rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
-    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());            //rpc server to query Karma Motor    
+    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
+    retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
 	// retRPC = retRPC && rpcBlobPicker.open(("/"+name+"/blobPick:rpc").c_str());      //rpc server to query blobPicker
 	retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());			   //rpc server to query featExtractin Module
     retRPC = retRPC && rpcAffLearn.open(("/"+name+"/affLearn:rpc").c_str());		   //rpc server to query affLearn
@@ -122,6 +123,7 @@ bool AffManager::interruptModule()
     rpcMotorAre.interrupt();
 	//rpcMotorIol.interrupt();
     rpcKarmaMotor.interrupt();
+    rpcKarmaFinder.interrupt();
 
     rpcFeatExt.interrupt();
     rpcAffLearn.interrupt();
@@ -136,6 +138,7 @@ bool AffManager::close()
     rpcMotorAre.close();
 	//rpcMotorIol.close();
     rpcKarmaMotor.close();
+    rpcKarmaFinder.close();
 
     rpcFeatExt.close();
     rpcAffLearn.close();
@@ -189,7 +192,7 @@ bool AffManager::getTool(){
     }
     lookAtToolExe();
 
-    //attachToolExe();
+    attachToolExe();
     observeToolExe();
     goHomeNoHandsExe();
 	return true;
@@ -440,7 +443,7 @@ void AffManager::lookAtToolExe()
 void AffManager::handToCenter()
 {
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
-    xd[0]=-0.3; xd[1]=0.15; xd[2]=0.05;
+    xd[0]=-0.4; xd[1]=0.20; xd[2]=0.05;
     
     Vector oy(4), ox(4);
 
@@ -467,7 +470,7 @@ void AffManager::lookOverHand()
 {
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);
-    handPos[2] += 0.15;          // Tool center round 15 cm over the hand
+    handPos[2] += 0.20;          // Tool center round 15 cm over the hand
 
     fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
 
@@ -636,8 +639,8 @@ void AffManager::observeToolExe(){
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
 	ROI[0] = toolTipPix[0] - 40;  // ROI left side some pixels to the left of the tooltip
-    ROI[1] = toolTipPix[1]; // ROI top side at the same height of the tooltip
-    ROI[2] = toolTipPix[0] + 40;  // ROI right side some pixels to the right of the tooltip
+    ROI[1] = toolTipPix[1] - 40; // ROI top side at the same height of the tooltip
+    ROI[2] = handPix[0];  // ROI right side some pixels to the right of the tooltip
     ROI[3] = handPix[1]; // ROI bottom side at the same height of the hands center
     
     Bottle cmdFE,replyFE;
@@ -681,7 +684,9 @@ void AffManager::observeToolExe(){
     cmdLearn.append(replyFE);
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
-   
+    fprintf(stdout,"Data processed by learner \n");
+    
+    
     return;
 }
 
