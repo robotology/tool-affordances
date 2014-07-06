@@ -41,9 +41,9 @@ void FeatExt::loop()
 			br.y=(int)val.get(3).asInt();
             printf("Setting br y to = %d \n", br.y);
 
-            ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
-            imWidth = imageIn->width();
-            imHeight = imageIn->height();
+            //ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+            imWidth = 320; //imageIn->width();
+            imHeight = 240; //imageIn->height();
 
             if (tl.x < 0) {tl.x = 0; printf("ROI tl x smaller than 0, set to 0 \n");}
             if (tl.y < 0) {tl.y = 0; printf("ROI tl y smaller than 0, set to 0 \n");}

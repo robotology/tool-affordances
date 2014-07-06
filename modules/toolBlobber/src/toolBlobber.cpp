@@ -100,7 +100,7 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
         return true;
 
     }else if (receivedCmd == "thresh"){
-        bool ok = blobber->setThresh(command.get(1).asInt());
+        bool ok = blobber->setThresh(command.get(1).asInt(), command.get(2).asInt());
         if (ok)
             responseCode = Vocab::encode("ack");
         else {
@@ -186,6 +186,7 @@ bool ToolBlobber::open()
     verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
+    frontThresh = moduleRF->check("frontThresh", Value(245)).asInt();		// threshold of intensity if the disparity image, above which info is ignored.
     confidenceMin = moduleRF->check("confidenceMin", Value(0.8)).asDouble();		
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
     minBlobSize = moduleRF->check("minBlobSize", Value(400)).asInt();
@@ -201,7 +202,7 @@ bool ToolBlobber::open()
     /* Inputs ports */
     
     dispInPortName = "/" + moduleName + "/disp:i";
-    BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );    
+    dispInPort.open(dispInPortName);
 
     toolTipInPortName = "/" + moduleName + "/tooltip:i";
     toolTipInPort.open(toolTipInPortName);
@@ -243,7 +244,7 @@ void ToolBlobber::close()
 {
     fprintf(stdout,"now closing ports...\n");
     
-    BufferedPort<ImageOf<PixelBgr>  >::close();
+    dispInPort.close();
     toolTipInPort.close();
     imInLeftPort.close();
 
@@ -262,7 +263,7 @@ void ToolBlobber::interrupt()
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
    
-    BufferedPort<ImageOf<PixelBgr>  >::interrupt();
+    dispInPort.interrupt();
     toolTipInPort.interrupt();
     imInLeftPort.interrupt();
 
@@ -286,14 +287,15 @@ bool ToolBlobber::setRange(double r)
     return true;
 }
 
-bool ToolBlobber::setThresh(int t)
+bool ToolBlobber::setThresh(int low, int high)
 {
-    if ((t<0) ||(t>255)) {
-        fprintf(stdout,"Please select a valid luminance value (0-255). \n");
+    if ((low<0) ||(low>255)||(high<0) ||(high>255)) {
+        fprintf(stdout,"Please select valid luminance values (0-255). \n");
         return false;
     }
-    fprintf(stdout,"New Threshold is : %d\n", t);
-    this->backgroundThresh = t;
+    fprintf(stdout,"New Threshold is : %i, %i\n", low, high);
+    this->backgroundThresh = low;
+    this->frontThresh = high;
     return true;
 }
 
@@ -381,13 +383,16 @@ void ToolBlobber::loop()
 
     /* Filter disparity image to reduce noise an produce smoother blob */
     //  Smooth the image so that it connect components, and so that it wont cut the GBS blob
+    Mat threshIm;    
+    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
+    multiply(disp,threshIm,disp);
+    threshold(disp, threshIm, frontThresh, 1, CV_THRESH_BINARY_INV);			// and first noise 
+    multiply(disp,threshIm,disp);
     dilate(disp, disp,Mat(), Point(-1,-1), 5);
     GaussianBlur(disp, disp, Size(11 ,11), 10, 10); 
     erode(disp, disp, Mat(), Point(-1,-1), 3);
-    Mat threshIm;
-    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
-    multiply(disp, threshIm, disp);	
-    //cvtColor(disp, imOut, CV_GRAY2BGR);						                    // Grayscale to BGR    
+
+       
     
     /* Find closest valid blob */
     double minVal, maxVal; 
@@ -415,53 +420,58 @@ void ToolBlobber::loop()
 	
     /* If any blob is found */
     if (contours.size()>0){
-        /* Double check that only the bigger blob is selected as the valid one*/
-        int blobI = 0;
-        for( int c = 0; c < contours.size(); c++ ){
-			double a = contourArea(contours[c]);	    					// Find the area of contour
-			if(a > minBlobSize){											// Keep only the bigger
-                blobI = c;
-            }
-        }
-        /* Mark closest blob for visualization*/        
-        //drawContours(imOut, contours, blobI, white, 2, 8); 
-        //drawContours(imgBin, contours, blobI, white, -1, 8); 
-
-        Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
-        drawContours(cntMask, contours, blobI, Scalar(1), CV_FILLED, 8);  // Mask ignoring points outside the contours
-        leftIm.copyTo(imOut,cntMask);
-
-        /* Get Target blob coordinates for seeding GBS*/
-        Point targetBlob; 
-        targetBlob.x = toolTip[0];  
-        targetBlob.y = toolTip[1] + 15; //Search for the tool blob slighly under the detected tooltip
-        circle( imOut, targetBlob, 4, red, -1, 8, 0 );
-
-        target.addInt(targetBlob.x);
-        target.addInt(targetBlob.y);       
-
-        // Get graphBased segmenenation within the close blob
-        Bottle cmdGBS,replyGBS;
-        cmdGBS.clear();    replyGBS.clear();
-        cmdGBS.addString("get_component_around");
-        cmdGBS.addInt(targetBlob.x);
-        cmdGBS.addInt(targetBlob.y);
-        rpcGBS.write(cmdGBS, replyGBS);
-        if (replyGBS.size() > 0)
+        if ((toolTip[0] < imInLeft->width()) && (toolTip[0]>0) && (toolTip[1] < imInLeft->height()) && (toolTip[1]>0))
         {
-            if (verbose) {cout << "Received " << replyGBS.size() <<  "bottles from GBS " << endl;} 
-            Bottle *segPixels = replyGBS.get(0).asList();
-            // Go through all the returned pixels and make a mask out of them. 
-            Mat segMask(disp.size(), CV_8UC1, Scalar(0));
-            for( int sp = 0; sp < segPixels->size(); sp++ ){
-                Bottle *pointB = segPixels->get(sp).asList();
-                Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
-                circle(segMask, segPoint, 0, Scalar(255));
-            }             
-            multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
+            /* Double check that only the bigger blob is selected as the valid one*/
+            int blobI = 0;
+            for( int c = 0; c < contours.size(); c++ ){
+                double a = contourArea(contours[c]);	    					// Find the area of contour
+                if(a > minBlobSize){											// Keep only the bigger
+                    blobI = c;
+                }
+            }
+            /* Mark closest blob for visualization*/        
+            //drawContours(imOut, contours, blobI, white, 2, 8); 
+            //drawContours(imgBin, contours, blobI, white, -1, 8); 
+
+            Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
+            drawContours(cntMask, contours, blobI, Scalar(255), CV_FILLED, 8);  // Mask ignoring points outside the contours
+            leftIm.copyTo(imOut,cntMask);
+
+            /* Get Target blob coordinates for seeding GBS*/
+            Point targetBlob; 
+            targetBlob.x = toolTip[0];  
+            targetBlob.y = toolTip[1];// + 15; //Search for the tool blob slighly under the detected tooltip
+            circle( imOut, targetBlob, 4, red, -1, 8, 0 );
+
+            target.addInt(targetBlob.x);
+            target.addInt(targetBlob.y);       
+
+            // Get graphBased segmenenation within the close blob
+            Bottle cmdGBS,replyGBS;
+            cmdGBS.clear();    replyGBS.clear();
+            cmdGBS.addString("get_component_around");
+            cmdGBS.addInt(targetBlob.x);
+            cmdGBS.addInt(targetBlob.y);
+            rpcGBS.write(cmdGBS, replyGBS);
+            if (replyGBS.size() > 0)
+            {
+                if (verbose) {cout << "Received " << replyGBS.size() <<  "bottles from GBS " << endl;} 
+                Bottle *segPixels = replyGBS.get(0).asList();
+                // Go through all the returned pixels and make a mask out of them. 
+                Mat segMask(disp.size(), CV_8UC1, Scalar(0));
+                for( int sp = 0; sp < segPixels->size(); sp++ ){
+                    Bottle *pointB = segPixels->get(sp).asList();
+                    Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
+                    circle(segMask, segPoint, 0, Scalar(255));
+                }             
+                multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
+            }else{
+                if (verbose) {cout << "Nothing received from GBS" << endl;}
+            }
         }else{
-            if (verbose) {cout << "Nothing received from GBS" << endl;}
-        }
+            if (verbose) {cout << "Tooltip outside image boundaries" << endl;}
+        }        
     }else{
             if (verbose) {cout << "No contours detected" << endl;}
     }

@@ -185,11 +185,11 @@ bool AffManager::goHomeNoHands(){
 }
 
 bool AffManager::getTool(){
-	askForToolExe();
-    if (!graspToolExe()){
-        std::cout << "Tool couldnt be grasped properly, stopping!" << std::endl;
-        return false;
-    }
+	//askForToolExe();
+    //if (!graspToolExe()){
+    //   std::cout << "Tool couldnt be grasped properly, stopping!" << std::endl;
+    //    return false;
+    //}
     lookAtToolExe();
 
     attachToolExe();
@@ -443,7 +443,7 @@ void AffManager::lookAtToolExe()
 void AffManager::handToCenter()
 {
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
-    xd[0]=-0.4; xd[1]=0.20; xd[2]=0.05;
+    xd[0]=-0.3 + Rand::scalar(0,0.05); xd[1]=0.18 + Rand::scalar(0,0.04); xd[2]=0.05;
     
     Vector oy(4), ox(4);
 
@@ -460,8 +460,8 @@ void AffManager::handToCenter()
     fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
-    fprintf(stdout,"Hand moving!!");
-    icart->waitMotionDone(0.04);
+    //fprintf(stdout,"Hand moving!!");
+    //icart->waitMotionDone(0.04);
     fprintf(stdout,"Movement completed!!");
     return;
 }
@@ -614,6 +614,13 @@ void AffManager::observeToolExe(){
     icart->getPose(handPose, handOr);
     igaze->get2DPixel(0, handPose, handPix);
 
+    /* Read tooltip coordinates */
+    yarp::sig::Vector toolTipPix(2);
+    Bottle *toolTipIn = userDataPort.read(true);
+    toolTipPix[0] = toolTipIn->get(0).asInt();
+    toolTipPix[1] = toolTipIn->get(1).asInt();
+        
+    /*    
     // Get ToolTip coordinates on image
     Bottle toolTipB;
     Bottle cmdKF, replyKF;                                  // bottles for Karma Motor
@@ -623,11 +630,12 @@ void AffManager::observeToolExe(){
     rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
     toolTipB = replyKF.tail();			                    // XXX Check that this TAIL actually works!!!
     cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
-        
+    
     Vector toolTipPix(2);
     toolTipPix[0] = toolTipB.get(0).asInt();
     toolTipPix[1] = toolTipB.get(1).asInt();
-
+    */
+    
     /*
     Vector toolTipPose(3), toolTipPix(2);
     toolTipPose[0] = toolTipB.get(0).asDouble();
@@ -638,10 +646,16 @@ void AffManager::observeToolExe(){
 
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
-	ROI[0] = toolTipPix[0] - 40;  // ROI left side some pixels to the left of the tooltip
-    ROI[1] = toolTipPix[1] - 40; // ROI top side at the same height of the tooltip
-    ROI[2] = handPix[0];  // ROI right side some pixels to the right of the tooltip
-    ROI[3] = handPix[1]; // ROI bottom side at the same height of the hands center
+    if (toolTipPix[0] < handPix[0])
+    {   
+        ROI[0] = toolTipPix[0] - 40;    // ROI left side some pixels to the left of the tooltip
+        ROI[2] = handPix[0] + 40;       // ROI right side some pixels to the right of the hand
+    }else{
+        ROI[0] = handPix[0] - 40;       // ROI left side some pixels to the left of the hand     
+        ROI[2] = toolTipPix[0] + 40;    // ROI right side some pixels to the right of the tooltip
+    }
+	ROI[1] = toolTipPix[1] - 40; // ROI top side a little bit over the height of the tooltip
+    ROI[3] = handPix[1] - 40; // ROI bottom side at the same height of the hands center
     
     Bottle cmdFE,replyFE;
     cmdFE.clear();

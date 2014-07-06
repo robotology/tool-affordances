@@ -72,6 +72,7 @@ private:
 
     /* Algorithm Variables */
     int backgroundThresh;
+    int frontThresh;
     int cannyThresh;
     int minBlobSize;
     bool verbose;
@@ -97,7 +98,7 @@ public:
     ~ToolBlobber();
 
     bool setRange(double range);
-    bool setThresh(int thresh);
+    bool setThresh(int low, int high);
     bool setVerbose(std::string verb);
     bool setConfMin(float confid);
     

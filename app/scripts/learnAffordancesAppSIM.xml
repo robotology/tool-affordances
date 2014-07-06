@@ -107,6 +107,20 @@
     </module>
     <module>
         <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/toolBlob</prefix>
+        <geometry>(Pos (x 1056) (y 613.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/segView</prefix>
+        <geometry>(Pos (x 1051) (y 802.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
         <parameters>--x 1050 --y 700</parameters>
         <node>localhost</node>
         <prefix>/toolProj</prefix>
@@ -161,20 +175,6 @@
         <prefix>/disp</prefix>
         <geometry>(Pos (x 480) (y 781.9))</geometry>
     </module>
-    <module>
-        <name>yarpview</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix>/toolBlob</prefix>
-        <geometry>(Pos (x 1056) (y 613.9))</geometry>
-    </module>
-    <module>
-        <name>yarpview</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix>/segView</prefix>
-        <geometry>(Pos (x 1051) (y 802.9))</geometry>
-    </module>
     <connection>
         <from>/stateMachine/rpc:o</from>
         <to>/affManager/rpc:i</to>
@@ -185,19 +185,19 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/SFM/left:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 235.5) (y 541.5)) ((x 204) (y 400)) ((x 288) (y 679))  )</geometry>
+        <geometry>(Pos ((x 235.5) (y 541.5)) ((x 204) (y 399)) ((x 288) (y 679))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/right/out</from>
         <to>/SFM/right:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 233) (y 623.5)) ((x 199) (y 538)) ((x 288) (y 704))  )</geometry>
+        <geometry>(Pos ((x 233) (y 623.5)) ((x 199) (y 537)) ((x 288) (y 704))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/toolBlobber/imLeft:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 437) (y 541.5)) ((x 204) (y 400)) ((x 691) (y 680))  )</geometry>
+        <geometry>(Pos ((x 437) (y 541.5)) ((x 204) (y 399)) ((x 691) (y 680))  )</geometry>
     </connection>
     <connection>
         <from>/SFM/disp:o</from>
@@ -227,7 +227,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/motionCUT/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 270.5) (y 436.5)) ((x 204) (y 400)) ((x 358) (y 469))  )</geometry>
+        <geometry>(Pos ((x 270.5) (y 436.5)) ((x 204) (y 399)) ((x 358) (y 469))  )</geometry>
     </connection>
     <connection>
         <from>/motionCUT/blobs:o</from>
@@ -251,13 +251,13 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/karmaToolFinder/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 660) (y 460)) ((x 204) (y 400)) ((x 1137) (y 517))  )</geometry>
+        <geometry>(Pos ((x 660) (y 460)) ((x 204) (y 399)) ((x 1137) (y 517))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/objectFinder/coords:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 533.5) (y 239)) ((x 455) (y 264)) ((x 633) (y 214))  )</geometry>
+        <geometry>(Pos ((x 533.5) (y 239)) ((x 455) (y 263)) ((x 633) (y 214))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/objFind:rpc</from>
@@ -287,7 +287,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/objectFinder/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 408) (y 296.5)) ((x 204) (y 400)) ((x 633) (y 189))  )</geometry>
+        <geometry>(Pos ((x 408) (y 296.5)) ((x 204) (y 399)) ((x 633) (y 189))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
@@ -305,7 +305,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 240) (y 317.5)) ((x 204) (y 400)) ((x 297) (y 231))  )</geometry>
+        <geometry>(Pos ((x 240) (y 317.5)) ((x 204) (y 399)) ((x 297) (y 231))  )</geometry>
     </connection>
     <connection>
         <from>/motionCUT/img:o</from>
@@ -359,7 +359,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/GBSeg/rawImg:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 420) (y 596)) ((x 204) (y 400)) ((x 657) (y 788))  )</geometry>
+        <geometry>(Pos ((x 420) (y 596)) ((x 204) (y 399)) ((x 657) (y 788))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/gbs:rpc</from>
@@ -383,7 +383,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/templatePFTracker/left/image:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 521) (y 330.5)) ((x 204) (y 400)) ((x 859) (y 257))  )</geometry>
+        <geometry>(Pos ((x 521) (y 330.5)) ((x 204) (y 399)) ((x 859) (y 257))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/karmaFinder:rpc</from>
@@ -395,7 +395,7 @@
         <from external="true">/imLeft/yarpview/out</from>
         <to>/toolBlobber/tooltip:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 562.5) (y 459.5)) ((x 455) (y 264)) ((x 691) (y 655))  )</geometry>
+        <geometry>(Pos ((x 562.5) (y 459.5)) ((x 455) (y 263)) ((x 691) (y 655))  )</geometry>
     </connection>
     <connection>
         <from>/karmaToolFinder/tip:o</from>
