@@ -48,7 +48,6 @@ class ToolBlobber : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::
 private:
 
     std::string moduleName;                     // string containing module name
-    // std::string worldInPortName;             // string containing world in info port name
     std::string dispInPortName;                 // string containing disparity image port name
     std::string toolTipInPortName;              // string containing toolProjection tooltip port name
     std::string imInLeftPortName;               // string containing left input image port name
@@ -57,8 +56,7 @@ private:
     std::string imgBinOutPortName;              // string containing output binary image port name
     std::string rpcGBSPortName;                 // string containing rpc port name for GBS communication
     
-    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
-
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
     yarp::os::BufferedPort<yarp::os::Bottle>	                        toolTipInPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    imInLeftPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imageOutPort;	// output image Port with info drawn over
@@ -105,7 +103,8 @@ public:
     
     bool        open();
     void        close();
-    void        onRead( yarp::sig::ImageOf<yarp::sig::PixelBgr> &img );
+    void        loop();
+    //void        onRead( yarp::sig::ImageOf<yarp::sig::PixelBgr> &img );
     void        interrupt();
     
     yarp::os::Semaphore         mutex;          //semaphore for accessing/modifying within the callback

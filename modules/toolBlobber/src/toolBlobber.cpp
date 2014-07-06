@@ -74,6 +74,7 @@ bool ToolBlobberModule::close()
 /**********************************************************/
 bool ToolBlobberModule::updateModule()
 {
+    blobber->loop();
     return !closing;
 }
 
@@ -159,7 +160,7 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
 /**********************************************************/
 double ToolBlobberModule::getPeriod()
 {
-    return 0.3;
+    return 0.5;
 }
 
 /**********************************************************/
@@ -324,8 +325,7 @@ bool ToolBlobber::setConfMin(float confid)
 
 
 /**********************************************************/
-void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
-// XXX change by an update module and read the disparity normally, in order to slow down the module sending commands
+void ToolBlobber::loop()
 {
     yarp::os::Stamp ts;
     
@@ -336,8 +336,13 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
     Scalar blue = Scalar(0,0,255);
     Scalar white = Scalar(255,255,255);
 
-	/* Format disparty data to Mat grayscale */
-    Mat disp((IplImage*) disparity.getIplImage());			
+	/* Read disparty data and format it to Mat grayscale */
+    ImageOf<PixelBgr> *disparity = dispInPort.read();  // read an image
+    if(disparity == NULL)		{
+        printf("No disparity image \n");
+		return;
+	}    
+    Mat disp((IplImage*) disparity->getIplImage());	
     cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
 
     /* Read camera Images */
@@ -366,7 +371,7 @@ void ToolBlobber::onRead(ImageOf<PixelBgr> &disparity)
 
     /* Prepare binary image to ouput closest blob */
 	ImageOf<PixelMono> &imgBinOut = imgBinOutPort.prepare();		// prepare an output image
-	imgBinOut.resize(disparity.width(), disparity.height());		// Initialize features image
+	imgBinOut.resize(disparity->width(), disparity->height());		// Initialize features image
     imgBinOut.zero();
 	Mat imgBin((IplImage*)imgBinOut.getIplImage(),false);
     
