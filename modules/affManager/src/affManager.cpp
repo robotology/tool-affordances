@@ -655,7 +655,7 @@ void AffManager::observeToolExe(){
         ROI[2] = toolTipPix[0] + 40;    // ROI right side some pixels to the right of the tooltip
     }
 	ROI[1] = toolTipPix[1] - 40; // ROI top side a little bit over the height of the tooltip
-    ROI[3] = handPix[1] - 40; // ROI bottom side at the same height of the hands center
+    ROI[3] = handPix[1] - 60; // ROI bottom side at the same height of the hands center
     
     Bottle cmdFE,replyFE;
     cmdFE.clear();

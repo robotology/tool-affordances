@@ -20,7 +20,7 @@ class Contour
 	void computeMoments();		
 	void computeSkeleton();
 	void computeCentDist();
-	void computeAngleSig(double refAngle = 0);
+	void computeAngleSig(double refAngle = 0, int win = 2);
 	void computeImg();
 
 protected:

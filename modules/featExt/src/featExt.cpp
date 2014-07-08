@@ -429,6 +429,12 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
            if (verbose) {printf(" Norm Angle Histogram bin  %i = %g \n", h, angSigHist[h]); }
         }	
 
+        vector<double> angSig = contours[i].getAngleSig();
+        for ( int d = 0; d < angSig.size(); d+=10 ){
+            contours[i].drawArrow(contoursIm,contours[i].getPoints()[d], angSig[d], Scalar(0,255,0), 40);
+        }
+
+
 		// ==== Transformed Domain Features from Signature ====		
 		vector<double> fourierDesc;											// Fourier descriptors
 		vector<double> waveletDesc;											// Wavelet descriptors

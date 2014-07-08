@@ -398,13 +398,14 @@ void Contour::computeCentDist()
 }
 
 // Compute the normal vector to the contour at each point, and return its angle.
-void Contour::computeAngleSig(double refAngle)
+void Contour::computeAngleSig(double refAngle, int win)
 {
 	//normalize();
     
 	if (this->angleSig==NULL){	
 		angleSig = new vector<double>;
 		vector<Point> pp = points;	
+        vector<double> normAngle;
 		for( int i = 0; i < pp.size(); i++ ){	
 			double angle;  
             Point pDif;
@@ -416,9 +417,44 @@ void Contour::computeAngleSig(double refAngle)
             }
             angle = atan2(double(pDif.y),double(pDif.x)) * 180.0 / CV_PI;               // Compute angle between two consectuvie points w.r.t x axis
             double angleDif = angle + 90 + refAngle;                                    // get the normal (+90 because points are ordered clockwise), and normalize w.r.t to the reference angle
-            double normAngle = angleDif - floor(angleDif/360) * 360;                  // compute the modulus to keep positive angle values
-            angleSig->push_back(normAngle);
+            normAngle.push_back(angleDif - floor(angleDif/360) * 360);                  // compute the modulus to keep positive angle values
 		}
+        int s = normAngle.size();
+        for( int n = 0; n < s; n++ ){
+            double accum = 0.0;
+            for (int it = -win; it <= win; it++){
+                int aux_it = n + it;
+                int w = aux_it - floor(aux_it/(double)s) * s;       //compute modulus 
+                accum += normAngle[w];
+            }
+
+            /*
+            if (n < win){
+                printf("smoothing points < %i\n", win);
+                for (int it = 0; it <= n + win; it++){
+                    accum += normAngle[it];}
+                for (int it = normAngle.size()+ (n-win) + 1; it <= normAngle.size() ; it++){
+                    accum += normAngle[it];}
+
+            }else if (n >= normAngle.size() - win){
+                 printf("smoothing points close to > %i \n", normAngle.size());
+                for (int it = n-win; it <= normAngle.size(); it++){
+                    accum += normAngle[it];
+                    printf("point %i, part before end\n", it);}
+                for (int it = 0; it <= win + (normAngle.size() - n + 1); it++){
+                    accum += normAngle[it];
+                    printf("it = %i, condition %i \n", it, win + (normAngle.size() - n + 1));
+                    printf("point %i, of %i\n", n,normAngle.size());}
+
+            }else{
+                printf("smoothing middle points\n");
+                for (int it = n-win; it <= n + win; it++){
+                    accum += normAngle[it];}
+            }*/
+            double smoothAngle =  accum / (2*win+1); 
+            angleSig->push_back(smoothAngle);
+        }
+        printf("Done smoothing \n", win);
 	}
     
 }
