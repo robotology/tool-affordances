@@ -75,6 +75,7 @@ protected:
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
 
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
+    yarp::os::RpcClient         rpcToolBlobber;     //rpc connecting to tool Blobber
 
 	//yarp::os::RpcClient         rpcBlobPicker;	//rpc motor port BlobPicker
 	//yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter

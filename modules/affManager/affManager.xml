@@ -59,6 +59,11 @@
             <port>/affManager/objFind:rpc</port>
             <description> Send commands to the objectFinder Module</description>
         </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/affManager/toolBlob:rpc</port>
+            <description> Send commands to the toolBlobber Module</description>
+        </output>
     </data>
 
     <dependencies>

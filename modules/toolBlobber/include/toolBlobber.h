@@ -43,13 +43,13 @@
 #include <highgui.h>
 
 
-class ToolBlobber : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >
+class ToolBlobber : public yarp::os::BufferedPort<yarp::os::Bottle >
 {
 private:
 
     std::string moduleName;                     // string containing module name
     std::string dispInPortName;                 // string containing disparity image port name
-    std::string toolTipInPortName;              // string containing toolProjection tooltip port name
+    std::string seedInPortName;                 // string containing the seed point to get the blob port name
     std::string imInLeftPortName;               // string containing left input image port name
     std::string targetOutPortName;              // string containing output target port name
     std::string imageOutPortName;               // string containing output image port name
@@ -57,7 +57,7 @@ private:
     std::string rpcGBSPortName;                 // string containing rpc port name for GBS communication
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
-    yarp::os::BufferedPort<yarp::os::Bottle>	                        toolTipInPort;
+    //yarp::os::BufferedPort<yarp::os::Bottle>	                        seedInPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    imInLeftPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imageOutPort;	// output image Port with info drawn over
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >	imgBinOutPort;	// output binary image of closest blob
@@ -101,11 +101,12 @@ public:
     bool setThresh(int low, int high);
     bool setVerbose(std::string verb);
     bool setConfMin(float confid);
-    
+    bool setFixedRange(bool fixRangeFlag);
+
     bool        open();
     void        close();
-    void        loop();
-    //void        onRead( yarp::sig::ImageOf<yarp::sig::PixelBgr> &img );
+    //void        loop();
+    void        onRead( yarp::os::Bottle& seed);
     void        interrupt();
     
     yarp::os::Semaphore         mutex;          //semaphore for accessing/modifying within the callback

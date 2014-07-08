@@ -72,6 +72,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());			   //rpc server to query featExtractin Module
     retRPC = retRPC && rpcAffLearn.open(("/"+name+"/affLearn:rpc").c_str());		   //rpc server to query affLearn
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           //rpc server to query objectFinder
+    retRPC = retRPC && rpcToolBlobber.open(("/"+name+"/toolBlob:rpc").c_str());           //rpc server to query objectFinder
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
 		return false;
@@ -127,6 +128,8 @@ bool AffManager::interruptModule()
 
     rpcFeatExt.interrupt();
     rpcAffLearn.interrupt();
+    rpcObjFinder.interrupt();
+    rpcToolBlobber.interrupt();
 
     return true;
 }
@@ -142,6 +145,9 @@ bool AffManager::close()
 
     rpcFeatExt.close();
     rpcAffLearn.close();
+
+    rpcObjFinder.close();
+    rpcToolBlobber.close();
 
     clientGaze.close();
     clientCart.close();
@@ -635,14 +641,22 @@ void AffManager::observeToolExe(){
     toolTipPix[0] = toolTipB.get(0).asInt();
     toolTipPix[1] = toolTipB.get(1).asInt();
     
-    
+    */
     //XXX if kTF is not streaming the tip point, it would have to be sent to toolBlobber so it can can generate the binImg which will feed featExt, just before calling featExt so the image is present
-     So, 
+    /* So, 
      * read tooltip from KF
      * send it to toolBlobber (this will make tB output an image)
      * call fExt snapshot to get the image
     */
+    Bottle cmdTB, replyTB;                                  // bottles for Tool Blobber
+    cmdTB.clear();   replyTB.clear();
+    cmdTB.addString("seed");
+    cmdTB.addInt(toolTipPix[0]);
+    cmdTB.addInt(toolTipPix[1]);
+    fprintf(stdout,"%s\n",cmdTB.toString().c_str());
+    rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
     
+
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
     if (toolTipPix[0] < handPix[0])

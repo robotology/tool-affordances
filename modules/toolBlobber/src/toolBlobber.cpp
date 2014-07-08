@@ -74,7 +74,6 @@ bool ToolBlobberModule::close()
 /**********************************************************/
 bool ToolBlobberModule::updateModule()
 {
-    blobber->loop();
     return !closing;
 }
 
@@ -88,7 +87,16 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
     string receivedCmd = command.get(0).asString().c_str();
     int responseCode;   //Will contain Vocab-encoded response
 
-    if (receivedCmd == "range"){
+    if (receivedCmd == "seed"){
+        Bottle coords;
+        coords.addInt(command.get(1).asInt());
+        coords.addInt(command.get(2).asInt());
+        blobber->onRead(coords);
+        responseCode = Vocab::encode("ack");
+        reply.addVocab(responseCode);
+        return true;
+
+    }else if (receivedCmd == "range"){
         bool ok = blobber->setRange(command.get(1).asDouble());
         if (ok)
             responseCode = Vocab::encode("ack");
@@ -105,6 +113,18 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
             responseCode = Vocab::encode("ack");
         else {
             fprintf(stdout,"Threshold for disparity considered set. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+
+
+    }else if (receivedCmd == "fixedRange"){
+        bool ok = blobber->setFixedRange(command.get(1).asBool());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Couldnt change the fixedness of the range. \n");
             responseCode = Vocab::encode("nack");
         }
         reply.addVocab(responseCode);
@@ -136,8 +156,9 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(Vocab::encode("many"));
         responseCode = Vocab::encode("ack");
         reply.addString("Available commands are:");
+        reply.addString("seed  (int) (int) - calls the toolBlobber with the seed coordinates given.");
         reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
-        reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
+        reply.addString("thresh (int) (int) - to sets the lower limit and higher of disparity in terms of luminosity (0-255) that is considered. In other words, only objects with luminosity between low and high will be considered.");
         reply.addString("confidence (double) - Sets the confidence value [0-1] over which the obtained coordinates are sent.");
         reply.addString("verbose ON/OFF - Sets active the printouts of the program, for debugging or visualization.");
         reply.addString("help - produces this help.");
@@ -185,8 +206,8 @@ bool ToolBlobber::open()
 
     verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
-    backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
-    frontThresh = moduleRF->check("frontThresh", Value(245)).asInt();		// threshold of intensity if the disparity image, above which info is ignored.
+    backgroundThresh = moduleRF->check("backgroundThresh", Value(60)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
+    frontThresh = moduleRF->check("frontThresh", Value(190)).asInt();		// threshold of intensity if the disparity image, above which info is ignored.
     confidenceMin = moduleRF->check("confidenceMin", Value(0.8)).asDouble();		
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
     minBlobSize = moduleRF->check("minBlobSize", Value(400)).asInt();
@@ -200,12 +221,14 @@ bool ToolBlobber::open()
     fprintf(stdout,"Opening ports\n");
 
     /* Inputs ports */
-    
+
+    seedInPortName = "/" + moduleName + "/seed:i";
+    BufferedPort<Bottle >::open( seedInPortName.c_str() );    
+    //seedInPortPort.open(seedInPortName);
+
     dispInPortName = "/" + moduleName + "/disp:i";
     dispInPort.open(dispInPortName);
 
-    toolTipInPortName = "/" + moduleName + "/tooltip:i";
-    toolTipInPort.open(toolTipInPortName);
 
     imInLeftPortName = "/" + moduleName + "/imLeft:i";
     imInLeftPort.open(imInLeftPortName);
@@ -243,9 +266,10 @@ bool ToolBlobber::open()
 void ToolBlobber::close()
 {
     fprintf(stdout,"now closing ports...\n");
-    
+    BufferedPort<Bottle >::close();
+
     dispInPort.close();
-    toolTipInPort.close();
+    //seedInPort.close();
     imInLeftPort.close();
 
     imageOutPort.close();
@@ -262,9 +286,11 @@ void ToolBlobber::interrupt()
 {	
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
-   
+    
+    BufferedPort<Bottle >::interrupt();
+
     dispInPort.interrupt();
-    toolTipInPort.interrupt();
+    //seedInPort.interrupt();
     imInLeftPort.interrupt();
 
     imageOutPort.interrupt();
@@ -313,6 +339,20 @@ bool ToolBlobber::setVerbose(string verb)
     return false;
 }
 
+bool ToolBlobber::setFixedRange(bool fixRangeFlag)
+{
+    if (fixRangeFlag == true){
+        this->  fixedRange = true;
+        fprintf(stdout,"Fixed range is ON \n");
+        return true;
+    } else if (fixRangeFlag ==false){
+        this->fixedRange = false;
+        fprintf(stdout,"Fixed range is OFF \n");
+        return true;
+    }    
+    return false;
+}
+
 bool ToolBlobber::setConfMin(float confid)
 {
     if ((confid<0) ||(confid>1)) {
@@ -327,9 +367,9 @@ bool ToolBlobber::setConfMin(float confid)
 
 
 /**********************************************************/
-void ToolBlobber::loop()
+void ToolBlobber::onRead(Bottle& seedIn)
 {
-    yarp::os::Stamp ts;
+    //yarp::os::Stamp ts;
     
     mutex.wait();    
     if(verbose){   cout << endl << "================ LOOP =================== "<< endl;}
@@ -346,7 +386,7 @@ void ToolBlobber::loop()
 	}    
     Mat disp((IplImage*) disparity->getIplImage());	
     cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
-
+        
     /* Read camera Images */
     ImageOf<PixelRgb> *imInLeft = imInLeftPort.read();  // read an image
     if(imInLeft == NULL)		{
@@ -354,22 +394,24 @@ void ToolBlobber::loop()
 		return;
 	}
     Mat leftIm((IplImage*) imInLeft->getIplImage());	
-
-    /* Read tooltip coordinates */
-    Bottle *toolTipIn = toolTipInPort.read();
-    if (toolTipIn == NULL)  {  
-        printf("no tooltip data received, working without it");
+    
+    /* Read seed coordinates */
+    /*Bottle *seedIn = seedInPort.read(false);
+    if (seedIn == NULL)  {  
+        printf("no seed data received, no image produced");
         return;
-    }
-    yarp::sig::Vector toolTip(2);
-    toolTip[0] = toolTipIn->get(0).asInt();
-    toolTip[1] = toolTipIn->get(1).asInt();
+    }*/
+    Point seed;
+    seed.x = seedIn.get(0).asInt();
+    seed.y = seedIn.get(1).asInt();
 
     /* Prepare output image for visualization */
     ImageOf<PixelRgb> &imageOut  = imageOutPort.prepare();
     imageOut.resize(imInLeft->width(), imInLeft->height());		// Initialize features image
-    imageOut.zero();
+    imageOut.zero();    
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
+    
+    //disp.copyTo(imOut);
 
     /* Prepare binary image to ouput closest blob */
 	ImageOf<PixelMono> &imgBinOut = imgBinOutPort.prepare();		// prepare an output image
@@ -383,18 +425,19 @@ void ToolBlobber::loop()
 
     /* Filter disparity image to reduce noise an produce smoother blob */
     //  Smooth the image so that it connect components, and so that it wont cut the GBS blob
-    Mat threshIm;    
+    Mat threshIm;   
+    
     threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
     multiply(disp,threshIm,disp);
     threshold(disp, threshIm, frontThresh, 1, CV_THRESH_BINARY_INV);			// and first noise 
     multiply(disp,threshIm,disp);
-    dilate(disp, disp,Mat(), Point(-1,-1), 5);
-    GaussianBlur(disp, disp, Size(11 ,11), 10, 10); 
-    erode(disp, disp, Mat(), Point(-1,-1), 3);
-
-       
+    dilate(disp, disp,Mat(), Point(-1,-1), 7);
+    GaussianBlur(disp, disp, Size(21 ,21), 15, 15); 
+    erode(disp, disp, Mat(), Point(-1,-1), 4);
     
+       
     /* Find closest valid blob */
+    /*
     double minVal, maxVal; 
     Point minLoc, maxLoc;	
     int fillFlags = 8;                                          // pixel connectivity
@@ -408,40 +451,47 @@ void ToolBlobber::loop()
         minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) point
         fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), fillFlags);	// If its too small, paint it black and search again
     }
+    */
+    int fillFlags = 8;                                          // pixel connectivity
+    if (fixedRange){                                            // Set the flags for floodfill
+        fillFlags += FLOODFILL_FIXED_RANGE;}
+    Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
+    floodFill(disp, fillMask, seed, 255, 0, 50 , 50, FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
+    
 
-    floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
- 
     /* Find Contours */
     Mat edges;	
     vector<vector<Point > > contours;
     vector<Vec4i> hierarchy;
-    //Canny( disp, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny	
     findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );
-	
+	printf("Found %i contours from the mask. \n", contours.size());
     /* If any blob is found */
     if (contours.size()>0){
-        if ((toolTip[0] < imInLeft->width()) && (toolTip[0]>0) && (toolTip[1] < imInLeft->height()) && (toolTip[1]>0))
+        if ((seed.x < imInLeft->width()) && (seed.x>0) && (seed.y < imInLeft->height()) && (seed.y>0))
         {
             /* Double check that only the bigger blob is selected as the valid one*/
             int blobI = 0;
             for( int c = 0; c < contours.size(); c++ ){
                 double a = contourArea(contours[c]);	    					// Find the area of contour
+                printf("area of blob found = %g ", a);
                 if(a > minBlobSize){											// Keep only the bigger
                     blobI = c;
+                    printf(" - valid blob\n"); 
                 }
             }
             /* Mark closest blob for visualization*/        
-            //drawContours(imOut, contours, blobI, white, 2, 8); 
+            drawContours(imOut, contours, blobI, red, 2, 8); 
             //drawContours(imgBin, contours, blobI, white, -1, 8); 
 
             Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
             drawContours(cntMask, contours, blobI, Scalar(255), CV_FILLED, 8);  // Mask ignoring points outside the contours
             leftIm.copyTo(imOut,cntMask);
+            //cntMask.copyTo(imOut);
 
             /* Get Target blob coordinates for seeding GBS*/
             Point targetBlob; 
-            targetBlob.x = toolTip[0];  
-            targetBlob.y = toolTip[1];// + 15; //Search for the tool blob slighly under the detected tooltip
+            targetBlob.x = seed.x;  
+            targetBlob.y = seed.y;// + 15; //Search for the tool blob slighly under the detected tooltip
             circle( imOut, targetBlob, 4, red, -1, 8, 0 );
 
             target.addInt(targetBlob.x);
@@ -470,7 +520,7 @@ void ToolBlobber::loop()
                 if (verbose) {cout << "Nothing received from GBS" << endl;}
             }
         }else{
-            if (verbose) {cout << "Tooltip outside image boundaries" << endl;}
+            if (verbose) {cout << "seed outside image boundaries" << endl;}
         }        
     }else{
             if (verbose) {cout << "No contours detected" << endl;}

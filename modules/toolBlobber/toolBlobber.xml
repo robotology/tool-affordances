@@ -26,8 +26,8 @@
         </input>
         <input>
             <type>Bottle</type>
-            <port carrier="udp">/toolBlobber/tooltip:i</port>
-            <description>Receives tooltip coordinates from ToolProjection module</description>
+            <port carrier="udp">/toolBlobber/seed:i</port>
+            <description>Receives seed coordinates to generate blob from GBS module</description>
         </input>        
         <input>
             <type>ImageOfPixelRgb</type>
