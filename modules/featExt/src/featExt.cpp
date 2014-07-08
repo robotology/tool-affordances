@@ -431,7 +431,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 
         vector<double> angSig = contours[i].getAngleSig();
         for ( int d = 0; d < angSig.size(); d+=10 ){
-            contours[i].drawArrow(contoursIm,contours[i].getPoints()[d], angSig[d], Scalar(0,255,0), 40);
+            contours[i].drawArrow(contoursIm,contours[i].getPoints()[d], angSig[d], Scalar(0,255,0), 10);
         }
 
 

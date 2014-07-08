@@ -614,7 +614,7 @@ void AffManager::observeToolExe(){
     icart->getPose(handPose, handOr);
     igaze->get2DPixel(0, handPose, handPix);
 
-    /* Read tooltip coordinates */
+    /* Read tooltip coordinates  XXX this is a patch, it should be reading from KTF via rpc, as below*/
     yarp::sig::Vector toolTipPix(2);
     Bottle *toolTipIn = userDataPort.read(true);
     toolTipPix[0] = toolTipIn->get(0).asInt();
@@ -625,7 +625,7 @@ void AffManager::observeToolExe(){
     Bottle toolTipB;
     Bottle cmdKF, replyKF;                                  // bottles for Karma Motor
     cmdKF.clear();   replyKF.clear();
-    cmdKF.addString("tippoint");
+    cmdKF.addString("tip");
     fprintf(stdout,"%s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
     toolTipB = replyKF.tail();			                    // XXX Check that this TAIL actually works!!!
@@ -634,16 +634,15 @@ void AffManager::observeToolExe(){
     Vector toolTipPix(2);
     toolTipPix[0] = toolTipB.get(0).asInt();
     toolTipPix[1] = toolTipB.get(1).asInt();
+    
+    
+    //XXX if kTF is not streaming the tip point, it would have to be sent to toolBlobber so it can can generate the binImg which will feed featExt, just before calling featExt so the image is present
+     So, 
+     * read tooltip from KF
+     * send it to toolBlobber (this will make tB output an image)
+     * call fExt snapshot to get the image
     */
     
-    /*
-    Vector toolTipPose(3), toolTipPix(2);
-    toolTipPose[0] = toolTipB.get(0).asDouble();
-    toolTipPose[1] = toolTipB.get(1).asDouble();
-    toolTipPose[2] = toolTipB.get(2).asDouble();    
-    igaze->get2DPixel(0, toolTipPose, toolTipPix);
-    */
-
     // Set the ROI to bound the tool and crop the arm away
     Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
     if (toolTipPix[0] < handPix[0])
