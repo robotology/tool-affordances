@@ -656,20 +656,7 @@ void AffManager::observeToolExe(){
     fprintf(stdout,"%s\n",cmdTB.toString().c_str());
     rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
     
-
-    // Set the ROI to bound the tool and crop the arm away
-    Vector ROI(4);          // define ROI as tl.x, tl.y, br.x, br.y
-    if (toolTipPix[0] < handPix[0])
-    {   
-        ROI[0] = toolTipPix[0] - 40;    // ROI left side some pixels to the left of the tooltip
-        ROI[2] = handPix[0] + 40;       // ROI right side some pixels to the right of the hand
-    }else{
-        ROI[0] = handPix[0] - 40;       // ROI left side some pixels to the left of the hand     
-        ROI[2] = toolTipPix[0] + 40;    // ROI right side some pixels to the right of the tooltip
-    }
-	ROI[1] = toolTipPix[1] - 40; // ROI top side a little bit over the height of the tooltip
-    ROI[3] = handPix[1] - 60; // ROI bottom side at the same height of the hands center
-    
+   /*
     Bottle cmdFE,replyFE;
     cmdFE.clear();
     replyFE.clear();
@@ -693,8 +680,9 @@ void AffManager::observeToolExe(){
     cmdFE.addString("refAngle");
     cmdFE.addInt((int)handAngle);
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-
+    */
     // Get the features
+    Bottle cmdFE,replyFE;
     cmdFE.clear();
     replyFE.clear();
     cmdFE.addString("snapshot");

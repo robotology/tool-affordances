@@ -204,6 +204,10 @@ bool ToolBlobber::open()
     this->useCallback();
     fprintf(stdout,"Parsing parameters\n");	
 
+    robot = moduleRF->check("robot", Value("icub")).asString();
+    hand = moduleRF->check("hand", Value("right")).asString();
+    camera = moduleRF->check("camera", Value("left")).asString();
+
     verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(60)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
@@ -221,43 +225,39 @@ bool ToolBlobber::open()
     fprintf(stdout,"Opening ports\n");
 
     /* Inputs ports */
+    BufferedPort<Bottle >::open("/toolBlobber/seed:i" );    
+    dispInPort.open("/toolBlobber/disp:i");
+    imInLeftPort.open("/toolBlobber/imLeft:i");
 
-    seedInPortName = "/" + moduleName + "/seed:i";
-    BufferedPort<Bottle >::open( seedInPortName.c_str() );    
-    //seedInPortPort.open(seedInPortName);
-
-    dispInPortName = "/" + moduleName + "/disp:i";
-    dispInPort.open(dispInPortName);
-
-
-    imInLeftPortName = "/" + moduleName + "/imLeft:i";
-    imInLeftPort.open(imInLeftPortName);
-    
     /* Output ports */
+    rpcGBS.open("/toolBlobber/gbs:rpc");
+    imageOutPort.open("/toolBlobber/img:o");
+    imgBinOutPort.open("/toolBlobber/imgBin:o");    
+    targetOutPort.open("/toolBlobber/target:o");
 
-    rpcGBSPortName = "/" + moduleName + "/gbs:rpc";
-    rpcGBS.open(rpcGBSPortName);
+  	// Cartesian Controller Interface
+	Property optCart;
+	optCart.put("device","cartesiancontrollerclient");
+    optCart.put("remote","/"+robot+"/cartesianController/"+hand+"_arm");
+    optCart.put("local","/toolBlobber/cartesian_client/"+hand+"_arm");
+	if (!clientCart.open(optCart))
+		return false;    
+    clientCart.view(icart);	// open the view	
 
-    imageOutPortName = "/" + moduleName + "/img:o";
-    imageOutPort.open(imageOutPortName);
+    // Gaze Controller Interface
+    Property optGaze("(device gazecontrollerclient)");
+    optGaze.put("remote","/iKinGazeCtrl");
+    optGaze.put("local","/toolBlobber/gaze_client");
 
-    imgBinOutPortName = "/" + moduleName + "/imgBin:o";
-    imgBinOutPort.open(imgBinOutPortName);
-    
-    targetOutPortName = "/" + moduleName + "/target:o";
-    targetOutPort.open(targetOutPortName);
+    if (!clientGaze.open(optGaze))
+        return false;
+    clientGaze.view(igaze);
 
+    igaze->setNeckTrajTime(0.8);
+    igaze->setEyesTrajTime(0.4);
+    igaze->setTrackingMode(true);
 
-    // Open disparity Thread
-    string configFileDisparity = moduleRF->check("ConfigDisparity",Value("icubEyes.ini")).asString().c_str();
-    string cameraContext = moduleRF->check("CameraContext",Value("cameraCalibration")).asString().c_str();
-    string name = moduleRF->check("name",Value("blobCoordsExtractor")).asString().c_str();
-
-    ResourceFinder cameraFinder;
-    cameraFinder.setDefaultContext(cameraContext.c_str());
-    cameraFinder.setDefaultConfigFile(configFileDisparity.c_str());
-    cameraFinder.setVerbose();
-    cameraFinder.configure(0,NULL);
+    isDisp = false;
 
     return ret;
 }
@@ -372,21 +372,27 @@ void ToolBlobber::onRead(Bottle& seedIn)
     //yarp::os::Stamp ts;
     
     mutex.wait();    
-    if(verbose){   cout << endl << "================ LOOP =================== "<< endl;}
+    if(verbose){   cout << endl << " seed received "<< endl;}
     Scalar red = Scalar(255,0,0);
     Scalar green = Scalar(0,255,0);
     Scalar blue = Scalar(0,0,255);
     Scalar white = Scalar(255,255,255);
 
+    // ================ READ FROM AND PREPARE PORTS =================
+    printf("preparing ports\n");
 	/* Read disparty data and format it to Mat grayscale */
-    ImageOf<PixelBgr> *disparity = dispInPort.read();  // read an image
+    ImageOf<PixelBgr> *disparity = dispInPort.read(false);  // read an image
+    Mat disp;
     if(disparity == NULL)		{
         printf("No disparity image \n");
-		return;
-	}    
-    Mat disp((IplImage*) disparity->getIplImage());	
-    cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
-        
+		isDisp = false;
+    }else{ 
+        disp=(IplImage*) disparity->getIplImage();	
+        cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
+        isDisp = true;
+    }
+    
+
     /* Read camera Images */
     ImageOf<PixelRgb> *imInLeft = imInLeftPort.read();  // read an image
     if(imInLeft == NULL)		{
@@ -396,14 +402,10 @@ void ToolBlobber::onRead(Bottle& seedIn)
     Mat leftIm((IplImage*) imInLeft->getIplImage());	
     
     /* Read seed coordinates */
-    /*Bottle *seedIn = seedInPort.read(false);
-    if (seedIn == NULL)  {  
-        printf("no seed data received, no image produced");
-        return;
-    }*/
     Point seed;
     seed.x = seedIn.get(0).asInt();
     seed.y = seedIn.get(1).asInt();
+
 
     /* Prepare output image for visualization */
     ImageOf<PixelRgb> &imageOut  = imageOutPort.prepare();
@@ -411,11 +413,9 @@ void ToolBlobber::onRead(Bottle& seedIn)
     imageOut.zero();    
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
     
-    //disp.copyTo(imOut);
-
     /* Prepare binary image to ouput closest blob */
 	ImageOf<PixelMono> &imgBinOut = imgBinOutPort.prepare();		// prepare an output image
-	imgBinOut.resize(disparity->width(), disparity->height());		// Initialize features image
+	imgBinOut.resize(imInLeft->width(), imInLeft->height());		// Initialize features image
     imgBinOut.zero();
 	Mat imgBin((IplImage*)imgBinOut.getIplImage(),false);
     
@@ -423,109 +423,136 @@ void ToolBlobber::onRead(Bottle& seedIn)
     Bottle &target = targetOutPort.prepare();
     target.clear();
 
-    /* Filter disparity image to reduce noise an produce smoother blob */
-    //  Smooth the image so that it connect components, and so that it wont cut the GBS blob
-    Mat threshIm;   
-    
-    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
-    multiply(disp,threshIm,disp);
-    threshold(disp, threshIm, frontThresh, 1, CV_THRESH_BINARY_INV);			// and first noise 
-    multiply(disp,threshIm,disp);
-    dilate(disp, disp,Mat(), Point(-1,-1), 7);
-    GaussianBlur(disp, disp, Size(21 ,21), 15, 15); 
-    erode(disp, disp, Mat(), Point(-1,-1), 4);
-    
-       
-    /* Find closest valid blob */
-    /*
-    double minVal, maxVal; 
-    Point minLoc, maxLoc;	
-    int fillFlags = 8;                                          // pixel connectivity
-    if (fixedRange){                                            // Set the flags for floodfill
-        fillFlags += FLOODFILL_FIXED_RANGE;}
-
-    int fillSize = 0;	
-    Mat aux = disp.clone();
-    Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
-    while (fillSize < minBlobSize){			
-        minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) point
-        fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), fillFlags);	// If its too small, paint it black and search again
-    }
-    */
-    int fillFlags = 8;                                          // pixel connectivity
-    if (fixedRange){                                            // Set the flags for floodfill
-        fillFlags += FLOODFILL_FIXED_RANGE;}
-    Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
-    floodFill(disp, fillMask, seed, 255, 0, 50 , 50, FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
-    
-
-    /* Find Contours */
-    Mat edges;	
-    vector<vector<Point > > contours;
-    vector<Vec4i> hierarchy;
-    findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );
-	printf("Found %i contours from the mask. \n", contours.size());
-    /* If any blob is found */
-    if (contours.size()>0){
+    //=================== BEGIN ALGORITHM ======================
+    printf("Begin algorithm\n");
+    /* Get a mask of the tool from the 3Dinformation from disparity */
+    Mat imAux;
+    Mat cntMask;
+    if (isDisp){            
         if ((seed.x < imInLeft->width()) && (seed.x>0) && (seed.y < imInLeft->height()) && (seed.y>0))
-        {
-            /* Double check that only the bigger blob is selected as the valid one*/
-            int blobI = 0;
-            for( int c = 0; c < contours.size(); c++ ){
-                double a = contourArea(contours[c]);	    					// Find the area of contour
-                printf("area of blob found = %g ", a);
-                if(a > minBlobSize){											// Keep only the bigger
-                    blobI = c;
-                    printf(" - valid blob\n"); 
-                }
-            }
-            /* Mark closest blob for visualization*/        
-            drawContours(imOut, contours, blobI, red, 2, 8); 
-            //drawContours(imgBin, contours, blobI, white, -1, 8); 
+        {       
+            printf("Calling getDispBlob\n");
+            bool dispOK = getDispBlob(cntMask, disp, seed);
 
-            Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
-            drawContours(cntMask, contours, blobI, Scalar(255), CV_FILLED, 8);  // Mask ignoring points outside the contours
-            leftIm.copyTo(imOut,cntMask);
-            //cntMask.copyTo(imOut);
+            if(!dispOK)
+            {  cntMask.setTo(Scalar(255)); }
 
-            /* Get Target blob coordinates for seeding GBS*/
-            Point targetBlob; 
-            targetBlob.x = seed.x;  
-            targetBlob.y = seed.y;// + 15; //Search for the tool blob slighly under the detected tooltip
-            circle( imOut, targetBlob, 4, red, -1, 8, 0 );
-
-            target.addInt(targetBlob.x);
-            target.addInt(targetBlob.y);       
-
-            // Get graphBased segmenenation within the close blob
-            Bottle cmdGBS,replyGBS;
-            cmdGBS.clear();    replyGBS.clear();
-            cmdGBS.addString("get_component_around");
-            cmdGBS.addInt(targetBlob.x);
-            cmdGBS.addInt(targetBlob.y);
-            rpcGBS.write(cmdGBS, replyGBS);
-            if (replyGBS.size() > 0)
-            {
-                if (verbose) {cout << "Received " << replyGBS.size() <<  "bottles from GBS " << endl;} 
-                Bottle *segPixels = replyGBS.get(0).asList();
-                // Go through all the returned pixels and make a mask out of them. 
-                Mat segMask(disp.size(), CV_8UC1, Scalar(0));
-                for( int sp = 0; sp < segPixels->size(); sp++ ){
-                    Bottle *pointB = segPixels->get(sp).asList();
-                    Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
-                    circle(segMask, segPoint, 0, Scalar(255));
-                }             
-                multiply(cntMask, segMask, imgBin);         // Multiply this mask with the one obtained from disparity
             }else{
-                if (verbose) {cout << "Nothing received from GBS" << endl;}
-            }
-        }else{
-            if (verbose) {cout << "seed outside image boundaries" << endl;}
-        }        
-    }else{
-            if (verbose) {cout << "No contours detected" << endl;}
+                if (verbose) {cout << "seed outside image boundaries" << endl;}
+                return;
+        }
+        printf("Disparity blob found\n");
     }
-        
+
+    /* Get Target blob coordinates for seeding GBS*/
+    Point targetBlob; 
+    targetBlob.x = seed.x;  
+    targetBlob.y = seed.y;// + 15; //Search for the tool blob slighly under the detected tooltip
+
+    target.addInt(targetBlob.x);
+    target.addInt(targetBlob.y);       
+
+    printf("Getting GBS points\n");
+    // Get the seeded blob from graphBased segmenenation
+    Bottle cmdGBS,replyGBS;
+    cmdGBS.clear();    replyGBS.clear();
+    cmdGBS.addString("get_component_around");
+    cmdGBS.addInt(targetBlob.x);
+    cmdGBS.addInt(targetBlob.y);
+    rpcGBS.write(cmdGBS, replyGBS);
+    if (replyGBS.size() > 0)
+    {
+        if (verbose) {cout << "Received " << replyGBS.size() <<  " bottle(s) from GBS " << endl;} 
+        Bottle *segPixels = replyGBS.get(0).asList();
+        // Go through all the returned pixels and make a mask out of them. 
+        Mat segMask(leftIm.size(), CV_8UC1, Scalar(0));
+        for( int sp = 0; sp < segPixels->size(); sp++ ){
+            Bottle *pointB = segPixels->get(sp).asList();
+            Point segPoint(pointB->get(0).asInt(), pointB->get(1).asInt());
+            circle(segMask, segPoint, 0, Scalar(255));
+        }             
+        if (isDisp){
+            multiply(cntMask, segMask, imAux);}         // Multiply this mask with the one obtained from disparity
+        else{
+            segMask.copyTo(imAux);
+        }         // Multiply this mask with the one obtained from disparity
+    }else{
+        if (verbose) {cout << "Nothing received from GBS" << endl;}
+        return;
+    }
+
+    // Rotate the tool blob according to the handling angle
+    printf("Rotating Image\n");
+    /* Get the info about the hand from the interface */
+    yarp::sig::Vector handPose(3), handOr(4), handPix(2);
+    //icart->getPose(handPose, handOr);
+    //igaze->get2DPixel(0, handPose, handPix);
+    handPix[0]= 220;
+    handPix[1]= 160;    
+    Point hand = Point(  (int)handPix[0] , (int)handPix[1] );
+    
+    /* Read tooltip coordinates */
+    yarp::sig::Vector toolTipPix(2);
+    toolTipPix[0] = seed.x;
+    toolTipPix[1] = seed.y;
+    if (verbose) {printf("Tooltip at pixel %g,%g \n", toolTipPix[0], toolTipPix[1]);}
+
+    // Set the tool orientation as reference angle for feature extraction
+    yarp::sig::Vector tipDif(2);
+    tipDif[0]= handPix[0] - toolTipPix[0];
+    tipDif[1]= handPix[1] - toolTipPix[1];
+    double handAngle = atan2(double(tipDif[1]), double(tipDif[0])) * 180.0 / CV_PI;  
+    if (verbose) {printf("Handling Angle is of %g degrees\n", handAngle);}
+
+    /// Compute a rotation matrix with respect to the center of the hand
+    //Compute the angle and the tip distance to normalize the tool image size
+    double angle = -90+handAngle;
+    double tipDist = sqrt(tipDif[0]*tipDif[0] + tipDif[1]*tipDif[1]);
+    //double scale = 150/tipDist; 
+
+    /// Get the rotation matrix with the specifications above
+    if (verbose) {printf("Before rotation, the hand is on point %i,%i and the tooltip at %i,%i \n", hand.x,hand.y,seed.x,seed.y);}
+    Mat rot_mat( 2, 3, CV_32FC1 );
+    rot_mat = getRotationMatrix2D( hand, angle, 1.0 );
+    if (verbose) {printf("Rotation Matrix:"); cout << "R = "<< endl << " "  << rot_mat << endl << endl;}
+    
+    // Rotate the image
+    warpAffine(imAux, imAux, rot_mat, imgBin.size() );
+
+    // Rotate the tooltip to get the correct ROI
+    Point toolTipRot;
+    double alphaRad = -angle * CV_PI/ 180.0;
+    double s = sin(alphaRad); double c = cos(alphaRad);
+    toolTipRot.x = (c*(seed.x-hand.x) - s*(seed.y-hand.y)) + hand.x;
+    toolTipRot.y = (s*(seed.x-hand.x) + c*(seed.y-hand.y)) + hand.y;
+    if (verbose) {printf("After rotation, the tooltip at %i,%i \n", toolTipRot.x,toolTipRot.y);}
+
+    // Set the ROI to bound the tool and crop the arm away    
+    yarp::sig::Vector ROIV(4);          // define ROI as tl.x, tl.y, br.x, br.y
+    ROIV[0] = toolTipRot.x - 40;     // ROI left side some pixels to the left of the tooltip
+    if (ROIV[0]<0) {ROIV[0] =0;}
+    if (ROIV[0]>leftIm.cols) {ROIV[0]=leftIm.cols-1;}
+	ROIV[1] = toolTipRot.y - 40; // ROI top side a little bit over the height of the tooltip
+    if (ROIV[1]<0) {ROIV[1] =0;}
+    if (ROIV[1]>leftIm.rows) {ROIV[1]=leftIm.rows-1;}
+    ROIV[2] = toolTipRot.x + 40; // ROI right side some pixels to the right of the tooltip
+    if (ROIV[2]<0) {ROIV[2] =0;}
+    if (ROIV[2]>leftIm.cols) {ROIV[2]=leftIm.cols-1;}
+    ROIV[3] = hand.y - 60;  // ROI bottom side at the same height of the hands center
+    if (ROIV[3]<0) {ROIV[3] =0;}
+    if (ROIV[3]>leftIm.rows) {ROIV[3]=leftIm.rows-1;}
+    Rect ROI(Point(ROIV[0],ROIV[1]),Point(ROIV[2],ROIV[3]));
+    
+
+    //draw stuff in imOut for visualization
+    cvtColor(imAux, imOut, CV_GRAY2RGB);    						// grayscale to RGM
+    cvtColor(imOut(ROI), imgBin(ROI), CV_RGB2GRAY);    						// Brg to grayscale    
+    circle( imOut, targetBlob, 4, red, -1, 8, 0 );
+    line(imOut,hand,seed,red);
+    circle( imOut, toolTipRot, 4, green, -1, 8, 0 );
+    line(imOut,hand,toolTipRot,green);
+    rectangle(imOut, Point(ROIV[0],ROIV[1]),Point(ROIV[2],ROIV[3]), blue, 1);
+
     mutex.post();
 
     /* write info on output ports */
@@ -535,5 +562,60 @@ void ToolBlobber::onRead(Bottle& seedIn)
     targetOutPort.write();
 
 }
-//empty line to make gcc happy
 
+
+bool ToolBlobber::getDispBlob(const Mat& disp, Mat& cntMask, Point seed)
+{
+    /* Filter disparity image to reduce noise an produce smoother blob */
+    printf("- Smoothing image\n");
+    Mat threshIm;       
+    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First clean up background
+    multiply(disp,threshIm,disp);
+    threshold(disp, threshIm, frontThresh, 1, CV_THRESH_BINARY_INV);			// and first noise 
+    multiply(disp,threshIm,disp);
+    dilate(disp, disp,Mat(), Point(-1,-1), 7);
+    GaussianBlur(disp, disp, Size(21 ,21), 15, 15); 
+    erode(disp, disp, Mat(), Point(-1,-1), 4);    
+    
+    printf("- Filling seeded blob \n");
+    // Plot  the blob selected from seed in the outImage.
+    int fillFlags = 8;                                          // pixel connectivity
+    if (fixedRange){                                            // Set the flags for floodfill
+        fillFlags += FLOODFILL_FIXED_RANGE;}
+    Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
+    printf("fails here");
+    floodFill(disp, fillMask, seed, Scalar(255), 0, Scalar(50) , Scalar(50), FLOODFILL_MASK_ONLY + FLOODFILL_FIXED_RANGE + 4);	
+    printf("Doesnt it");
+    
+
+    /* Find Contours */
+    printf("- Finding contours \n");
+    Mat edges;	
+    vector<vector<Point > > contours;
+    vector<Vec4i> hierarchy;
+    findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );    
+	printf("Found %i contours from the mask. \n", contours.size());
+    /* If any blob is found */
+    if (contours.size()>0){        
+        /* Double check that only the bigger blob is selected as the valid one*/
+        int blobI = 0;
+        for( int c = 0; c < contours.size(); c++ ){
+            double a = contourArea(contours[c]);	    					// Find the area of contour
+            printf("area of blob found = %g ", a);
+            if(a > minBlobSize){											// Keep only the bigger
+                blobI = c;
+                printf(" - valid blob\n"); 
+            }
+        }
+        Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
+        drawContours(cntMask, contours, blobI, Scalar(255), CV_FILLED, 8);  // Mask ignoring points outside the contours
+     
+    }else{
+        if (verbose) {cout << "No contours detected" << endl;}
+        return false;
+    }   
+}
+
+
+
+//empty line to make gcc happy

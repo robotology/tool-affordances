@@ -36,16 +36,27 @@
 #include <iostream>
 #include <iomanip>
 
+//for iCart and iGaze
+#include <yarp/dev/Drivers.h>
+#include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/dev/GazeControl.h>
+#include <yarp/dev/CartesianControl.h>
+
+//openCV
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
 #include <cv.h>
-#include <highgui.h>
+//#include <highgui.h>
 
+YARP_DECLARE_DEVICES(icubmod)
 
 class ToolBlobber : public yarp::os::BufferedPort<yarp::os::Bottle >
 {
 private:
+
+    /* Internal functions */
+    bool getDispBlob(const cv::Mat& contourMask, cv::Mat& disp, cv::Point seed);
 
     std::string moduleName;                     // string containing module name
     std::string dispInPortName;                 // string containing disparity image port name
@@ -65,10 +76,21 @@ private:
 
     yarp::os::RpcClient                                                 rpcGBS;	    //rpc motor port GraphBasedSegmentation
     
+
+    /* interface variables */ 
+    yarp::dev::PolyDriver					clientCart;
+	yarp::dev::ICartesianControl			*icart;
+    yarp::dev::PolyDriver                   clientGaze;
+    yarp::dev::IGazeControl                 *igaze;
+
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
-    /* Pointer to the Disparity Thread */
-    //DisparityThread* dispThr;
+
+   /* module parameters */
+	std::string                 hand;               //hand
+	std::string                 camera;             //camera
+	std::string                 robot;				//robot
+    bool                        isDisp;              // bool representing if disparity image is present or not
 
     /* Algorithm Variables */
     int backgroundThresh;

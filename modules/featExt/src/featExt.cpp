@@ -234,6 +234,11 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	
     mutex.wait();
 
+    Scalar red = Scalar(255,0,0);
+    Scalar green = Scalar(0,255,0);
+    Scalar blue = Scalar(0,0,255);
+    Scalar white = Scalar(255,255,255);
+
 	//prepare ports
 	//featSend = featPort.prepare();						    // Prepare port to send features	
     ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
@@ -274,10 +279,10 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 
 	// draw it on offset and thick line to close possible apertures
 	//drawContours( contoursIm, contoursPoint, -1, Scalar(0, 0, 255), 2, 8); 
-    drawContours( edges, contoursPoint, -1, Scalar(255, 255, 255), 2, 8); //
+    drawContours( edges, contoursPoint, -1, white, 2, 8); //
 	// Recomputing the contour needed to close possible open contours
 	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0));
-	drawContours( contoursIm, contoursPoint, -1, Scalar(255, 255, 255), 1 , 8); // Paint all found contours in thin white
+	drawContours( contoursIm, contoursPoint, -1, white, 1 , 8); // Paint all found contours in thin white
 
 	//Mat contoursIm = Mat::zeros( edges.size(), CV_8UC3 );
 	
@@ -288,13 +293,13 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
            if (in>=0){
                contours.push_back(Contour(contoursPoint[i]));			// Include only the contour that contains the coords, i.e. the one we clicked on.
                circle(contoursIm, coords, 2, Scalar(255, 0 ,0),-1);
-               drawContours( contoursIm, contoursPoint, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point() );    // paint the seleted contour in thick red
+               drawContours( contoursIm, contoursPoint, i, red, 2, 8, hierarchy, 0, Point() );    // paint the seleted contour in thick red
            }
         } else{            
 		    double a=contourArea(contoursPoint[i]);						// Find the area of contour
 		    if(a>minBlobSize){											// Keep only big contours
 			    contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
-			    drawContours( contoursIm, contoursPoint, i, Scalar(0,0,255), 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
+			    drawContours( contoursIm, contoursPoint, i, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
             }
         }
 	}
@@ -341,7 +346,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
         // compute the convexity defects, their depth and their bisector angles 
 		contours[i].convDefs(convDefVec);
 		contours[i].convDefPos(convDefVec, defsDepth, defsIndx);
-        contours[i].convDir(defsIndx, defsDirs, refAngle);
+        contours[i].convDir(defsIndx, defsDirs);
 
         while (defsDepth.size()<convDepthNum) {      // Pad defsDepth vector with 0s up to size convDepthNum
             defsDepth.push_back(0.0);
@@ -352,8 +357,8 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 			feats[i].content.push_back(defsDepth[c]);			
             if (verbose) {printf("Depth conv point %i = %g \n", c, defsDepth[c]);}
             if (c < defsIndx.size()){
-                circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 3, Scalar(0, 255, 0), -1, 8, 0 );
-                contours[i].drawArrow(contoursIm,contours[i].getPoints()[defsIndx[c]], defsDirs[c], Scalar(255,0,0), 15);
+                circle(contoursIm, contours[i].getPoints()[defsIndx[c]], 3, green, -1, 8, 0 );
+                contours[i].drawArrow(contoursIm,contours[i].getPoints()[defsIndx[c]], defsDirs[c], red, 15);
             }
 		}
 
@@ -376,7 +381,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
             if (verbose){printf(" Jnt Point [%i, %i] \n", jntPoints[m].x,  jntPoints[m].y);}
             if (jntPoints[m].x-mc.x <= 0 ) {jntLeft += 1;} else {jntRight += 1;}
             if (jntPoints[m].y-mc.y <= 0 ) {jntBelow += 1;} else {jntOver += 1;}
-			circle(contoursIm, jntPoints[m]+boundRect.tl(), 4, Scalar(255, 255, 255), 2, 8, 0 );
+			circle(contoursIm, jntPoints[m]+boundRect.tl(), 4, white, 2, 8, 0 );
 		}
 		feats[i].content.push_back(jntLeft);	
         feats[i].content.push_back(jntRight);	
@@ -387,7 +392,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
             if (verbose){printf(" End Point [%i, %i] \n", endPoints[n].x,  endPoints[n].y);}
             if (endPoints[n].x-mc.x <= 0 ) {endLeft += 1;} else {endRight += 1;}
             if (endPoints[n].y-mc.y <= 0 ) {endBelow += 1;} else {endOver += 1;}
-			circle(contoursIm, endPoints[n]+boundRect.tl(), 4, Scalar(255, 255, 255), 2, 8, 0 );
+			circle(contoursIm, endPoints[n]+boundRect.tl(), 4, white, 2, 8, 0 );
 		}
 		feats[i].content.push_back(endLeft);	
         feats[i].content.push_back(endRight);	
@@ -431,7 +436,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 
         vector<double> angSig = contours[i].getAngleSig();
         for ( int d = 0; d < angSig.size(); d+=10 ){
-            contours[i].drawArrow(contoursIm,contours[i].getPoints()[d], angSig[d], Scalar(0,255,0), 10);
+            contours[i].drawArrow(contoursIm,contours[i].getPoints()[d], angSig[d], green, 10);
         }
 
 
@@ -441,7 +446,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		int P = 15;		//Number of FD to save
         if (verbose) {printf(" Computing DFT \n");}
 		contours[i].getDFT(fourierDesc);
-        if (verbose) {printf(" Computing Waveltet\n");}
+        if (verbose) {printf(" Computing Wavelet\n");}
 		contours[i].getWavelet(waveletDesc);
 
 		for ( int p = 0; p <P; p++ ){
@@ -464,7 +469,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
     } //end contours loop
 
     if (ROIinit){
-        rectangle(src, Point (0,0), Point(src.cols,src.rows),  Scalar(255,0,0),2);
+        rectangle(src, Point (0,0), Point(src.cols,src.rows),  red,2);
     }
 
 	printf("\n DONE \n");

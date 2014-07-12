@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
     /* create the module */
     ToolBlobberModule module;
 
-    //YARP_REGISTER_DEVICES(icubmod)
+    YARP_REGISTER_DEVICES(icubmod)
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
