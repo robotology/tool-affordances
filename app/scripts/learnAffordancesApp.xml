@@ -122,7 +122,7 @@
         <from external="true">/imLeft/yarpview/out</from>
         <to>/objectFinder/coords:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 493.00) (y 405.00)) ((x 481.00) (y 502.00)) ((x 526.00) (y 308.00))  )</geometry>
+        <geometry>(Pos ((x 493.00) (y 405.00)) ((x 481.00) (y 499.00)) ((x 526.00) (y 308.00))  )</geometry>
     </connection>
     <connection>
         <from>/templatePFTracker/left/image:o</from>
@@ -182,31 +182,31 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 233.00) (y 498.00)) ((x 195.00) (y 520.00)) ((x 292.00) (y 473.00))  )</geometry>
+        <geometry>(Pos ((x 233.00) (y 498.00)) ((x 195.00) (y 517.00)) ((x 292.00) (y 473.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/GBSeg/rawImg:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 314.00) (y 646.00)) ((x 195.00) (y 520.00)) ((x 454.00) (y 771.00))  )</geometry>
+        <geometry>(Pos ((x 314.00) (y 646.00)) ((x 195.00) (y 517.00)) ((x 454.00) (y 771.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/dispView/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 130.50) (y 755.50)) ((x 112.00) (y 751.00)) ((x 170.00) (y 756.00))  )</geometry>
+        <geometry>(Pos ((x 130.50) (y 755.50)) ((x 112.00) (y 748.00)) ((x 170.00) (y 756.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/featExt/coords:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 572.50) (y 553.00)) ((x 481.00) (y 502.00)) ((x 685.00) (y 604.00))  )</geometry>
+        <geometry>(Pos ((x 572.50) (y 553.00)) ((x 481.00) (y 499.00)) ((x 685.00) (y 604.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/toolBlobber/disp:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 244.00) (y 716.00)) ((x 112.00) (y 751.00)) ((x 397.00) (y 655.00))  )</geometry>
+        <geometry>(Pos ((x 244.00) (y 716.00)) ((x 112.00) (y 748.00)) ((x 397.00) (y 655.00))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/gbs:rpc</from>
@@ -218,7 +218,7 @@
         <from external="true">/icub/camcalib/left/out</from>
         <to>/toolBlobber/imLeft:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 285.50) (y 575.50)) ((x 195.00) (y 520.00)) ((x 397.00) (y 630.00))  )</geometry>
+        <geometry>(Pos ((x 285.50) (y 575.50)) ((x 195.00) (y 517.00)) ((x 397.00) (y 630.00))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/img:o</from>
@@ -248,6 +248,6 @@
         <from external="true">/imLeft/yarpview/out</from>
         <to>/toolBlobber/seed:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 428.50) (y 553.50)) ((x 481.00) (y 502.00)) ((x 397.00) (y 605.00))  )</geometry>
+        <geometry>(Pos ((x 428.50) (y 553.50)) ((x 481.00) (y 499.00)) ((x 397.00) (y 605.00))  )</geometry>
     </connection>
 </application>
