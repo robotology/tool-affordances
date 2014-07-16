@@ -485,10 +485,8 @@ void ToolBlobber::onRead(Bottle& seedIn)
     printf("Rotating Image\n");
     /* Get the info about the hand from the interface */
     yarp::sig::Vector handPose(3), handOr(4), handPix(2);
-    //icart->getPose(handPose, handOr);
-    //igaze->get2DPixel(0, handPose, handPix);
-    handPix[0]= 220;
-    handPix[1]= 160;    
+    icart->getPose(handPose, handOr);
+    igaze->get2DPixel(0, handPose, handPix); 
     Point hand = Point(  (int)handPix[0] , (int)handPix[1] );
     
     /* Read tooltip coordinates */

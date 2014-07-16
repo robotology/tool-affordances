@@ -84,6 +84,7 @@ protected:
 	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port featExtractor
 
     yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  //port to receive user data.
+    yarp::os::Port                             outDataPort;     // port to send out data
 
     /* class variables */
 

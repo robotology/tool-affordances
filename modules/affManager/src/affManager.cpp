@@ -64,6 +64,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	//rpc
 	bool retRPC = true;  
     retRPC = userDataPort.open(("/"+name+"/user:i").c_str());	
+    retRPC = outDataPort.open(("/"+name+"/data:i").c_str());                            // port to send data out for recording
     retRPC = retRPC && rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
@@ -120,6 +121,9 @@ bool AffManager::updateModule()
 /**********************************************************/
 bool AffManager::interruptModule()
 {
+    outDataPort.interrupt();
+    userDataPort.interrupt();
+
     rpcCmd.interrupt();
     rpcMotorAre.interrupt();
 	//rpcMotorIol.interrupt();
@@ -137,6 +141,9 @@ bool AffManager::interruptModule()
 /**********************************************************/
 bool AffManager::close()
 {
+    outDataPort.close();
+    userDataPort.close();
+
     rpcCmd.close();
     rpcMotorAre.close();
 	//rpcMotorIol.close();
@@ -449,7 +456,7 @@ void AffManager::lookAtToolExe()
 void AffManager::handToCenter()
 {
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
-    xd[0]=-0.3 + Rand::scalar(0,0.05); xd[1]=0.18 + Rand::scalar(0,0.04); xd[2]=0.05;
+    xd[0]=-0.35 + Rand::scalar(0,0.05); xd[1]=0.05 + Rand::scalar(0,0.04); xd[2]=0.05;
     
     Vector oy(4), ox(4);
 
@@ -515,40 +522,48 @@ void AffManager::simTool()
 /**********************************************************/
 void AffManager::slideActionExe()
 {
-    Bottle cmdKM,replyKM;       // bottles for Karma Motor
-    cmdKM.clear();   replyKM.clear();
 
-    int drawAngle = (int)Rand::scalar(0,180);
-    double drawDist = 0.2;
-    double drawRadius = 0.05;
-    double minusTool = 0.15;
-    cmdKM.addString("draw");
-    cmdKM.addDouble(target3DcoordsIni[0]+minusTool); // Draw closer if tool has not been attached as endeffector
-    cmdKM.addDouble(target3DcoordsIni[1]);
-    cmdKM.addDouble(target3DcoordsIni[2]);
-    cmdKM.addInt(drawAngle);
-    cmdKM.addDouble(drawDist);
-    cmdKM.addDouble(drawRadius);
-    fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
-    actionDone = true;
+    if (objFound){
+        Bottle cmdKM,replyKM;       // bottles for Karma Motor
+        cmdKM.clear();   replyKM.clear();
+
+        int drawAngle = (int)Rand::scalar(70,110);
+        double drawDist = 0.2;
+        double drawRadius = 0.05;
+        //double minusTool = 0.15;
+        cmdKM.addString("draw");
+        cmdKM.addDouble(target3DcoordsIni[0]); // Draw closer if tool has not been attached as endeffector
+        cmdKM.addDouble(target3DcoordsIni[1]);
+        cmdKM.addDouble(target3DcoordsIni[2]);
+        cmdKM.addInt(drawAngle);
+        cmdKM.addDouble(drawDist);
+        cmdKM.addDouble(drawRadius);
+        fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
+        rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
+        actionDone = true;
 
 
-    // Save the features of the action
-    Bottle cmdLearn,replyLearn;
-    cmdLearn.clear();
-    replyLearn.clear();
-    cmdLearn.addString("addData");
-    cmdLearn.addString("actionFeats");
-    // Add the action data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
-    Bottle& bData = cmdLearn.addList();
-    Bottle& bSample = bData.addList();
-    bSample.addString("action 1");
-    Bottle &toolData = bSample.addList();
-    toolData.addInt(drawAngle);
-    
-    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
-    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+        // Save the features of the action
+        Bottle cmdLearn,replyLearn;
+        cmdLearn.clear();
+        replyLearn.clear();
+        cmdLearn.addString("addData");
+        cmdLearn.addString("actionFeats");
+        // Add the action data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
+        Bottle& bData = cmdLearn.addList();
+        Bottle& bSample = bData.addList();
+        bSample.addString("action 1");
+        Bottle &toolData = bSample.addList();
+        toolData.addInt(drawAngle);
+        
+        fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+        rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+
+        outDataPort.write(bSample);
+
+    } else  {
+        printf("location hadnt been initialized, so action could not be done");
+    }
 
 
     return;
@@ -798,6 +813,7 @@ void AffManager::computeEffect()
     Vector delta = target3DcoordsAfter - target3DcoordsIni;
     double dx = delta[0];
     double dy = delta[1];
+    // we suppoose the object stays on a constant plane ( Z coords)
 
     effectAlpha = atan2 (dy,dx) * 180 / M_PI;
     effectDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
@@ -817,6 +833,8 @@ void AffManager::computeEffect()
     effData.addDouble(effectDist);
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+
+    outDataPort.write(bSample);
     
     return;
 }
