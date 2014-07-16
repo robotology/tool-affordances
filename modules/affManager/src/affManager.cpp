@@ -247,7 +247,7 @@ bool AffManager::doAction(){
 		slideActionExe();
 		goHomeNoHandsExe();
 		locateObjExe();
-		computeEffect();
+		computeEffectExe();
 	}
     finishRound();
 	return true;
@@ -260,6 +260,11 @@ bool AffManager::attachTool(){
 bool AffManager::slideAction(){
 	slideActionExe();
 	return true;
+}
+
+bool AffManager::computeEffect(){
+    computeEffectExe();
+    return true;
 }
 
 /**********************************************************
@@ -807,7 +812,7 @@ bool AffManager::locateObjExe()
 }
 
 /**********************************************************/
-void AffManager::computeEffect()
+void AffManager::computeEffectExe()
 {
     //To compute the effect, we assume that the object hasnt move in the z axis ( that is, has remained on the table)
     Vector delta = target3DcoordsAfter - target3DcoordsIni;

@@ -52,3 +52,9 @@ bool Feature::write(yarp::os::ConnectionWriter& connection) {
   if (!writer.writeListHeader(2)) return false;
   return write(writer);
 }
+yarp::os::ConstString Feature::toString() {
+  yarp::os::idl::UnwrappedView<Feature > v(*this);
+  yarp::os::Bottle b;
+  b.read(v);
+  return b.toString();
+}

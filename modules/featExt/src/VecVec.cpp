@@ -47,3 +47,9 @@ bool VecVec::write(yarp::os::ConnectionWriter& connection) {
   if (!writer.writeListHeader(1)) return false;
   return write(writer);
 }
+yarp::os::ConstString VecVec::toString() {
+  yarp::os::idl::UnwrappedView<VecVec > v(*this);
+  yarp::os::Bottle b;
+  b.read(v);
+  return b.toString();
+}

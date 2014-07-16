@@ -149,7 +149,7 @@ protected:
 	//std::vector<int>			findToolsExe();
 	//bool						selectToolExe();
    
-    void                        computeEffect();
+    void                        computeEffectExe();
     void                        finishRound();
 	//bool						get3Dposition();
 	//bool						get3Dorient();
@@ -176,6 +176,7 @@ public:
 	bool						observeTool();  //
 	bool						locateObj();   //
     bool						trackObj();   //
+    bool                        computeEffect();
     
 
 	//int							findTools();

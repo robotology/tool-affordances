@@ -266,6 +266,26 @@ public:
   }
 };
 
+class affManager_IDLServer_computeEffect : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("computeEffect",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class affManager_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
@@ -399,6 +419,15 @@ bool affManager_IDLServer::slideAction() {
   affManager_IDLServer_slideAction helper;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::slideAction()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::computeEffect() {
+  bool _return = false;
+  affManager_IDLServer_computeEffect helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::computeEffect()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -563,6 +592,17 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "computeEffect") {
+      bool _return;
+      _return = computeEffect();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "quit") {
       bool _return;
       _return = quit();
@@ -621,6 +661,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("attachTool");
     helpString.push_back("doAction");
     helpString.push_back("slideAction");
+    helpString.push_back("computeEffect");
     helpString.push_back("quit");
     helpString.push_back("help");
   }
@@ -691,6 +732,12 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="slideAction") {
       helpString.push_back("bool slideAction() ");
       helpString.push_back("Executes a sliding action (push or draw) using the end-effector (tool or hand) ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="computeEffect") {
+      helpString.push_back("bool computeEffect() ");
+      helpString.push_back("Computes the effect of the action as the difference in the position of the object before and after the slide action. ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }

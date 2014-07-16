@@ -87,6 +87,12 @@ public:
  */
   virtual bool slideAction();
 /**
+ * Computes the effect of the action as the difference in the position of the object before and after the slide action.
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool computeEffect();
+/**
  * Quit the module
  * @return true/false on success/failure
  */
