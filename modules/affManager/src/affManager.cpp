@@ -47,7 +47,7 @@ bool AffManager::configure(ResourceFinder &rf)
     if ((robot!="icubSim") && (robot!="icub"))
         robot="icub";
 
-    tableHeight = rf.check("tableHeight", Value(-0.15)).asDouble();      // Height of the table in the robots coord frame
+    tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
 
     //simMode=rf.check("simMode", Value("off"),"simMode (string)").asString();
 	
@@ -64,8 +64,8 @@ bool AffManager::configure(ResourceFinder &rf)
 	//rpc
 	bool retRPC = true;  
     retRPC = userDataPort.open(("/"+name+"/user:i").c_str());	
-    retRPC = outDataPort.open(("/"+name+"/data:i").c_str());                            // port to send data out for recording
-    retRPC = retRPC && rpcCmd.open(("/"+name+"/rpc:i").c_str());					//rpc client to interact with the italkManager
+    retRPC = outDataPort.open(("/"+name+"/data:o").c_str());                            // port to send data out for recording
+    retRPC = retRPC && rpcCmd.open(("/"+name+"/rpc:i").c_str());					   //rpc client to interact with the affManager
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
     retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
@@ -478,8 +478,8 @@ void AffManager::handToCenter()
     fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
-    //fprintf(stdout,"Hand moving!!");
-    //icart->waitMotionDone(0.04);
+    fprintf(stdout,"Hand moving!!");
+    icart->waitMotionDone(0.04);
     fprintf(stdout,"Movement completed!!");
     return;
 }
@@ -532,18 +532,22 @@ void AffManager::slideActionExe()
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
         cmdKM.clear();   replyKM.clear();
 
-        int drawAngle = (int)Rand::scalar(0,180);
+        int drawAngle = (int)Rand::scalar(0 , 180);
         double drawDist = 0.2;
-        double drawRadius = 0.1;        
+        double drawRadius = 0.1;
+        //double minusTool = 0.15;
         cmdKM.addString("draw");
         cmdKM.addDouble(target3DcoordsIni[0]); // Draw closer if tool has not been attached as endeffector
         cmdKM.addDouble(target3DcoordsIni[1]);
         cmdKM.addDouble(target3DcoordsIni[2]);
         cmdKM.addInt(drawAngle);
         cmdKM.addDouble(drawRadius);
-        cmdKM.addDouble(drawDist);
+        cmdKM.addDouble(drawDist + drawRadius*sin(drawAngle*M_PI/180));
+        
         fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
+
+        icart->waitMotionDone(0.04);
         actionDone = true;
 
 
@@ -554,10 +558,10 @@ void AffManager::slideActionExe()
         cmdLearn.addString("addData");
         cmdLearn.addString("actionFeats");
         // Add the action data in the format accepted by affLearn: ("Object" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
-        Bottle& bData = cmdLearn.addList();
-        Bottle& bSample = bData.addList();
-        bSample.addString("action 1");
-        Bottle &toolData = bSample.addList();
+        Bottle bData = cmdLearn.addList();
+        Bottle bSample = bData.addList();
+        bSample.addString("action");
+        Bottle& toolData = bSample.addList();
         toolData.addInt(drawAngle);
         
         fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
@@ -580,7 +584,7 @@ void AffManager::attachToolExe()
 {
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
-    /*
+    
     // If it is not working, bridge the "find" command by measuring the tool by hand and adding those values to toolDim.
     // Tooldim cooresponds to the difference in x, y, z between the hand end-effector and the tool end-effector, so does not really measure the tool dimensions
     // Then, to check, set the arm in idle and move it in front of the camera, to check if the dot still is in place.
@@ -597,14 +601,14 @@ void AffManager::attachToolExe()
     toolDim[1] = toolDimB.get(1).asDouble();
     toolDim[2] = toolDimB.get(2).asDouble();    
     cout << "Tool dims are" << toolDim.toString().c_str() << endl;
-    */
+  /*  
     printf ("measure the tool coordinates from the robot frame and input them as X Y Z");
     Bottle *toolDimB = userDataPort.read(true);
     toolDim[0] = toolDimB->get(0).asDouble();
     toolDim[1] = toolDimB->get(1).asDouble();
     toolDim[2] = toolDimB->get(2).asDouble();   
     cout << "Tool dims are" << toolDim.toString().c_str() << endl;
-
+*/
     // Send the coordinates to Karmafinder to display it and get the tip pixel
     Bottle cmdKF,replyKF;       // bottles for Karma Motor
     cmdKF.clear();replyKF.clear();
@@ -775,7 +779,7 @@ bool AffManager::locateObjExe()
     Vector coords3D(3);
     Vector table(4);  // specify the plane in the root reference frame as ax+by+cz+d=0; z=-tableHeight in this case
     table[0] = 0.0; table[1] = 0.0; table[2] = 1.0;  
-    table[3] = -tableHeight;    // d -> so th eequation of the table plane is z=-h
+    table[3] = -tableHeight;    // d -> so th eequation of the table plane is z=-h 
 
     int camSel;
     if (camera != "left") {
@@ -783,25 +787,25 @@ bool AffManager::locateObjExe()
     else { camSel = 0;}    
 
     if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){   // XXX check this on the robot, it crashes on simulator
-        igaze->lookAtFixationPoint(coords3D);                 // move the gaze to the desired fixation point
-        igaze->waitMotionDone();                              // wait until the operation is done
-        printf(" Looking done\n");
+        //igaze->lookAtFixationPoint(coords3D);                 // move the gaze to the desired fixation point
+        //igaze->waitMotionDone();                              // wait until the operation is done
+        //printf(" Looking done\n");
     
-        lookingAtObject = true;
+        //lookingAtObject = true;
 
 	    if (!actionDone){			
             printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		    target3DcoordsIni[0] = coords3D[0];
 		    target3DcoordsIni[1] = coords3D[1];
-		    target3DcoordsIni[2] = coords3D[2];
-		    fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
+		    target3DcoordsIni[2] = coords3D[2] + 0.03;        // Set the point 3 cm over the table plane
+		    //fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
 		    objFound = true;
 	    }else{
-		    cout << "3D coords after action are" << replyFinder.get(1).asList()->toString().c_str() << endl;
+		    printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		    target3DcoordsAfter[0] = coords3D[0];
 		    target3DcoordsAfter[1] = coords3D[1];
-		    target3DcoordsAfter[2] = coords3D[2];
-		    fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
+		    target3DcoordsAfter[2] = coords3D[2] + 0.03;
+		    //fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
 		    }
 	} else  {
         printf("3D point couldnt be computed\n");
@@ -829,10 +833,10 @@ void AffManager::computeEffectExe()
     cmdLearn.addString("addData");
     cmdLearn.addString("effectFeats");
     // Add the effect data in the format accepted by affLearn: ("Obj1" ( 4 6 3 2 ) "Obj2" (3 5 6 21 ))
-    Bottle& bData = cmdLearn.addList();
-    Bottle& bSample = bData.addList();
+    Bottle bData = cmdLearn.addList();
+    Bottle bSample = bData.addList();
     bSample.addString("effect");
-    Bottle &effData = bSample.addList();
+    Bottle& effData = bSample.addList();
     effData.addDouble(effectAlpha);
     effData.addDouble(effectDist);
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
@@ -856,6 +860,7 @@ void AffManager::finishRound()
     target3DcoordsIni.resize(3);    // Keeps the target position in 3D before the action
     target3DcoordsAfter.resize(3);	// Keeps the target position in 3D after the action
 
+/*  This should be done only once per tool, for redoing an action with the same tool, it can be kept
     // Remove the tool from the "body schema"
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();   replyKM.clear();
@@ -892,6 +897,7 @@ void AffManager::finishRound()
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
     fprintf(stdout,"featExt reseted \n");
+    */
 
 }
 

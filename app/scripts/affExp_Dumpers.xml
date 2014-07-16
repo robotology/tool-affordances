@@ -46,6 +46,14 @@
     </module>
     <module>
         <name>dataDumper</name>
+        <parameters>--dir affManagerData --rxTime</parameters>
+        <node>localhost</node>
+        <prefix>/affManagerData</prefix>
+        <workdir>/tmp/affData</workdir>
+        <geometry>(Pos (x 5.9) (y 1.9))</geometry>
+    </module>
+    <module>
+        <name>dataDumper</name>
         <parameters>--type image --dir imgBin --rxTime</parameters>
         <node>localhost</node>
         <prefix>/imgBin</prefix>
@@ -118,6 +126,12 @@
     <connection>
         <from external="true">/affLearn/feats:o</from>
         <to external="true">/affLearn/dump</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/affManager/data:o</from>
+        <to external="true">/affManagerData/dump</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
     </connection>
