@@ -532,17 +532,16 @@ void AffManager::slideActionExe()
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
         cmdKM.clear();   replyKM.clear();
 
-        int drawAngle = (int)Rand::scalar(70,110);
+        int drawAngle = (int)Rand::scalar(0,180);
         double drawDist = 0.2;
-        double drawRadius = 0.05;
-        //double minusTool = 0.15;
+        double drawRadius = 0.1;        
         cmdKM.addString("draw");
         cmdKM.addDouble(target3DcoordsIni[0]); // Draw closer if tool has not been attached as endeffector
         cmdKM.addDouble(target3DcoordsIni[1]);
         cmdKM.addDouble(target3DcoordsIni[2]);
         cmdKM.addInt(drawAngle);
-        cmdKM.addDouble(drawDist);
         cmdKM.addDouble(drawRadius);
+        cmdKM.addDouble(drawDist);
         fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
         actionDone = true;
