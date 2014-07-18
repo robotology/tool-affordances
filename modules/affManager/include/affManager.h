@@ -170,6 +170,7 @@ public:
 	bool						lookAtTool();
 
     bool                        doAction();
+    bool                        trainDraw();
     bool                        slideAction();
 
 	bool						attachTool();

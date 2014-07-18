@@ -240,7 +240,7 @@ bool AffManager::locateObj(){
 
 bool AffManager::doAction(){
 	goHomeNoHandsExe();
-    trackObjExe();
+    //trackObjExe();
 	bool objLocated = locateObjExe();
 	if (objLocated)
 	{
@@ -253,6 +253,15 @@ bool AffManager::doAction(){
 	return true;
 }
 
+bool AffManager::trainDraw(){
+    goHomeNoHandsExe();
+    trackObjExe();
+	for ( int d = 0; d < 20; d++ ){
+        doAction();
+        Time::delay(5);
+    }
+	return true;
+}
 bool AffManager::attachTool(){
 	attachToolExe();
 	return true;
@@ -532,19 +541,21 @@ void AffManager::slideActionExe()
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
         cmdKM.clear();   replyKM.clear();
 
-        int drawAngle = (int)Rand::scalar(0 , 180);
-        double drawDist = 0.2;
-        double drawRadius = 0.1;
+        double radius = 0.07;
+        double goPoint = Rand::scalar(-radius, radius);
+        int angle = (180/M_PI)*acos(goPoint/radius);
+        double dist = 0.2;
+        
         //double minusTool = 0.15;
         cmdKM.addString("draw");
         cmdKM.addDouble(target3DcoordsIni[0]); // Draw closer if tool has not been attached as endeffector
         cmdKM.addDouble(target3DcoordsIni[1]);
         cmdKM.addDouble(target3DcoordsIni[2]);
-        cmdKM.addInt(drawAngle);
-        cmdKM.addDouble(drawRadius);
-        cmdKM.addDouble(drawDist + drawRadius*sin(drawAngle*M_PI/180));
+        cmdKM.addInt(angle);
+        cmdKM.addDouble(radius);
+        cmdKM.addDouble(dist + radius*sin(angle*M_PI/180));
         
-        fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",drawAngle, target3DcoordsIni.toString().c_str());
+        fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
 
         icart->waitMotionDone(0.04);
@@ -562,7 +573,7 @@ void AffManager::slideActionExe()
         Bottle bSample = bData.addList();
         bSample.addString("action");
         Bottle& toolData = bSample.addList();
-        toolData.addInt(drawAngle);
+        toolData.addInt(angle);
         
         fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
         rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
@@ -842,7 +853,7 @@ void AffManager::computeEffectExe()
     fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 
-    outDataPort.write(bSample);
+     outDataPort.write(bSample);
     
     return;
 }
@@ -851,7 +862,7 @@ void AffManager::finishRound()
 {
     // reinitialize some flags for next round
     actionDone = false;
-    objFound = false;
+    //objFound = false;
     lookingAtTool = false;
     
     target3DcoordsIni.clear();		// Keeps the target position in 3D before the action

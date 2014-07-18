@@ -95,6 +95,14 @@ service affManager_IDLServer
      */
     bool doAction();
 
+     /**
+     * Performs the drawing action a given number of times to learn the mapping
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool trainDraw();
+
+
     /**
      * Executes a sliding action (push or draw) using the end-effector (tool or hand)
      * @return true/false on success/failure 
