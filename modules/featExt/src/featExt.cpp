@@ -423,7 +423,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 		feats[i].content.push_back(contours[i].convHullArea());		// Convex Hull area
 		feats[i].content.push_back(contours[i].solidity());			// Solidity
 		
-        // From amgle signature
+        // From angle signature
         vector<double> angSigHist;	                                  		// Histogram contour angles
 		    //contours[i].normalize();                                          // Compute histogram from same number of total points
         feats[i].content.push_back(contours[i].bendEnergy());	            // Bending Energy

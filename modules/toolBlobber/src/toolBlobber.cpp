@@ -481,12 +481,16 @@ void ToolBlobber::onRead(Bottle& seedIn)
         return;
     }
 
+    cvtColor(imAux, imOut, CV_GRAY2RGB);    						//XXX grayscale to RGB
+
     // Rotate the tool blob according to the handling angle
     printf("Rotating Image\n");
     /* Get the info about the hand from the interface */
     yarp::sig::Vector handPose(3), handOr(4), handPix(2);
     icart->getPose(handPose, handOr);
     igaze->get2DPixel(0, handPose, handPix); 
+
+
     Point hand = Point(  (int)handPix[0] , (int)handPix[1] );
     
     /* Read tooltip coordinates */
@@ -543,8 +547,9 @@ void ToolBlobber::onRead(Bottle& seedIn)
     
 
     //draw stuff in imOut for visualization
-    cvtColor(imAux, imOut, CV_GRAY2RGB);    						// grayscale to RGM
-    cvtColor(imOut(ROI), imgBin(ROI), CV_RGB2GRAY);    						// Brg to grayscale    
+    //cvtColor(imAux, imOut, CV_GRAY2RGB);    						// grayscale to RGB
+    //cvtColor(imOut(ROI), imgBin(ROI), CV_RGB2GRAY);    						// Brg to grayscale
+    imAux(ROI).copyTo(imgBin(ROI));
     circle( imOut, targetBlob, 4, red, -1, 8, 0 );
     line(imOut,hand,seed,red);
     circle( imOut, toolTipRot, 4, green, -1, 8, 0 );
