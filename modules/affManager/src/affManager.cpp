@@ -573,7 +573,7 @@ void AffManager::slideActionExe()
         Bottle bSample = bData.addList();
         bSample.addString("action");
         Bottle& toolData = bSample.addList();
-        toolData.addInt(angle);
+        toolData.addDouble(goPoint);
         
         fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
         rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
