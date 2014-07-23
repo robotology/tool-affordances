@@ -96,17 +96,6 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(responseCode);
         return true;
 
-    }else if (receivedCmd == "range"){
-        bool ok = blobber->setRange(command.get(1).asDouble());
-        if (ok)
-            responseCode = Vocab::encode("ack");
-        else {
-            fprintf(stdout,"Graspable Range not set. \n");
-            responseCode = Vocab::encode("nack");
-        }
-        reply.addVocab(responseCode);
-        return true;
-
     }else if (receivedCmd == "thresh"){
         bool ok = blobber->setThresh(command.get(1).asInt(), command.get(2).asInt());
         if (ok)
@@ -157,8 +146,8 @@ bool ToolBlobberModule::respond(const Bottle &command, Bottle &reply)
         responseCode = Vocab::encode("ack");
         reply.addString("Available commands are:");
         reply.addString("seed  (int) (int) - calls the toolBlobber with the seed coordinates given.");
-        reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
         reply.addString("thresh (int) (int) - to sets the lower limit and higher of disparity in terms of luminosity (0-255) that is considered. In other words, only objects with luminosity between low and high will be considered.");
+        reply.addString("fixedRange (bool) - toggles the parameter to set if floodFill is done on an absolute or differential range from the seed  value.");
         reply.addString("confidence (double) - Sets the confidence value [0-1] over which the obtained coordinates are sent.");
         reply.addString("verbose ON/OFF - Sets active the printouts of the program, for debugging or visualization.");
         reply.addString("help - produces this help.");
@@ -209,7 +198,6 @@ bool ToolBlobber::open()
     camera = moduleRF->check("camera", Value("left")).asString();
 
     verbose = moduleRF->check("verbose", Value(false)).asBool();
-    range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(60)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
     frontThresh = moduleRF->check("frontThresh", Value(190)).asInt();		// threshold of intensity if the disparity image, above which info is ignored.
     confidenceMin = moduleRF->check("confidenceMin", Value(0.8)).asDouble();		

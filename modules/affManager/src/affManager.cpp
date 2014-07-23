@@ -606,8 +606,8 @@ void AffManager::attachToolExe()
     rpcKarmaMotor.write(cmdKM, replyKM); // Call karma Motor to find the tool
     fprintf(stdout,"Tool frame found\n");
 
-    // XXX if find not working, substitute here the values by hand measured ones.
-    Bottle toolDimB = replyKM.tail();			// XXX Check that this TAIL actually works!!!
+    //  if find not working, substitute here the values by hand measured ones.
+    Bottle toolDimB = replyKM.tail();
     toolDim[0] = toolDimB.get(0).asDouble();
     toolDim[1] = toolDimB.get(1).asDouble();
     toolDim[2] = toolDimB.get(2).asDouble();    
@@ -648,13 +648,12 @@ void AffManager::attachToolExe()
 /**********************************************************/
 void AffManager::observeToolExe(){
     
-    // XXX Check that the ROI extraction works properly on the robot.
     // Get Hand coordinates on image 
     Vector handPose, handOr, handPix;
     icart->getPose(handPose, handOr);
     igaze->get2DPixel(0, handPose, handPix);
 
-    /* Read tooltip coordinates  XXX this is a patch, it should be reading from KTF via rpc, as below*/
+    /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
     yarp::sig::Vector toolTipPix(2);
     Bottle *toolTipIn = userDataPort.read(true);
     toolTipPix[0] = toolTipIn->get(0).asInt();
@@ -668,7 +667,7 @@ void AffManager::observeToolExe(){
     cmdKF.addString("tip");
     fprintf(stdout,"%s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
-    toolTipB = replyKF.tail();			                    // XXX Check that this TAIL actually works!!!
+    toolTipB = replyKF.tail();			                    
     cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
     
     Vector toolTipPix(2);
@@ -676,7 +675,6 @@ void AffManager::observeToolExe(){
     toolTipPix[1] = toolTipB.get(1).asInt();
     
     */
-    //XXX if kTF is not streaming the tip point, it would have to be sent to toolBlobber so it can can generate the binImg which will feed featExt, just before calling featExt so the image is present
     /* So, 
      * read tooltip from KF
      * send it to toolBlobber (this will make tB output an image)
@@ -797,7 +795,7 @@ bool AffManager::locateObjExe()
            camSel = 1;}
     else { camSel = 0;}    
 
-    if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){   // XXX check this on the robot, it crashes on simulator
+    if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){  
         //igaze->lookAtFixationPoint(coords3D);                 // move the gaze to the desired fixation point
         //igaze->waitMotionDone();                              // wait until the operation is done
         //printf(" Looking done\n");
