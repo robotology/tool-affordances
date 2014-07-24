@@ -257,7 +257,9 @@ bool AffManager::trainDraw(){
     goHomeNoHandsExe();
     trackObjExe();
 	for ( int d = 0; d < 20; d++ ){
+        printf("RestartingAction\n");
         doAction();
+        printf("Action %i Finished\n",d);
         Time::delay(5);
     }
 	return true;
@@ -541,19 +543,20 @@ void AffManager::slideActionExe()
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
         cmdKM.clear();   replyKM.clear();
 
-        double radius = 0.07;
+        double radius = 0.05;
         double goPoint = Rand::scalar(-radius, radius);
-        int angle = (180/M_PI)*acos(goPoint/radius);
-        double dist = 0.2;
+        int angle = 90;         // approach on the robot line
+        double dist = 0.2;      // drag 20 cm
         
         //double minusTool = 0.15;
         cmdKM.addString("draw");
-        cmdKM.addDouble(target3DcoordsIni[0]); // Draw closer if tool has not been attached as endeffector
-        cmdKM.addDouble(target3DcoordsIni[1]);
+        cmdKM.addDouble(target3DcoordsIni[0] + 0.04); // approach circle means it would go 7 cm behind the robot, so add 4 to go 3 cm behind th robot
+        cmdKM.addDouble(target3DcoordsIni[1] +goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
         cmdKM.addDouble(target3DcoordsIni[2]);
         cmdKM.addInt(angle);
         cmdKM.addDouble(radius);
-        cmdKM.addDouble(dist + radius*sin(angle*M_PI/180));
+        cmdKM.addDouble(dist);
+        fprintf(stdout,"%s\n",cmdKM.toString().c_str());
         
         fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
@@ -806,7 +809,7 @@ bool AffManager::locateObjExe()
             printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		    target3DcoordsIni[0] = coords3D[0];
 		    target3DcoordsIni[1] = coords3D[1];
-		    target3DcoordsIni[2] = coords3D[2] + 0.03;        // Set the point 3 cm over the table plane
+		    target3DcoordsIni[2] = coords3D[2] + 0.04;        // Set the point 3 cm over the table plane
 		    //fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
 		    objFound = true;
 	    }else{
