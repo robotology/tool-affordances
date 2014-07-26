@@ -259,6 +259,23 @@ bool AffManager::doAction(){
 	return true;
 }
 
+bool AffManager::observeAndDo(){
+    goHomeNoHandsExe();
+    lookAtToolExe();
+    observeToolExe();
+    //trackObjExe();
+    bool objLocated = locateObjExe();
+    if (objLocated)
+    {
+        slideActionExe();
+        goHomeNoHandsExe();
+        locateObjExe();
+        computeEffectExe();
+    }
+    finishRound();
+    return true;
+}
+
 bool AffManager::trainDraw(){
     goHomeNoHandsExe();
     trackObjExe();
@@ -409,7 +426,7 @@ void AffManager::lookOverHand()
 {
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);
-    handPos[2] += 0.20;          // Tool center round 15 cm over the hand
+    handPos[2] += 0.30;          // Tool center round 15 cm over the hand
 
     fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
 
@@ -454,7 +471,7 @@ void AffManager::slideActionExe()
         cmdKM.clear();   replyKM.clear();
 
         double radius = 0.05;   // Radius in CM!!!
-        double goPoint = floor(Rand::scalar(-radius, radius+1)*100)/100; //Floor to get only integer cm, and transform it to meters.
+        double goPoint = floor(Rand::scalar(-radius, radius+0.01)*100.0)/100.0; //Floor to get only integer cm, and transform it to meters.
         int angle = 90;         // approach on the robot line
         double dist = 0.2;      // drag 20 cm
         

@@ -108,6 +108,13 @@ service affManager_IDLServer
      */
     bool trainDraw();
 
+     /**
+     * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool observeAndDo();
+
 
     /**
      * Executes a sliding action (push or draw) using the end-effector (tool or hand)

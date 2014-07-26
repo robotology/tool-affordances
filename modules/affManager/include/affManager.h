@@ -171,6 +171,7 @@ public:
     bool                        doAction();
     bool                        trainDraw();
     bool                        slideAction();
+    bool                        observeAndDo();
 
 	bool						attachTool();
 	bool						observeTool();  //

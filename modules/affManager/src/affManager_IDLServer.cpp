@@ -288,6 +288,26 @@ public:
   }
 };
 
+class affManager_IDLServer_observeAndDo : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("observeAndDo",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class affManager_IDLServer_slideAction : public yarp::os::Portable {
 public:
   bool _return;
@@ -471,6 +491,15 @@ bool affManager_IDLServer::trainDraw() {
   affManager_IDLServer_trainDraw helper;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainDraw()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::observeAndDo() {
+  bool _return = false;
+  affManager_IDLServer_observeAndDo helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -668,6 +697,17 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "observeAndDo") {
+      bool _return;
+      _return = observeAndDo();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "slideAction") {
       bool _return;
       _return = slideAction();
@@ -749,6 +789,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("attachTool");
     helpString.push_back("doAction");
     helpString.push_back("trainDraw");
+    helpString.push_back("observeAndDo");
     helpString.push_back("slideAction");
     helpString.push_back("computeEffect");
     helpString.push_back("quit");
@@ -826,6 +867,12 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="trainDraw") {
       helpString.push_back("bool trainDraw() ");
       helpString.push_back("Performs the drawing action a given number of times to learn the mapping ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="observeAndDo") {
+      helpString.push_back("bool observeAndDo() ");
+      helpString.push_back("Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }
