@@ -70,7 +70,8 @@ void FeatExt::loop()
 
 
         } else if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
-		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+		    toolPoseLabel = val.get(0).asString();
+            ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
 		    if(imageIn == NULL)		    {
 			    printf("No input image \n"); 
                 reply.addString("nack");
@@ -148,7 +149,7 @@ void FeatExt::loop()
             reply.addString("Available commands are: \n");
             reply.addString("setROI (int) (int) (int) (int) - sets a region of interest of feature extraction");
             reply.addString("snapshot - Performs feature extracton on a single frame.");
-            reply.addString("click - Ask user to click on vieer and performs feature extraction on the selected blob.");
+            reply.addString("click - Ask user to click on viewer and performs feature extraction on the selected blob.");
             reply.addString("reset - Resets ROI and all other set values.");
             reply.addString("go - Enables feature extraction on streaming images.");
             //reply.addString("stop - Disables feature extraction on streaming images.");
@@ -179,6 +180,7 @@ bool FeatExt::open()
     coordsInit = false;
     verbose = false;
     refAngle = 0.0;
+    toolPoseLabel = "undef";
     return ret;
 }
 
@@ -309,6 +311,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	// Initializationg vector of features
 	vector<Feature> feats (contours.size() );
 
+
 	/*// ==== Mutual similarities ====
 	Mat similarityMatrix = Mat::zeros(contours.size(),contours.size(), CV_32F);
 	for( int i = 0; i < contours.size(); i++ ){
@@ -332,6 +335,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
 		printf(" * Contour[%i] \n", i);
 		//featFile << "\n CONTOUR " << i << "\n";
+        feats[i].name.assign(toolPoseLabel);
 			
 		Rect boundRect = boundingRect( contours[i].getPoints());
 

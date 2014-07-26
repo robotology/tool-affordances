@@ -119,6 +119,7 @@ protected:
     yarp::sig::Vector			target3Dorient;		    // Keeps the target orientation
 
     yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
+    std::string                 toolPoseName;
 
     double                      effectAlpha;            // Angle in which the object has been moved by the action
     double                      effectDist;             // Distance that the object has been moved by the action
@@ -151,9 +152,6 @@ protected:
    
     void                        computeEffectExe();
     void                        finishRound();
-	//bool						get3Dposition();
-	//bool						get3Dorient();
-	//yarp::os::Bottle			getBlobs();
 
 	
 public:
@@ -165,6 +163,7 @@ public:
 	bool                        goHome();       //
 	bool                        goHomeNoHands();       //
     bool                        getTool();       //
+    bool                        setTool(const std::string &tpName);
     bool						askForTool();   //
     bool						graspTool();    //
 	bool						lookAtTool();

@@ -86,6 +86,28 @@ public:
   }
 };
 
+class affManager_IDLServer_setTool : public yarp::os::Portable {
+public:
+  std::string tpName;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeTag("setTool",1,1)) return false;
+    if (!writer.writeString(tpName)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class affManager_IDLServer_askForTool : public yarp::os::Portable {
 public:
   bool _return;
@@ -362,6 +384,16 @@ bool affManager_IDLServer::getTool() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool affManager_IDLServer::setTool(const std::string& tpName) {
+  bool _return = false;
+  affManager_IDLServer_setTool helper;
+  helper.tpName = tpName;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::setTool(const std::string& tpName)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool affManager_IDLServer::askForTool() {
   bool _return = false;
   affManager_IDLServer_askForTool helper;
@@ -514,6 +546,21 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "getTool") {
       bool _return;
       _return = getTool();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "setTool") {
+      std::string tpName;
+      if (!reader.readString(tpName)) {
+        tpName = "undef";
+      }
+      bool _return;
+      _return = setTool(tpName);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -692,6 +739,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("goHome");
     helpString.push_back("goHomeNoHands");
     helpString.push_back("getTool");
+    helpString.push_back("setTool");
     helpString.push_back("askForTool");
     helpString.push_back("graspTool");
     helpString.push_back("lookAtTool");
@@ -725,6 +773,11 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="getTool") {
       helpString.push_back("bool getTool() ");
       helpString.push_back("performs the sequence to get the tool from user, look at it and extract its features. ");
+      helpString.push_back("@return true/false on success/failure of looking at that position ");
+    }
+    if (functionName=="setTool") {
+      helpString.push_back("bool setTool(const std::string& tpName = \"undef\") ");
+      helpString.push_back("Allows the user to define a label for the tool configuration to deal with ");
       helpString.push_back("@return true/false on success/failure of looking at that position ");
     }
     if (functionName=="askForTool") {

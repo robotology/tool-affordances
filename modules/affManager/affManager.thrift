@@ -33,6 +33,12 @@ service affManager_IDLServer
     bool getTool();
 
     /**
+     * Allows the user to define a label for the tool configuration to deal with
+     * @return true/false on success/failure of looking at that position    
+     */
+    bool setTool(1:string tpName="undef");
+        
+    /**
      * Asks for tool and move the arm to receiving position
      * @return true/false on success/failure on going to receive position
      */

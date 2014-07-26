@@ -38,41 +38,25 @@
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir affLEarn --rxTime</parameters>
+        <parameters>--dir toolFeats --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/affLearn</prefix>
+        <prefix>/toolFeats</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 5.9) (y 1.9))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir affManagerData --rxTime</parameters>
+        <parameters>--dir actionEffect --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/affManagerData</prefix>
+        <prefix>/actionEffect</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 5.9) (y 1.9))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--type image --dir imgBin --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/imgBin</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--type image --dir disp --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/disp</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
     </module>
     <module>
         <name>dataDumper</name>
         <parameters>--type image --dir featIm --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/featIm</prefix>
+        <prefix>/propIm</prefix>
         <workdir>/tmp/affData</workdir>
         <geometry>(Pos (x 1439.93) (y 1092.11))</geometry>
     </module>
@@ -84,30 +68,7 @@
         <workdir>/tmp/tooltip</workdir>
         <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
     </module>    
-    <module>
-        <name>dataDumper</name>
-        <parameters>--downsample 10 --dir headState --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/headState</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 2075.23) (y 642.218))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--downsample 10 --dir rightArmState --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/rightArmState</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 2065.68) (y 527.764))</geometry>
-    </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--downsample 10 --dir leftArmState --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/leftArmState</prefix>
-        <workdir>/tmp/affData</workdir>
-        <geometry>(Pos (x 2036.85) (y 436.165))</geometry>
-    </module>
+    
 
 
 
@@ -125,31 +86,19 @@
     </connection>
     <connection>
         <from external="true">/affLearn/feats:o</from>
-        <to external="true">/affLearn/dump</to>
+        <to external="true">/toolFeats/dump</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
     </connection>
     <connection>
         <from external="true">/affManager/data:o</from>
-        <to external="true">/affManagerData/dump</to>
+        <to external="true">/actionEffect/dump</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 488) (y 257.5)) ((x 375) (y 257)) ((x 685) (y 258))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/toolBlobber/imgBin:o</from>
-        <to external="true">/imgBin/dump</to>
-        <protocol>mcast</protocol>
-        <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/SFM/disp:o</from>
-        <to external="true">/disp/dump</to>
-        <protocol>mcast</protocol>
-        <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/featExt/imgFeat:o</from>
-        <to external="true">/disp/featIm</to>
+        <from external="true">/featExt/imgProp:o</from>
+        <to external="true">/propIm/propIm</to>
         <protocol>mcast</protocol>
         <geometry>(Pos ((x 517) (y 214)) ((x 396) (y 210)) ((x 673) (y 218))  )</geometry>
     </connection>
@@ -170,23 +119,5 @@
         <to external="true">/dumpLeftEEF/dump</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1642.5) (y 1405.5)) ((x 1606) (y 1374)) ((x 1708) (y 1432))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/left_arm/state:o</from>
-        <to external="true">/leftArmState/dump</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 1992.5) (y 453.5)) ((x 1969) (y 449)) ((x 2045) (y 453))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/right_arm/state:o</from>
-        <to external="true">/rightArmState/dump</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 2020) (y 546.5)) ((x 1995) (y 544)) ((x 2074) (y 544))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/head/state:o</from>
-        <to external="true">/headState/dump</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 2014) (y 651)) ((x 1973) (y 638)) ((x 2084) (y 659))  )</geometry>
     </connection>
 </application>

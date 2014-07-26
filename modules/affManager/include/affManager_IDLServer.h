@@ -38,6 +38,11 @@ public:
  */
   virtual bool getTool();
 /**
+ * Allows the user to define a label for the tool configuration to deal with
+ * @return true/false on success/failure of looking at that position
+ */
+  virtual bool setTool(const std::string& tpName = "undef");
+/**
  * Asks for tool and move the arm to receiving position
  * @return true/false on success/failure on going to receive position
  */

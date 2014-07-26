@@ -60,6 +60,7 @@ bool AffManager::configure(ResourceFinder &rf)
     toolDim.resize(3, 0.0);
     target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D
     target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D
+    toolPoseName = "undef";
 
 	//rpc
 	bool retRPC = true;  
@@ -211,6 +212,11 @@ bool AffManager::getTool(){
 	return true;
 }
 
+bool AffManager::setTool(const string &tpName){
+    toolPoseName = tpName;
+	return true;
+}
+
 bool AffManager::askForTool(){
 	askForToolExe();
 	return true;
@@ -314,87 +320,7 @@ void AffManager::goHomeNoHandsExe()
     lookingAtObject = false;
 }
 
-/**********************************************************/
-/*
-void AffManager::lookAtPointExe()
-{
-	bool pointReached = false;
-	int cnt =0;
-	vector<int>  potTools;
-	fprintf(stdout,"Point me where to look.\n");
-	fprintf(stdout,"Start 'look' 'raw' procedure:\n");
-	while (!lookingAtTool && cnt<10){  // XXX properly modifiy to flag based while
-		Bottle cmdAre, replyAre;
-		cmdAre.clear();
-		replyAre.clear();
-		cmdAre.addString("look");
-		cmdAre.addString("raw");
-		fprintf(stdout,"Looking to point\n");
-		rpcMotorAre.write(cmdAre,replyAre);
-		potTools = findToolsExe();
-		if (potTools.size()>0){
-			fprintf(stdout,"Tools Found!\n");
-			lookingAtTool = true;
-			return;		
-		}
-		else {
-			fprintf(stdout,"Tried %d times \n", cnt);
-			fprintf(stdout,"No Tool Found, point again \n");
-			cnt++;
-		}
-	}
-	fprintf(stdout,"I am tired of looking around, just give me the tool \n");
-	return;
-}
-*/
 
-/**********************************************************/
-/*
-void AffManager::lookAtRackExe()
-{
-	fprintf(stdout,"Start looking at Rack procedure:\n");
-	fprintf(stdout,"Search on the right:\n");
-	//Coordinates of points to the right/lef of the robot:
-	double x = -0.1;
-	double z = 0.5;
-	double yR = 1;
-	double yL = -1;
-	vector<int>  potTools;
-
-    Bottle cmdAre, replyAre;
-    cmdAre.clear();
-    replyAre.clear();
-	// first look right
-    cmdAre.addString("look");
-    cmdAre.addDouble(x);
-	cmdAre.addDouble(yR);
-	cmdAre.addDouble(z);
-    rpcMotorAre.write(cmdAre,replyAre);
-	potTools = findToolsExe();
-	if (potTools.size()>0){
-		lookingAtTool = true;
-		return;
-	}
-	// if nothing found, then look left
-	fprintf(stdout,"Nothing found, search on the left:\n");
-	cmdAre.clear();
-    replyAre.clear();
-	// first look right
-    cmdAre.addString("look");
-    cmdAre.addDouble(x);
-	cmdAre.addDouble(yR);
-	cmdAre.addDouble(z);
-    rpcMotorAre.write(cmdAre,replyAre);
-	potTools = findToolsExe();
-	if (potTools.size()>0){
-		lookingAtTool = true;
-		return;
-	}
-	// still nothing found
-	lookingAtTool = false;
-	return;
-}
-*/
 /**********************************************************/
 void AffManager::askForToolExe()
 {
@@ -410,22 +336,6 @@ void AffManager::askForToolExe()
     Time::delay(3);
     return;
 }
-
-/**********************************************************/
-/*
-void AffManager::reachToolExe()
-{
-	get3Dposition();
-	get3Dorient();	
-	icart->goToPoseSync(target3Dcoords,target3Dorient);   // send request and wait for reply
-	bool done=false;
-	while (!done) {
-	   icart->checkMotionDone(&done);
-	   Time::delay(0.04);   // or any suitable delay
-	}
-	return;
-}
-*/
 
 /**********************************************************/
 bool AffManager::graspToolExe()
@@ -543,18 +453,18 @@ void AffManager::slideActionExe()
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
         cmdKM.clear();   replyKM.clear();
 
-        double radius = 0.05;
-        double goPoint = Rand::scalar(-radius, radius);
+        double radius = 0.05;   // Radius in CM!!!
+        double goPoint = floor(Rand::scalar(-radius, radius+1)*100)/100; //Floor to get only integer cm, and transform it to meters.
         int angle = 90;         // approach on the robot line
         double dist = 0.2;      // drag 20 cm
         
         //double minusTool = 0.15;
         cmdKM.addString("draw");
         cmdKM.addDouble(target3DcoordsIni[0] + 0.04); // approach circle means it would go 7 cm behind the robot, so add 4 to go 3 cm behind th robot
-        cmdKM.addDouble(target3DcoordsIni[1] +goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
+        cmdKM.addDouble(target3DcoordsIni[1] + goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
         cmdKM.addDouble(target3DcoordsIni[2]);
-        cmdKM.addInt(angle);
-        cmdKM.addDouble(radius);
+        cmdKM.addInt(angle);                        // Set the approach always on che center of the object
+        cmdKM.addDouble(radius);                    // At 90deg, this means the tooltip will get always the radius dist behind the object.
         cmdKM.addDouble(dist);
         fprintf(stdout,"%s\n",cmdKM.toString().c_str());
         
@@ -691,36 +601,12 @@ void AffManager::observeToolExe(){
     fprintf(stdout,"%s\n",cmdTB.toString().c_str());
     rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
     
-   /*
-    Bottle cmdFE,replyFE;
-    cmdFE.clear();
-    replyFE.clear();
-    cmdFE.addString("setROI");
-    cmdFE.addInt((int)ROI[0]);
-    cmdFE.addInt((int)ROI[1]);
-    cmdFE.addInt((int)ROI[2]);
-    cmdFE.addInt((int)ROI[3]);
-    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
-    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    
-
-    // Set the tool orientation as reference angle for feature extraction
-    Vector tipDif(2);
-    tipDif [0]= handPix[0] - toolTipPix[0];
-    tipDif [1]= handPix[1] - toolTipPix[1];
-    double handAngle = atan2(double(tipDif[1]), double(tipDif[0])) * 180.0 / M_PI;  
-    
-    cmdFE.clear();
-    replyFE.clear();
-    cmdFE.addString("refAngle");
-    cmdFE.addInt((int)handAngle);
-    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    */
     // Get the features
     Bottle cmdFE,replyFE;
     cmdFE.clear();
     replyFE.clear();
     cmdFE.addString("snapshot");
+    cmdFE.addString(toolPoseName);
     fprintf(stdout,"%s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
     // At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool

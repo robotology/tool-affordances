@@ -32,6 +32,7 @@ class FeatExt
     int imHeight;
     int refAngle;
     bool verbose;
+    std::string toolPoseLabel;               //label for the Tool-pose
 
 public:
 
