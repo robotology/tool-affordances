@@ -36,6 +36,13 @@
         <geometry>(Pos (x 270.90) (y 105.90))</geometry>
     </module>
     <module>
+        <name>wholeBodyDynamics</name>
+        <parameters>--robot icubSim --autoconnect --dummy_ft --no_legs</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 270.90) (y 105.90))</geometry>
+    </module>
+    <module>
         <name>simCartesianControl</name>
         <parameters>--no_legs</parameters>
         <node>localhost</node>

@@ -388,11 +388,6 @@ void AffManager::lookAtToolExe()
     handToCenter();
     fprintf(stdout,"Moving hand to the center:\n");
     lookOverHand();
-    if (robot== "icubSim")
-    {
-        simTool();
-    }
-
     return;
 }
 
@@ -426,7 +421,13 @@ void AffManager::lookOverHand()
 {
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);
-    handPos[2] += 0.30;          // Tool center round 15 cm over the hand
+    if (robot== "icubSim")
+    {
+        handPos[2] += 0.15;// Tool center round 15 cm over the hand
+    }else {
+        handPos[2] += 0.25;
+    }
+              
 
     fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
 
@@ -452,10 +453,8 @@ void AffManager::simTool()
     simCmd.addString("world mk cyl 0.01 0.2 0 0.75 0.35 0 0 1");
     simPort.write(simCmd, reply);
     simCmd.clear();reply.clear();
-    Time::delay(0.05);
     simCmd.addString("world rot cyl 1 90 0 0");
     simCmd.clear();reply.clear();
-    Time::delay(0.05);
     simCmd.addString("world grab cyl 1 right 1");
     simPort.write(simCmd, reply);
     Network::disconnect(portName, "/icubSim/world");
