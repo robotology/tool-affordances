@@ -50,7 +50,7 @@ protected:
     BufferedPort<ImageOf<PixelRgb> >    imOutPort;
     BufferedPort<ImageOf<PixelRgb> >    tempOutPort;
     BufferedPort<Bottle>                coordsInPort;
-    BufferedPort<Bottle>                trackInPort;
+    //BufferedPort<Bottle>                trackInPort;
     Port                                coordsOutPort;
     Port                                rpcPort;
 
@@ -86,7 +86,7 @@ public:
         ret = rpcPort.open(("/"+name+"/rpc:i").c_str()); 					    //rpc client to interact with the objectFinder
         ret = ret && imInPort.open(("/"+name+"/img:i").c_str());                // port to receive images
         ret = ret && coordsInPort.open(("/"+name+"/coords:i").c_str());         // port to receive yarpview coordinates
-        ret = ret && trackInPort.open(("/"+name+"/track:i").c_str());           // port to receive tracker coordinates
+        //ret = ret && trackInPort.open(("/"+name+"/track:i").c_str());           // port to receive tracker coordinates
         ret = ret && coordsOutPort.open(("/"+name+"/coords:o").c_str());        // port to send object coordinates
         ret = ret && imOutPort.open(("/"+name+"/imgOut:o").c_str());              // port to send croped image for template
         ret = ret && tempOutPort.open(("/"+name+"/crop:o").c_str());              // port to send croped image for template
@@ -194,7 +194,7 @@ public:
             reply.addVocab(Vocab::encode("many"));
             reply.addString("Available commands are:");
             reply.addString("help");
-            reply.addString("quit");
+            reply.addString("quit");           
             reply.addString("getPointClick - reads a click and returs the 2D coordinates");
             reply.addString("getPointTrack - Retrieves 2D coords and returns the 3D coordinates of the object tracked based on the table Height");
             reply.addString("getBox - Crops the image based on user input and creats a template for the tracker with it");
@@ -237,7 +237,7 @@ public:
         // Retrieves and relays the 2D coordinates of the object tracked by the tracker
         //Bottle &out  = coordsOutPort.prepare();
         printf("Getting 3D coords of tracked object!!\n");
-        Bottle *obj2Dcoord = trackInPort.read(true);        
+        Bottle *obj2Dcoord = coordsInPort.read(true);        
         coords2D.resize(2,0);        
         coords2D[0] =  obj2Dcoord->get(0).asInt();
         coords2D[1] =  obj2Dcoord->get(1).asInt();
@@ -321,7 +321,7 @@ public:
         imOutPort.close();
         tempOutPort.close();
         coordsInPort.close();
-        trackInPort.close();
+        //trackInPort.close();
         coordsOutPort.close();
 
         return true;
@@ -336,7 +336,7 @@ public:
         imOutPort.interrupt();
         tempOutPort.close();
         coordsInPort.interrupt();
-        trackInPort.interrupt();
+        //trackInPort.interrupt();
         coordsOutPort.interrupt();
 
         return true;
@@ -357,7 +357,7 @@ public:
 
         if (tracking)
         {
-           Bottle *coords = trackInPort.read(true);
+           Bottle *coords = coordsInPort.read(true);
            Bottle coordsSend;
            coordsSend.addInt(coords->get(0).asInt());
            coordsSend.addInt(coords->get(1).asInt());

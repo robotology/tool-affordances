@@ -40,14 +40,14 @@
             <priority>no</priority>
             <description> receives coords from yarpview out</description>
         </input>
-        <input>
+        <!--<input>
             <type>Bottle</type>
             <port carrier="udp">/objectFinder/track:i</port>
             <required>no</required>
             <priority>no</priority>
             <description> Receives coordinates from the tracker</description>
         </input>
-        
+        -->
         
         <!-- output data if available -->
         <output>

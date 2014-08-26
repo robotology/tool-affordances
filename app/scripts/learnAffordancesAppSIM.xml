@@ -303,7 +303,7 @@
     </connection>
     <connection>
         <from>/templatePFTracker/target:o</from>
-        <to>/objectFinder/track:i</to>
+        <to>/objectFinder/coords:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 848.00) (y 267.00)) ((x 1084.00) (y 295.00)) ((x 633.00) (y 239.00))  )</geometry>
     </connection>
