@@ -60,6 +60,11 @@
             <port carrier="udp">/objectFinder/crop:o</port>
             <description>Sends out the desired image crop to initialize a tracker</description>
         </output> 
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/objectFinder/imgOut:o</port>
+            <description>Sends out images on the frames when the objects location is computed</description>
+        </output> 
     </data>
 
     <dependencies>

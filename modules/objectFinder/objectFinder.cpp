@@ -48,6 +48,7 @@ class ObjectFinder: public RFModule
 protected:
     BufferedPort<ImageOf<PixelRgb> >    imInPort;
     BufferedPort<ImageOf<PixelRgb> >    imOutPort;
+    BufferedPort<ImageOf<PixelRgb> >    tempOutPort;
     BufferedPort<Bottle>                coordsInPort;
     BufferedPort<Bottle>                trackInPort;
     Port                                coordsOutPort;
@@ -56,10 +57,15 @@ protected:
     std::string                         name;               //name of the module
     std::string                         robot;
     std::string                         camera;
+    double                              tableHeight;
 
     bool                                tracking;
     Vector                              coords2D;
+    Vector                              coords3D;
     cv::Rect                            BBox;
+
+    yarp::dev::PolyDriver                   clientGaze;
+    yarp::dev::IGazeControl                 *igaze;
    
     bool running;
 
@@ -72,7 +78,7 @@ public:
         setName(name.c_str());
         camera = rf.check("camera", Value("left"), "Selecting the camera").asString().c_str();
         robot = rf.check("robot", Value("icub"), "Choosing a robot").asString().c_str();
-        //tableHeight = rf.check("tableHeight", Value(-0.15)).asDouble();      // Height of the table in the robots coord frame
+        tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
 
         // Open ports
         printf("Opening ports after prefix  \n" );
@@ -82,7 +88,8 @@ public:
         ret = ret && coordsInPort.open(("/"+name+"/coords:i").c_str());         // port to receive yarpview coordinates
         ret = ret && trackInPort.open(("/"+name+"/track:i").c_str());           // port to receive tracker coordinates
         ret = ret && coordsOutPort.open(("/"+name+"/coords:o").c_str());        // port to send object coordinates
-        ret = ret && imOutPort.open(("/"+name+"/crop:o").c_str());              // port to send croped image for template
+        ret = ret && imOutPort.open(("/"+name+"/imgOut:o").c_str());              // port to send croped image for template
+        ret = ret && tempOutPort.open(("/"+name+"/crop:o").c_str());              // port to send croped image for template
 	    if (!ret){
 		    printf("Problems opening ports\n");
 		    return false;
@@ -91,7 +98,17 @@ public:
 
         // Attach rpcPort to the respond() method
         attach(rpcPort);
-        
+
+
+        // Gaze Controller Interface
+        Property optGaze("(device gazecontrollerclient)");
+        optGaze.put("remote","/iKinGazeCtrl");
+        optGaze.put("local","/"+name+"/gaze_client");
+
+        if (!clientGaze.open(optGaze))
+        return false;
+        clientGaze.view(igaze);
+
 		running = true;
 
         return true;
@@ -131,7 +148,7 @@ public:
 
         } else if (receivedCmd == "getPointTrack")
         {   
-            if (! getPointTrack())
+            if (!getPointTrack(tableHeight))
             {
                 //Encode response
                 responseCode = Vocab::encode("nack");
@@ -139,13 +156,16 @@ public:
             }
             else
             {
-                //Encode response                
+                //Encode response              
+                printf("Sending out 3D point!!\n");
                 responseCode = Vocab::encode("ack");
                 reply.addVocab(responseCode);
                 Bottle& bCoords = reply.addList();
-                bCoords.addInt(coords2D(0));
-                bCoords.addInt(coords2D(1));
-                //bCoords.addDouble(coords3D(2));
+                bCoords.addDouble(coords3D(0));
+                bCoords.addDouble(coords3D(1));
+                bCoords.addDouble(coords3D(2));
+                printf("Coords Bottle %s \n", bCoords.toString().c_str());
+                printf("sent reply %s \n", reply.toString().c_str());
             }
             return true;
 
@@ -175,9 +195,9 @@ public:
             reply.addString("Available commands are:");
             reply.addString("help");
             reply.addString("quit");
-            reply.addString("getPointClick");
-            reply.addString("getPointTrack");
-            reply.addString("getBox");
+            reply.addString("getPointClick - reads a click and returs the 2D coordinates");
+            reply.addString("getPointTrack - Retrieves 2D coords and returns the 3D coordinates of the object tracked based on the table Height");
+            reply.addString("getBox - Crops the image based on user input and creats a template for the tracker with it");
             return true;
         }
         else if (receivedCmd == "quit")
@@ -205,21 +225,45 @@ public:
         return true;    // get the projection
     }
 
-    bool getPointTrack()
+    bool getPointTrack(double tableHeight)
     {
+        // Put the input image at the moment of computing out
+        printf("Propagating image!!\n");
+        ImageOf<PixelRgb> *imgIn = imInPort.read();  // read an image
+        ImageOf<PixelRgb> &imOut  = imOutPort.prepare();
+        imOut = *imgIn;
+        imOutPort.write();
+       
+        // Retrieves and relays the 2D coordinates of the object tracked by the tracker
         //Bottle &out  = coordsOutPort.prepare();
-        Bottle *obj2Dcoord = trackInPort.read(true);
-        printf("Point read!!\n");
+        printf("Getting 3D coords of tracked object!!\n");
+        Bottle *obj2Dcoord = trackInPort.read(true);        
         coords2D.resize(2,0);        
         coords2D[0] =  obj2Dcoord->get(0).asInt();
         coords2D[1] =  obj2Dcoord->get(1).asInt();
         printf("Point in 2D read: %.2f, %.2f!!\n", coords2D(0), coords2D(1));
-       
-        return true;    // get the projection
+
+        Vector table(4);  // specify the plane in the root reference frame as ax+by+cz+d=0; z=-tableHeight in this case
+        table[0] = 0.0; table[1] = 0.0; table[2] = 1.0;  
+        table[3] = -tableHeight;    // d -> so the equation of the table plane is z=-h 
+
+        int camSel;
+        if (camera != "left") {
+               camSel = 1;}
+        else { camSel = 0;}    
+
+        if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){
+            printf("Point in 3D computed: %.2f, %.2f, %.2f!!\n", coords3D(0), coords3D(1), coords3D(2));
+            return true;
+	    } else  {
+            printf("3D point could not be computed\n");
+            return false;
+        }
     }
 
     bool getBox()
     {
+        // Crops the image based on user input and creats a template for the tracker with it.
         printf("Reading image!!\n");
         ImageOf<PixelRgb> *imgIn = imInPort.read();  // read an image
         cv::Mat img((IplImage*) imgIn->getIplImage());	   
@@ -250,16 +294,16 @@ public:
         }
 
         printf("Prep out mat !!\n");
-        ImageOf<PixelRgb> &imageOut  = imOutPort.prepare();
-        imageOut.resize(BBox.width, BBox.height);
-        cv::Mat imOut((IplImage*)imageOut.getIplImage(),false);
-        img(BBox).copyTo(imOut);
+        ImageOf<PixelRgb> &templateOut  = tempOutPort.prepare();
+        templateOut.resize(BBox.width, BBox.height);
+        cv::Mat tempOut((IplImage*)templateOut.getIplImage(),false);
+        img(BBox).copyTo(tempOut);
         //cv::GaussianBlur(img(BBox), imOut, cv::Size(1,1), 1, 1);
 
         double t0 = Time::now();
         while(Time::now()-t0 < 1) {  //send the template for one second
             printf("Writing Template!\n");
-            imOutPort.write();
+            tempOutPort.write();
             Time::delay(0.1);
         }
 
@@ -275,6 +319,7 @@ public:
 
         imInPort.close();
         imOutPort.close();
+        tempOutPort.close();
         coordsInPort.close();
         trackInPort.close();
         coordsOutPort.close();
@@ -289,6 +334,7 @@ public:
         // Interrupt any blocking reads on the input port
         imInPort.interrupt();
         imOutPort.interrupt();
+        tempOutPort.close();
         coordsInPort.interrupt();
         trackInPort.interrupt();
         coordsOutPort.interrupt();

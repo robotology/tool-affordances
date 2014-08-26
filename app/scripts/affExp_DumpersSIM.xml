@@ -1,14 +1,14 @@
 <application>
-    <name>affExp_Dumpers</name>
+    <name>affExp_DumpersSIM</name>
     <version>udp</version>
     <authors>
         <author email=""></author>
     </authors>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --dir camCalibLeft --downsample 5 --rxTime</parameters>
+        <parameters>--type image --dir camLeft --downsample 5 --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/camCalibLeft</prefix>
+        <prefix>/camLeft</prefix>
         <workdir>/tmp/affData</workdir>
     </module>
     <module>
@@ -63,8 +63,8 @@
 
 
     <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to external="true">/camCalibLeft/dump</to>
+        <from external="true">/icubSim/cam/left</from>
+        <to external="true">/camLeft/dump</to>
         <protocol>mcast</protocol>
     </connection>
     <connection>

@@ -481,7 +481,7 @@ void AffManager::simTool(int orDeg)
 
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);    
-    igaze->lookAtFixationPoint(handPos);    
+    //igaze->lookAtFixationPoint(handPos);    
 
     return;
 }
@@ -786,59 +786,43 @@ bool AffManager::locateObjExe()
 {
 
     // Get the 2D coordinates of the object from objectFinder
-    Vector coords2D(2);
+    Vector coords3D(2);
     
     Bottle cmdFinder,replyFinder;
-    fprintf(stdout,"Get 2D coords of tracked object:\n");
+    fprintf(stdout,"Get 3D coords of tracked object:\n");
     cmdFinder.clear();
     replyFinder.clear();
     cmdFinder.addString("getPointTrack");
+    cmdFinder.addDouble(tableHeight);
 	rpcObjFinder.write(cmdFinder, replyFinder);
     printf("Received from rpc: %s \n", replyFinder.toString().c_str());
 
     if (replyFinder.size() >1){
-        coords2D(0) = replyFinder.get(1).asList()->get(0).asInt();
-        coords2D(1) = replyFinder.get(1).asList()->get(1).asInt();
-        printf("Point in 2D read: %g, %g\n", coords2D(0), coords2D(1));
+        coords3D(0) = replyFinder.get(1).asList()->get(0).asDouble();
+        coords3D(1) = replyFinder.get(1).asList()->get(1).asDouble();
+        coords3D(2) = replyFinder.get(1).asList()->get(2).asDouble();
+        printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
     } else {
-		cout << "No 2D point received" << endl;
+		cout << "No 3D point received" << endl;
         return false;
 	}
-       
-    // Transform the 2D coordinates into 3D
-    Vector coords3D(3);
-    Vector table(4);  // specify the plane in the root reference frame as ax+by+cz+d=0; z=-tableHeight in this case
-    table[0] = 0.0; table[1] = 0.0; table[2] = 1.0;  
-    table[3] = -tableHeight;    // d -> so th eequation of the table plane is z=-h 
 
-    int camSel;
-    if (camera != "left") {
-           camSel = 1;}
-    else { camSel = 0;}    
 
-    if(igaze->get3DPointOnPlane(camSel,coords2D, table, coords3D)){  
-        //igaze->lookAtFixationPoint(coords3D);                 // move the gaze to the desired fixation point
-        //igaze->waitMotionDone();                              // wait until the operation is done
-        //printf(" Looking done\n");
-    
-	    if (!actionDone){			
-            printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
-		    target3DcoordsIni[0] = coords3D[0];
-		    target3DcoordsIni[1] = coords3D[1];
-		    target3DcoordsIni[2] = coords3D[2] + 0.06;        // Set the point 6 cm over the table plane
-		    //fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
-		    objCoords3DLoc = true;
-	    }else{
-		    printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
-		    target3DcoordsAfter[0] = coords3D[0];
-		    target3DcoordsAfter[1] = coords3D[1];
-		    target3DcoordsAfter[2] = coords3D[2] + 0.04;
-		    //fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
-		    }
-	} else  {
-        printf("3D point couldnt be computed\n");
-        objCoords3DLoc = false;
-    }
+	if (!actionDone){			
+        printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
+		target3DcoordsIni[0] = coords3D[0];
+		target3DcoordsIni[1] = coords3D[1];
+		target3DcoordsIni[2] = coords3D[2] + 0.04;        // Set the point 4 cm over the table plane
+		//fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
+		objCoords3DLoc = true;
+	}else{
+		printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
+		target3DcoordsAfter[0] = coords3D[0];
+		target3DcoordsAfter[1] = coords3D[1];
+		target3DcoordsAfter[2] = coords3D[2] + 0.04;
+		//fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
+	}
+
     return objCoords3DLoc;
 }
 
