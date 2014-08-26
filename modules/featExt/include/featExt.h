@@ -15,8 +15,7 @@ class FeatExt
 {
 	yarp::os::Port														rpcCmd;         //human rpc port (receive commands via rpc)
     yarp::os::BufferedPort<yarp::os::Bottle>                            coordsInPort;// Reads coords from yarpview out 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	inImPort;       // port for reading rgb images
-	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	binImPort;      // port for reading binary images
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	inImPort;       // port for reading images
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imPropOutPort;  // port for sending output images
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >	imFeatOutPort;  // port for sending output images
     yarp::os::Port                                                      featPort;
@@ -32,7 +31,7 @@ class FeatExt
     int imHeight;
     int refAngle;
     bool verbose;
-    std::string toolPoseLabel;               //label for the Tool-pose
+    std::string objName;               //label for the nextr trials
 
 public:
 

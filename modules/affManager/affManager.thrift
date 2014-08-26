@@ -13,6 +13,13 @@ service affManager_IDLServer
      * @return true/false on success/failure
      */
     bool start();
+
+    /**
+     * Quit the module
+     * @return true/false on success/failure
+     */
+    bool quit();
+
     
     /**
      * Adopt home position
@@ -27,18 +34,6 @@ service affManager_IDLServer
     bool goHomeNoHands();
     
     /**
-     * performs the sequence to get the tool from user, look at it and extract its features.
-     * @return true/false on success/failure of looking at that position    
-     */
-    bool getTool();
-
-    /**
-     * Allows the user to define a label for the tool configuration to deal with
-     * @return true/false on success/failure of looking at that position    
-     */
-    bool setTool(1:string tpName="undef");
-        
-    /**
      * Asks for tool and move the arm to receiving position
      * @return true/false on success/failure on going to receive position
      */
@@ -51,77 +46,50 @@ service affManager_IDLServer
     bool graspTool();  
 
     /**
-     * Moves the tool in hand to a comfortable lookable position, i.e., in front of iCubs eyes
+     * Uses active exploration and non-linear optimization to compute the tool dimensions
+     * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
+     * @return true/false on success/failure 
+     */
+    bool findToolDims();
+
+    /**
+     * Attaches its end-effector relative position (provided by findToolDims or else wise) to the robot's kinematic chain.
+     * @return true/false on success/failure 
+     */
+    bool attachTool();
+
+
+    /**
+     * Moves the tool in hand to a position where it can be observed fully, i.e., in front of iCub eyes
      * @return true/false on success/failure of bringing the tool in front
      */
     bool lookAtTool();
 
     /**
-     * Gets user object box and learns it for tracking
+     * Finds tool in hand and observes it extracting features
+     * @return true/false on success/failure finding and extracting feats from tool
+     */
+    bool observeTool();
+
+
+    /**
+     * Gets position of the object from the user, and uses the template to train the particle filter tracker.
      * @return true/false on success/failure of finding/looking at object
      */
-    bool  trackObj();
+    bool trackObj();
 
     /**
      * Look and locate in 3D the target object
      * @return true/false on success/failure of finding/looking at object
      */
-    bool  locateObj();
+    bool locateObj();
 
     /**
-     * Robot reaches for the tool without grasping
-     * @return true/false on success/failure on computing and reaching the desired point     
-    * bool reachTool();
-    */
-
-    /**
-     * Finds tool in hand and observes it extracting features)
-     * @return true/false on success/failure finding and extracting feats from tool
-     */
-    bool observeTool();
-    
-    /**
-     * Observes (extracts some features) of target object
-     * @return true/false on success/failure finding and extracting feats from object
-     * bool observeObj();
-    */
-    
-    /**
-     * Uses active exploration and non-linear optimization to copmute the tool dimensions and attach its end-effector to the robot's arm.
-     * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
+     * Executes a sliding action using the end-effector (tool or hand)
      * @return true/false on success/failure 
      * to select 
      */
-    bool attachTool();
-
-    /**
-     * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
-     * @return true/false on success/failure 
-     * to select 
-     */
-    bool doAction();
-
-     /**
-     * Performs the drawing action a given number of times to learn the mapping
-     * @return true/false on success/failure 
-     * to select 
-     */
-    bool trainDraw();
-
-     /**
-     * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
-     * @return true/false on success/failure 
-     * to select 
-     */
-    bool observeAndDo();
-
-
-    /**
-     * Executes a sliding action (push or draw) using the end-effector (tool or hand)
-     * @return true/false on success/failure 
-     * to select 
-     */
-    bool slideAction();
+    bool slideAction(1:i32 approach = 0);
 
     /**
      * Computes the effect of the action as the difference in the position of the object before and after the slide action.
@@ -130,10 +98,41 @@ service affManager_IDLServer
      */
     bool computeEffect();
 
-    
+        
     /**
-     * Quit the module
-     * @return true/false on success/failure
+     * performs the sequence to get the tool from user, look at it and extract its features.
+     * @return true/false on success/failure of looking at that position    
      */
-    bool quit();
-    }
+    bool getTool(1:i32 deg = 0);
+
+    /**
+     * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool doAction(1:i32 approach = 0);
+
+     /**
+     * Performs the drawing action a given number of times to learn the mapping
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool trainDraw(1:i32 pose = 0);
+
+     /**
+     * Performs the feature Extraction on the tool a given number of times from slighlty different prespectives
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool trainObserve();
+
+     /**
+     * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool observeAndDo(1:i32 pose = 0);
+}
+
+
+

@@ -19,21 +19,32 @@
 #ifndef SIMTOOLLOADERMODULE_H
 #define SIMTOOLLOADERMODULE_H
 
+
+
 #include <string>
 #include <vector>
 #include <yarp/os/all.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/sig/Matrix.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
+
+#include <iCub/ctrl/math.h>
+#include <iCub/ctrl/pids.h>
+
+#include <gsl/gsl_math.h>
 
 //for iCart and iGaze
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/dev/CartesianControl.h>
 
 YARP_DECLARE_DEVICES(icubmod)
 
 using namespace std;
 using namespace yarp::os;
+
+#define M_PI       3.14159265358979323846264338328      /* pi */
 
 enum iCubArm {LEFT, RIGHT};
 enum objType {BOX, SBOX, SPH, SSPH, CYL, SCYL, MODEL, SMODEL};
@@ -171,7 +182,7 @@ public:
     SimModel(double posx, double posy, double posz,
              double rotx, double roty, double rotz,
              ConstString mes, ConstString tex);
-    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
+    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
@@ -186,7 +197,7 @@ public:
     SimSModel(double posx, double posy, double posz,
               double rotx, double roty, double rotz,
               ConstString mes, ConstString tex);
-    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
+    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
@@ -214,6 +225,7 @@ protected:
 
     Bottle threadTable;
     vector<Bottle> threadObject;
+    string threadHand;
     SimWorld simWorld;
 
     yarp::dev::PolyDriver					clientCart;
@@ -224,7 +236,8 @@ public:
                Port *simToolLoaderCmdInput,
                const double period,
                const Bottle table,
-               vector<Bottle> object);
+               vector<Bottle> object,
+               string hand);
     bool threadInit();
     void threadRelease();
     void run();
@@ -234,6 +247,7 @@ public:
 
 class SimToolLoaderModule: public RFModule {
     string moduleName;
+    string hand;
 
     string      simToolLoaderSimOutputPortName;
     RpcClient   simToolLoaderSimOutputPort;

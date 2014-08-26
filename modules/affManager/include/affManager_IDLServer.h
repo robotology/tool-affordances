@@ -23,6 +23,11 @@ public:
  */
   virtual bool start();
 /**
+ * Quit the module
+ * @return true/false on success/failure
+ */
+  virtual bool quit();
+/**
  * Adopt home position
  * @return true/false on success/failure
  */
@@ -32,16 +37,6 @@ public:
  * @return true/false on success/failure
  */
   virtual bool goHomeNoHands();
-/**
- * performs the sequence to get the tool from user, look at it and extract its features.
- * @return true/false on success/failure of looking at that position
- */
-  virtual bool getTool();
-/**
- * Allows the user to define a label for the tool configuration to deal with
- * @return true/false on success/failure of looking at that position
- */
-  virtual bool setTool(const std::string& tpName = "undef");
 /**
  * Asks for tool and move the arm to receiving position
  * @return true/false on success/failure on going to receive position
@@ -53,12 +48,28 @@ public:
  */
   virtual bool graspTool();
 /**
- * Moves the tool in hand to a comfortable lookable position, i.e., in front of iCubs eyes
+ * Uses active exploration and non-linear optimization to compute the tool dimensions
+ * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
+ * @return true/false on success/failure
+ */
+  virtual bool findToolDims();
+/**
+ * Attaches its end-effector relative position (provided by findToolDims or else wise) to the robot's kinematic chain.
+ * @return true/false on success/failure
+ */
+  virtual bool attachTool();
+/**
+ * Moves the tool in hand to a position where it can be observed fully, i.e., in front of iCub eyes
  * @return true/false on success/failure of bringing the tool in front
  */
   virtual bool lookAtTool();
 /**
- * Gets user object box and learns it for tracking
+ * Finds tool in hand and observes it extracting features
+ * @return true/false on success/failure finding and extracting feats from tool
+ */
+  virtual bool observeTool();
+/**
+ * Gets position of the object from the user, and uses the template to train the particle filter tracker.
  * @return true/false on success/failure of finding/looking at object
  */
   virtual bool trackObj();
@@ -68,41 +79,11 @@ public:
  */
   virtual bool locateObj();
 /**
- * Finds tool in hand and observes it extracting features)
- * @return true/false on success/failure finding and extracting feats from tool
- */
-  virtual bool observeTool();
-/**
- * Uses active exploration and non-linear optimization to copmute the tool dimensions and attach its end-effector to the robot's arm.
- * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
+ * Executes a sliding action using the end-effector (tool or hand)
  * @return true/false on success/failure
  * to select
  */
-  virtual bool attachTool();
-/**
- * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
- * @return true/false on success/failure
- * to select
- */
-  virtual bool doAction();
-/**
- * Performs the drawing action a given number of times to learn the mapping
- * @return true/false on success/failure
- * to select
- */
-  virtual bool trainDraw();
-/**
- * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
- * @return true/false on success/failure
- * to select
- */
-  virtual bool observeAndDo();
-/**
- * Executes a sliding action (push or draw) using the end-effector (tool or hand)
- * @return true/false on success/failure
- * to select
- */
-  virtual bool slideAction();
+  virtual bool slideAction(const int32_t approach = 0);
 /**
  * Computes the effect of the action as the difference in the position of the object before and after the slide action.
  * @return true/false on success/failure
@@ -110,10 +91,34 @@ public:
  */
   virtual bool computeEffect();
 /**
- * Quit the module
- * @return true/false on success/failure
+ * performs the sequence to get the tool from user, look at it and extract its features.
+ * @return true/false on success/failure of looking at that position
  */
-  virtual bool quit();
+  virtual bool getTool(const int32_t deg = 0);
+/**
+ * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool doAction(const int32_t approach = 0);
+/**
+ * Performs the drawing action a given number of times to learn the mapping
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool trainDraw(const int32_t pose = 0);
+/**
+ * Performs the feature Extraction on the tool a given number of times from slighlty different prespectives
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool trainObserve();
+/**
+ * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool observeAndDo(const int32_t pose = 0);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

@@ -476,6 +476,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
     /* Get the info about the hand from the interface */
     yarp::sig::Vector handPose(3), handOr(4), handPix(2);
     icart->getPose(handPose, handOr);
+    handPose[2] -= 0.03;        // Tool center is not actually in the center of the hand but about 3 cm to the robot's left.
     igaze->get2DPixel(0, handPose, handPix); 
 
 
@@ -517,6 +518,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
     toolTipRot.y = (s*(seed.x-hand.x) + c*(seed.y-hand.y)) + hand.y;
     if (verbose) {printf("After rotation, the tooltip at %i,%i \n", toolTipRot.x,toolTipRot.y);}
 
+    printf("Cropping ROI\n");
     // Set the ROI to bound the tool and crop the arm away    
     yarp::sig::Vector ROIV(4);          // define ROI as tl.x, tl.y, br.x, br.y
     ROIV[0] = toolTipRot.x - 40;     // ROI left side some pixels to the left of the tooltip
@@ -546,6 +548,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
 
     mutex.post();
 
+    printf("Writing out images \n");
     /* write info on output ports */
     //imageOutPort.setEnvelope(ts);
     imageOutPort.write();
@@ -600,7 +603,7 @@ bool ToolBlobber::getDispBlob(const Mat& disp, Mat& cntMask, Point seed)
         }
         Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
         drawContours(cntMask, contours, blobI, Scalar(255), CV_FILLED, 8);  // Mask ignoring points outside the contours
-     
+        return true;
     }else{
         if (verbose) {cout << "No contours detected" << endl;}
         return false;

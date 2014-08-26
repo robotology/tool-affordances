@@ -69,17 +69,14 @@ protected:
 
     yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
 
+    yarp::os::RpcClient         rpcSim;             //rpc for the simulator tool loader
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
-	// yarp::os::RpcClient         rpcMotorIol;        //rpc motor port IOL
     yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
 
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
     yarp::os::RpcClient         rpcToolBlobber;     //rpc connecting to tool Blobber
-
-	//yarp::os::RpcClient         rpcBlobPicker;	//rpc motor port BlobPicker
-	//yarp::os::RpcClient         rpcBlobSpot;	    //rpc motor port BlobSpotter
-
+    
     yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port affLearn
 	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port featExtractor
 
@@ -99,24 +96,15 @@ protected:
     yarp::dev::PolyDriver                   clientGaze;
     yarp::dev::IGazeControl                 *igaze;
     int                                     gazeCntxt;
-
-    yarp::os::BufferedPort<yarp::os::Bottle>        blobSpotter;
-	// yarp::os::BufferedPort<yarp::os::Bottle>     particleTracks;
-	
+    	
 	// Flags
 	bool						running;
     bool                        actionDone;
-    bool						objFound;
-    bool						toolFound;
-	bool						lookingAtTool;
-	bool						lookingAtObject;
-	bool						toolInHand;
-
-	//yarp::os::Bottle			blobsInReachList;
-
+    bool						objCoords3DLoc;
+	bool						trackingObj;
+    
 	yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D
-    yarp::sig::Vector			target3Dorient;		    // Keeps the target orientation
 
     yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
     std::string                 toolPoseName;
@@ -125,31 +113,28 @@ protected:
     double                      effectDist;             // Distance that the object has been moved by the action
 	
 	
-	/* motor functions */
-	
-	//void						reachToolExe();
-	//void						lookAtRackExe();
-	//void						lookAtPointExe();
+    /* Setting up functions*/
     void                        goHomeExe();
     void                        goHomeNoHandsExe();
 	void						askForToolExe();	
 	bool						graspToolExe();
+    void                        simTool(int orDeg = 0);
+        bool                        setLabel(const std::string &label);
+
+    void                        findToolDimsExe();
+    void                        attachToolExe();
+
+    /* Look and featExt Functions */
     void						lookAtToolExe();
         void                        handToCenter();
         void                        lookOverHand();	
-        void                        simTool();
-
-    void                        slideActionExe();
-    
-	/* perceptual functions*/
-    void                        attachToolExe();
-    void						observeToolExe();
-	bool						locateObjExe();
+    void						observeToolExe();   
+       
+	/* Action and Effect functions*/    
+    bool						locateObjExe();
     void						trackObjExe();
+    void                        slideActionExe(int approach = 0);
 
-	//std::vector<int>			findToolsExe();
-	//bool						selectToolExe();
-   
     void                        computeEffectExe();
     void                        finishRound();
 
@@ -157,34 +142,35 @@ protected:
 public:
 
 	/* RPC commands handling */
-	bool						attach(yarp::os::RpcServer &source);
+	//atomic commands
+    bool						attach(yarp::os::RpcServer &source);
 	bool						start();
 	bool						quit();
-	bool                        goHome();       //
-	bool                        goHomeNoHands();       //
-    bool                        getTool();       //
-    bool                        setTool(const std::string &tpName);
-    bool						askForTool();   //
-    bool						graspTool();    //
-	bool						lookAtTool();
 
-    bool                        doAction();
-    bool                        trainDraw();
-    bool                        slideAction();
-    bool                        observeAndDo();
-
+	bool                        goHome();       
+	bool                        goHomeNoHands();
+    bool						askForTool();   
+    bool						graspTool();    
 	bool						attachTool();
-	bool						observeTool();  //
-	bool						locateObj();   //
-    bool						trackObj();   //
-    bool                        computeEffect();
+    bool                        findToolDims();
     
 
-	//int							findTools();
-	//bool						selectTool();
-	
+	bool						lookAtTool();
+	bool						observeTool();  
 
-	// RF modules overrides
+	bool						locateObj();   
+    bool						trackObj(); 
+    bool                        slideAction(const int approach);
+    bool                        computeEffect();
+
+    // Combined routinesg
+    bool                        getTool(const int deg); 
+    bool                        doAction(const int approach = 0 );
+    bool                        trainDraw(const int pose);    
+    bool                        trainObserve();  
+    bool                        observeAndDo(const int pose);
+         
+    // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);
     bool						interruptModule();
     bool						close();

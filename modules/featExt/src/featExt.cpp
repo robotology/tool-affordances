@@ -68,10 +68,12 @@ void FeatExt::loop()
             rpcCmd.reply(reply);
             return;
 
+        } else if (rxCmd==Vocab::encode("label")){              //process only one and return feats in rpc reply
+		    objName = val.get(0).asString();
+            return;
 
         } else if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
-		    toolPoseLabel = val.get(0).asString();
-            ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
 		    if(imageIn == NULL)		    {
 			    printf("No input image \n"); 
                 reply.addString("nack");
@@ -180,7 +182,7 @@ bool FeatExt::open()
     coordsInit = false;
     verbose = false;
     refAngle = 0.0;
-    toolPoseLabel = "undef";
+    objName = "0";
     return ret;
 }
 
@@ -191,15 +193,14 @@ bool FeatExt::close()
 
 	rpcCmd.close();
     
-	//featPort.setStrict();
-	//featPort.write();
+
 	featPort.close();
 
     inImPort.close();
+    coordsInPort.close();
 	imPropOutPort.close();
 	imFeatOutPort.close();
-	//binImPort.close();
-    
+
 	printf("Closed");
     return true;
 }
@@ -209,6 +210,7 @@ bool FeatExt::interrupt()
     rpcCmd.interrupt();
     featPort.interrupt();
 	inImPort.interrupt();
+    coordsInPort.interrupt();
 	imFeatOutPort.interrupt();
 	imPropOutPort.interrupt();
 
@@ -335,7 +337,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
 		printf(" * Contour[%i] \n", i);
 		//featFile << "\n CONTOUR " << i << "\n";
-        feats[i].name.assign(toolPoseLabel);
+        feats[i].name.assign(objName);
 			
 		Rect boundRect = boundingRect( contours[i].getPoints());
 

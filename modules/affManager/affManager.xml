@@ -33,7 +33,11 @@
             <port>/affManager/are:rpc</port>
             <description> Send commands to the Actions Rendering Engine module</description>
         </output>
-        
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/affManager/sim:rpc</port>
+            <description> Send commands to the Actions Rendering Engine module</description>
+        </output>
         <output port_type="service">
             <type>rpc</type>
             <port>/affManager/karmaMotor:rpc</port>
