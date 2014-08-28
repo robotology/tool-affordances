@@ -16,7 +16,7 @@
         <parameters>--dir toolFeats --rxTime</parameters>
         <node>localhost</node>
         <prefix>/toolFeats</prefix>
-        <workdir>/tmp/affData</workdir
+        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>

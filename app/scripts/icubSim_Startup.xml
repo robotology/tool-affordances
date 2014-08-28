@@ -29,7 +29,7 @@
         <geometry>(Pos (x 510.90) (y 150.90))</geometry>
     </module>
     <module>
-        <name>icub_sim</name>
+        <name>iCub_SIM</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
