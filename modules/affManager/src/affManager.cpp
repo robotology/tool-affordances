@@ -718,7 +718,7 @@ void AffManager::slideActionExe(int approach)
         
         //double minusTool = 0.15;
         cmdKM.addString("draw");
-        cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.03); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
+        cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.05); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
         cmdKM.addDouble(target3DcoordsIni[1] + goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
         cmdKM.addDouble(target3DcoordsIni[2]);      // Z (height) is constant on the table plane + 0.04 not to hit the table itself
         cmdKM.addInt(angle);                        // Set the approach always on che center of the object
