@@ -103,7 +103,7 @@ service affManager_IDLServer
      * performs the sequence to get the tool from user, look at it and extract its features.
      * @return true/false on success/failure of looking at that position    
      */
-    bool getTool(1:i32 deg = 0);
+    bool getTool(1:i32 tool = 5, 2:i32 deg = 0);
 
     /**
      * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
@@ -117,21 +117,21 @@ service affManager_IDLServer
      * @return true/false on success/failure 
      * to select 
      */
-    bool trainDraw(1:i32 pose = 0);
+    bool trainDraw(1:i32 tool = 5, 2:i32 deg = 0);
 
      /**
      * Performs the feature Extraction on the tool a given number of times from slighlty different prespectives
      * @return true/false on success/failure 
      * to select 
      */
-    bool trainObserve();
+    bool trainObserve(1:i32 tool = 5, 2:i32 deg = 0);
 
      /**
      * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
      * @return true/false on success/failure 
      * to select 
      */
-    bool observeAndDo(1:i32 pose = 0);
+    bool observeAndDo(1:i32 tool = 5, 2:i32 deg = 0);
 }
 
 

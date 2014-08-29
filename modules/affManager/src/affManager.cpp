@@ -258,16 +258,16 @@ bool AffManager::computeEffect(){
 }
 
 /* Combined routines */
-bool AffManager::getTool(const int deg){
+bool AffManager::getTool(const int toolI, const int deg){
     
     //set the label for posterior trials on this pose
     std::ostringstream pose; 
-    pose << "pose"<< deg;
+    pose << "tool_" << toolI << "_or_" << deg;
     setLabel(pose.str());
 
     // Get the tool in the hand
     if (robot== "icubSim")    {
-        simTool(deg);
+        simTool(toolI, deg);
         // Tooltip positoin wrt hand
         toolDim[0] = 0.17;
         toolDim[1] = -0.17;
@@ -307,27 +307,27 @@ bool AffManager::doAction(const int approach){
 	return true;
 }
 
-bool AffManager::observeAndDo(int pose){
-    getTool(pose);
+bool AffManager::observeAndDo(int toolI, int pose){
+    getTool(toolI, pose);
     goHomeNoHandsExe();
     lookAtToolExe();
     observeToolExe();
-    trainDraw(pose);
+    trainDraw(toolI,pose);
     finishRound();
     return true;
 }
 
-bool AffManager::trainDraw(int pose){
-    getTool(pose);
+bool AffManager::trainDraw(int toolI, int pose){
+    getTool(toolI, pose);
     goHomeNoHandsExe();
     if (!trackingObj)
         trackObjExe();
 	for ( int app = -5; app <= 5 ; app++ ){
         printf("RestartingAction\n");
         doAction(app);
-        printf("Action %i Finished\n", app);
+        printf("Action with approach %g Finished\n", app/100.0);
         if (robot== "icubSim")    {
-            simTool(pose);
+            simTool(toolI,pose);
         } else{
             printf("Put the object back in place!!! \n");
             Time::delay(5);
@@ -337,18 +337,30 @@ bool AffManager::trainDraw(int pose){
 	return true;
 }
 
-bool AffManager::trainObserve(){
-    int pose = 0; //try also with a for loop with different poses
-    getTool(pose);
+bool AffManager::trainObserve(int tool, int pose){
+    getTool(tool,pose);
 	for ( int d = 0; d < 20; d++ ){
         printf("RestartingAction\n");
         lookAtToolExe();
         observeToolExe();
         printf("Action %i Finished\n",d);
-        Time::delay(5);
+        Time::delay(2);
     }
 	return true;
-
+}
+bool AffManager::runExp(){
+    printf("Starting Routine\n");
+    for ( int tool = 4; tool <= 9; tool++ ){
+    	for ( int pose = 0; pose < 20; pose++ ){
+            for ( int trial = 0; trial < 10; trial++ ){
+                printf("==================================================================\n");
+                printf("Performing Trial %i with tool %i on pose %i \n", trial, tool, pose);
+                observeAndDo(tool, pose);
+                Time::delay(2);    
+            }
+        }
+    }
+	return true;
 }
 
 
@@ -447,7 +459,7 @@ bool AffManager::graspToolExe()
 }
 
 /**********************************************************/
-void AffManager::simTool(int orDeg)
+void AffManager::simTool(int orDeg, int toolI)
 {
     // Put the hand in a safe position
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
@@ -471,9 +483,9 @@ void AffManager::simTool(int orDeg)
     Bottle cmdSim,replySim;       // bottles for Karma Motor
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("tool");
-    cmdSim.addInt(6);	// tool
-    cmdSim.addInt(3);	// object
-    cmdSim.addInt(orDeg);	// object
+    cmdSim.addInt(toolI);	// tool
+    cmdSim.addInt(2);	// object
+    cmdSim.addInt(orDeg);	// pose
 
     fprintf(stdout,"%s\n",cmdSim.toString().c_str());
     rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool

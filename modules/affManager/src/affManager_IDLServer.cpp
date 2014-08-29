@@ -290,12 +290,14 @@ public:
 
 class affManager_IDLServer_getTool : public yarp::os::Portable {
 public:
+  int32_t tool;
   int32_t deg;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeListHeader(3)) return false;
     if (!writer.writeTag("getTool",1,1)) return false;
+    if (!writer.writeI32(tool)) return false;
     if (!writer.writeI32(deg)) return false;
     return true;
   }
@@ -334,13 +336,15 @@ public:
 
 class affManager_IDLServer_trainDraw : public yarp::os::Portable {
 public:
-  int32_t pose;
+  int32_t tool;
+  int32_t deg;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeListHeader(3)) return false;
     if (!writer.writeTag("trainDraw",1,1)) return false;
-    if (!writer.writeI32(pose)) return false;
+    if (!writer.writeI32(tool)) return false;
+    if (!writer.writeI32(deg)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -356,11 +360,15 @@ public:
 
 class affManager_IDLServer_trainObserve : public yarp::os::Portable {
 public:
+  int32_t tool;
+  int32_t deg;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeListHeader(3)) return false;
     if (!writer.writeTag("trainObserve",1,1)) return false;
+    if (!writer.writeI32(tool)) return false;
+    if (!writer.writeI32(deg)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -376,13 +384,15 @@ public:
 
 class affManager_IDLServer_observeAndDo : public yarp::os::Portable {
 public:
-  int32_t pose;
+  int32_t tool;
+  int32_t deg;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeListHeader(3)) return false;
     if (!writer.writeTag("observeAndDo",1,1)) return false;
-    if (!writer.writeI32(pose)) return false;
+    if (!writer.writeI32(tool)) return false;
+    if (!writer.writeI32(deg)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -523,12 +533,13 @@ bool affManager_IDLServer::computeEffect() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::getTool(const int32_t deg) {
+bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_getTool helper;
+  helper.tool = tool;
   helper.deg = deg;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::getTool(const int32_t deg)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -543,31 +554,35 @@ bool affManager_IDLServer::doAction(const int32_t approach) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::trainDraw(const int32_t pose) {
+bool affManager_IDLServer::trainDraw(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_trainDraw helper;
-  helper.pose = pose;
+  helper.tool = tool;
+  helper.deg = deg;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainDraw(const int32_t pose)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainDraw(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::trainObserve() {
+bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_trainObserve helper;
+  helper.tool = tool;
+  helper.deg = deg;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainObserve()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::observeAndDo(const int32_t pose) {
+bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_observeAndDo helper;
-  helper.pose = pose;
+  helper.tool = tool;
+  helper.deg = deg;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t pose)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -739,12 +754,16 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "getTool") {
+      int32_t tool;
       int32_t deg;
+      if (!reader.readI32(tool)) {
+        tool = 5;
+      }
       if (!reader.readI32(deg)) {
         deg = 0;
       }
       bool _return;
-      _return = getTool(deg);
+      _return = getTool(tool,deg);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -769,12 +788,16 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "trainDraw") {
-      int32_t pose;
-      if (!reader.readI32(pose)) {
-        pose = 0;
+      int32_t tool;
+      int32_t deg;
+      if (!reader.readI32(tool)) {
+        tool = 5;
+      }
+      if (!reader.readI32(deg)) {
+        deg = 0;
       }
       bool _return;
-      _return = trainDraw(pose);
+      _return = trainDraw(tool,deg);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -784,8 +807,16 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "trainObserve") {
+      int32_t tool;
+      int32_t deg;
+      if (!reader.readI32(tool)) {
+        tool = 5;
+      }
+      if (!reader.readI32(deg)) {
+        deg = 0;
+      }
       bool _return;
-      _return = trainObserve();
+      _return = trainObserve(tool,deg);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -795,12 +826,16 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "observeAndDo") {
-      int32_t pose;
-      if (!reader.readI32(pose)) {
-        pose = 0;
+      int32_t tool;
+      int32_t deg;
+      if (!reader.readI32(tool)) {
+        tool = 5;
+      }
+      if (!reader.readI32(deg)) {
+        deg = 0;
       }
       bool _return;
-      _return = observeAndDo(pose);
+      _return = observeAndDo(tool,deg);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -939,7 +974,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
       helpString.push_back("to select ");
     }
     if (functionName=="getTool") {
-      helpString.push_back("bool getTool(const int32_t deg = 0) ");
+      helpString.push_back("bool getTool(const int32_t tool = 5, const int32_t deg = 0) ");
       helpString.push_back("performs the sequence to get the tool from user, look at it and extract its features. ");
       helpString.push_back("@return true/false on success/failure of looking at that position ");
     }
@@ -950,19 +985,19 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
       helpString.push_back("to select ");
     }
     if (functionName=="trainDraw") {
-      helpString.push_back("bool trainDraw(const int32_t pose = 0) ");
+      helpString.push_back("bool trainDraw(const int32_t tool = 5, const int32_t deg = 0) ");
       helpString.push_back("Performs the drawing action a given number of times to learn the mapping ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }
     if (functionName=="trainObserve") {
-      helpString.push_back("bool trainObserve() ");
+      helpString.push_back("bool trainObserve(const int32_t tool = 5, const int32_t deg = 0) ");
       helpString.push_back("Performs the feature Extraction on the tool a given number of times from slighlty different prespectives ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }
     if (functionName=="observeAndDo") {
-      helpString.push_back("bool observeAndDo(const int32_t pose = 0) ");
+      helpString.push_back("bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0) ");
       helpString.push_back("Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");

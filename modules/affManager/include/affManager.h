@@ -118,7 +118,7 @@ protected:
     void                        goHomeNoHandsExe();
 	void						askForToolExe();	
 	bool						graspToolExe();
-    void                        simTool(int orDeg = 0);
+    void                        simTool(int orDeg = 0, int toolI = 5);
         bool                        setLabel(const std::string &label);
 
     void                        findToolDimsExe();
@@ -164,11 +164,12 @@ public:
     bool                        computeEffect();
 
     // Combined routinesg
-    bool                        getTool(const int deg); 
+    bool                        getTool(const int toolI = 5, const int deg = 0); 
     bool                        doAction(const int approach = 0 );
-    bool                        trainDraw(const int pose);    
-    bool                        trainObserve();  
-    bool                        observeAndDo(const int pose);
+    bool                        trainDraw(const int toolI = 5, const int deg = 0);    
+    bool                        trainObserve(const int toolI = 5, const int deg = 0);  
+    bool                        observeAndDo(const int toolI = 5, const int deg = 0);
+    bool                        runExp();
          
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

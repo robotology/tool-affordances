@@ -161,11 +161,12 @@ bool CtrlThread::threadInit() {
 
     // Make a connection to the iCub Simulator world port:
     (*simToolLoaderSimOutputPort).addOutput("/icubSim/world");
-
+    cout << endl << "D1. SimWorld Constructor" << endl;
     simWorld = SimWorld(threadTable, threadObject);
-
+    cout << endl << "D1.1 Time Rand" << endl;
     srand (time(NULL));
 
+    cout << endl << "D2. Getting Model Directory" << endl;
     Bottle simCmd;
     simCmd.addString("world");
     simCmd.addString("set");
@@ -173,14 +174,19 @@ bool CtrlThread::threadInit() {
 
     //const ConstString icubRootEnvPath = yarp::os::getenv("ICUB_ROOT");
     //const ConstString localModelsPath = "/contrib/src/poeticon/poeticonpp/simtoolloader/models";
-
+    cout << endl << "D3. Adding extramodels" << endl;
+    
     const ConstString icubContribEnvPath = yarp::os::getenv("ICUBcontrib_DIR");
+    cout << endl << "D3.1 Got Env" << icubContribEnvPath.c_str() << endl;
     const ConstString localModelsPath    = "/share/ICUBcontrib/contexts/simtoolloader/models";
+    cout << endl << "D3.2 got local path" << localModelsPath.c_str() << endl;
     const ConstString modelsPath         = icubContribEnvPath + localModelsPath;
+    cout << endl << "D3.1 Add Paths" << modelsPath.c_str() << endl;
     simCmd.addString(modelsPath);
+    cout << endl << "D4 write command" << endl;
     writeSim(simCmd);
 
-
+    cout << endl << "D4. Opening cartesian controller" << endl;
     // Cartesian Controller Interface
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
@@ -957,6 +963,10 @@ Bottle SimSCyl::grabObjectBottle(iCubArm arm) {
 SimModel::SimModel(double posx, double posy, double posz,
                    double rotx, double roty, double rotz,
                    ConstString mes, ConstString tex) {
+    cout << endl <<  "Creating model: "<< endl;
+    cout << "posx " << posx << ". posy " << posy << ". posz " << posz << endl;
+    cout << "rotx " << rotx << ". roty " << roty << ". rotz " << rotz << endl;
+    cout << "mes " << mes << ". tex " << tex << endl;
 
     positionX = posx;
     positionY = posy;
@@ -1117,12 +1127,14 @@ SimWorld::SimWorld() {
 SimWorld::SimWorld(const Bottle& threadTable,
                    vector<Bottle>& threadObject) {
 
+    cout << endl << "D.A. SimWorld Constructor" << endl;
     simObject.resize(threadObject.size());
-    objSubIndex.resize(8);
-    for ( int n=0 ; n<8 ; n++ ) {
+    cout << endl << "D.A.1 Setting indices" << endl;
+    objSubIndex.resize(9);
+    for ( int n=0 ; n<9 ; n++ ) {
         objSubIndex[n]=0;
     }
-
+    cout << endl << "D.A.SimSBox Constructor" << endl;
     simTable = new SimSBox(threadTable.get(4).asDouble(),
                            threadTable.get(5).asDouble(),
                            threadTable.get(6).asDouble(),
@@ -1170,6 +1182,7 @@ SimWorld::SimWorld(const Bottle& threadTable,
                                       threadObject[n].get(3).asDouble());
         }
         else if (threadObject[n].get(1).asString() == "Model") {
+            cout << endl << "D.B. " << n << " init SimModel" << endl;
             simObject[n] = new SimModel(threadTable.get(4).asDouble()-0.05,
                                         threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
                                         threadTable.get(6).asDouble()-0.01,
@@ -1218,8 +1231,9 @@ SimWorld::SimWorld(const Bottle& threadTable,
                                          threadObject[n].get(2).asString(),
                                        threadObject[n].get(3).asString());
         }*/
-        simObject[n]->objSubIndex=0;
+        simObject[n]->objSubIndex=0;        
     }
+    cout << endl << "D.B. Model indices initialized" << endl;
 }
 
 Bottle SimWorld::deleteAll() {
@@ -1237,7 +1251,7 @@ void SimWorld::resetSimObjectIndex() {
     for ( int n=0 ; n<simObject.size() ; n++ ) {
         simObject[n]->objSubIndex=0;
     }
-    for ( int n=0 ; n<8 ; n++ ) {
+    for ( int n=0 ; n<9 ; n++ ) {
         objSubIndex[n]=0;
     }
 }

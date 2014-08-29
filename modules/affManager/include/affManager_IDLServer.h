@@ -94,7 +94,7 @@ public:
  * performs the sequence to get the tool from user, look at it and extract its features.
  * @return true/false on success/failure of looking at that position
  */
-  virtual bool getTool(const int32_t deg = 0);
+  virtual bool getTool(const int32_t tool = 5, const int32_t deg = 0);
 /**
  * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
  * @return true/false on success/failure
@@ -106,19 +106,19 @@ public:
  * @return true/false on success/failure
  * to select
  */
-  virtual bool trainDraw(const int32_t pose = 0);
+  virtual bool trainDraw(const int32_t tool = 5, const int32_t deg = 0);
 /**
  * Performs the feature Extraction on the tool a given number of times from slighlty different prespectives
  * @return true/false on success/failure
  * to select
  */
-  virtual bool trainObserve();
+  virtual bool trainObserve(const int32_t tool = 5, const int32_t deg = 0);
 /**
  * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
  * @return true/false on success/failure
  * to select
  */
-  virtual bool observeAndDo(const int32_t pose = 0);
+  virtual bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
