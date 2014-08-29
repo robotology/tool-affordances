@@ -119,6 +119,12 @@ public:
  * to select
  */
   virtual bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0);
+/**
+ * Performs ObserveAndDo for all the possible tools, each in the 3 poses
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool runExp();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
