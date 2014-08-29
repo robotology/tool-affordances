@@ -154,7 +154,6 @@ bool AffManager::close()
     userDataPort.close();
 
     rpcCmd.close();
-
     rpcSim.close();
     rpcMotorAre.close();
     rpcKarmaMotor.close();
@@ -307,25 +306,15 @@ bool AffManager::doAction(const int approach){
 	return true;
 }
 
-bool AffManager::observeAndDo(int toolI, int pose){
-    getTool(toolI, pose);
-    goHomeNoHandsExe();
-    lookAtToolExe();
-    observeToolExe();
-    trainDraw(toolI,pose);
-    finishRound();
-    return true;
-}
-
 bool AffManager::trainDraw(int toolI, int pose){
-    getTool(toolI, pose);
+    //getTool(toolI, pose);
     goHomeNoHandsExe();
     if (!trackingObj)
         trackObjExe();
 	for ( int app = -5; app <= 5 ; app++ ){
-        printf("RestartingAction\n");
+        printf("\n Starting approach to %g\n", app/100.0);
         doAction(app);
-        printf("Action with approach %g Finished\n", app/100.0);
+        //printf("Action with approach %g Finished\n", app/100.0);
         if (robot== "icubSim")    {
             simTool(toolI,pose);
         } else{
@@ -340,7 +329,7 @@ bool AffManager::trainDraw(int toolI, int pose){
 bool AffManager::trainObserve(int tool, int pose){
     getTool(tool,pose);
 	for ( int d = 0; d < 20; d++ ){
-        printf("RestartingAction\n");
+        printf("Starting Action %i\n",d);
         lookAtToolExe();
         observeToolExe();
         printf("Action %i Finished\n",d);
@@ -348,10 +337,21 @@ bool AffManager::trainObserve(int tool, int pose){
     }
 	return true;
 }
+
+bool AffManager::observeAndDo(int toolI, int pose){
+    getTool(toolI, pose);
+    //goHomeNoHandsExe();
+    lookAtToolExe();
+    observeToolExe();
+    trainDraw(toolI,pose);
+    finishRound();
+    return true;
+}
+
 bool AffManager::runExp(){
     printf("Starting Routine\n");
     for ( int tool = 4; tool <= 9; tool++ ){
-    	for ( int pose = 0; pose < 20; pose++ ){
+    	for ( int pose = -90; pose < 100; pose=pose+90 ){ //XXXXXXX
             for ( int trial = 0; trial < 10; trial++ ){
                 printf("==================================================================\n");
                 printf("Performing Trial %i with tool %i on pose %i \n", trial, tool, pose);
@@ -403,7 +403,7 @@ void AffManager::goHomeNoHandsExe()
         igaze->lookAtAbsAngles(ang);    // move the gaze
 
     } else{*/
-	    fprintf(stdout,"Start 'home' 'arms' 'head' proceedure:\n");
+	    //fprintf(stdout,"Start 'home' 'arms' 'head' proceedure:\n");
         Bottle cmdAre, replyAre;
         cmdAre.clear();
         replyAre.clear();
@@ -411,7 +411,7 @@ void AffManager::goHomeNoHandsExe()
         cmdAre.addString("arms");
         cmdAre.addString("head");
         rpcMotorAre.write(cmdAre,replyAre);     
-        fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());  
+        //fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());  
     //}    
     return;
 }
@@ -459,7 +459,7 @@ bool AffManager::graspToolExe()
 }
 
 /**********************************************************/
-void AffManager::simTool(int orDeg, int toolI)
+void AffManager::simTool(int toolI,int orDeg )
 {
     // Put the hand in a safe position
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
@@ -473,7 +473,7 @@ void AffManager::simTool(int orDeg, int toolI)
     Matrix Rx = iCub::ctrl::axis2dcm(ox);
 
     Matrix R = Ry*Rx;                 // compose the two rotations keeping the order
-    fprintf(stdout,"M = \n[ %s ] \n\n", R.toString().c_str());
+    //fprintf(stdout,"M = \n[ %s ] \n\n", R.toString().c_str());
     od = iCub::ctrl::dcm2axis(R);     // from rotation matrix back to the axis/angle notation     
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
@@ -487,14 +487,12 @@ void AffManager::simTool(int orDeg, int toolI)
     cmdSim.addInt(2);	// object
     cmdSim.addInt(orDeg);	// pose
 
-    fprintf(stdout,"%s\n",cmdSim.toString().c_str());
+    fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
     rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
-    fprintf(stdout,"Tool created\n");
 
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);    
     //igaze->lookAtFixationPoint(handPos);    
-
     return;
 }
 
@@ -583,7 +581,7 @@ void AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
     handToCenter();
-    fprintf(stdout,"Moving hand to the center:\n");
+    //fprintf(stdout,"Moving hand to the center:\n");
     lookOverHand();
     return;
 }
@@ -609,18 +607,15 @@ void AffManager::handToCenter()
     //fprintf(stdout,"M = \n[ %s ] \n\n", R.toString().c_str());
     od = iCub::ctrl::dcm2axis(R);     // from rotation matrix back to the axis/angle notation     
 
-    fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
+    //fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
-    fprintf(stdout,"Hand moving!!");
     icart->waitMotionDone(0.04);
-    fprintf(stdout,"Movement completed");
     return;
 }
 
 void AffManager::lookOverHand()
 {
-    fprintf(stdout,"Looking at tool");
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);
     if (robot== "icubSim")
@@ -637,7 +632,7 @@ void AffManager::lookOverHand()
     
     Vector fp;
     igaze->getFixationPoint(fp); 							// retrieve the current fixation point 
-	fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
+	//fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
 	
     return;
 }
@@ -807,7 +802,7 @@ bool AffManager::locateObjExe()
     cmdFinder.addString("getPointTrack");
     cmdFinder.addDouble(tableHeight);
 	rpcObjFinder.write(cmdFinder, replyFinder);
-    printf("Received from rpc: %s \n", replyFinder.toString().c_str());
+    //printf("Received from rpc: %s \n", replyFinder.toString().c_str());
 
     if (replyFinder.size() >1){
         coords3D(0) = replyFinder.get(1).asList()->get(0).asDouble();

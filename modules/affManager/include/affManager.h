@@ -118,7 +118,7 @@ protected:
     void                        goHomeNoHandsExe();
 	void						askForToolExe();	
 	bool						graspToolExe();
-    void                        simTool(int orDeg = 0, int toolI = 5);
+    void                        simTool(int toolI = 5,int orDeg = 0);
         bool                        setLabel(const std::string &label);
 
     void                        findToolDimsExe();
