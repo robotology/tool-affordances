@@ -56,8 +56,10 @@ bool AffManager::configure(ResourceFinder &rf)
     actionDone = false;
     objCoords3DLoc = false;
     trackingObj = false;
+    tipOnView = false;
 
     toolDim.resize(3, 0.0);
+    toolTipPix.resize(2,0.0);
     target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D
     target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D
     toolPoseName = "undef";
@@ -111,7 +113,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
-    igaze->setTrackingMode(true);
+    igaze->setTrackingMode(false);
 
     printf("Manager configured correctly \n");
 
@@ -276,7 +278,7 @@ bool AffManager::getTool(const int toolI, const int deg){
         askForToolExe();
         std::cout << "Give the tool to the iCub oriented " <<  deg << "!" << std::endl;
         if (!graspToolExe()){
-            std::cout << "Tool couldnt be grasped properly, stopping!" << std::endl;
+            std::cout << "Tool could not be grasped properly, stopping!" << std::endl;
             return false;
         }
         // Find tool dimensions using KARMA
@@ -321,7 +323,7 @@ bool AffManager::trainDraw(int toolI, int pose){
             printf("Put the object back in place!!! \n");
             Time::delay(5);
         }
-        goHomeNoHandsExe();
+        //goHomeNoHandsExe();
     }
 	return true;
 }
@@ -343,7 +345,8 @@ bool AffManager::observeAndDo(int toolI, int pose){
     //goHomeNoHandsExe();
     lookAtToolExe();
     observeToolExe();
-    trainDraw(toolI,pose);
+    doAction(0.0);
+    //trainDraw(toolI,pose);
     finishRound();
     return true;
 }
@@ -352,7 +355,7 @@ bool AffManager::runExp(){
     printf("Starting Routine\n");
     for ( int tool = 4; tool <= 9; tool++ ){
     	for ( int pose = -90; pose < 100; pose=pose+90 ){ //XXXXXXX
-            for ( int trial = 0; trial < 10; trial++ ){
+            for ( int trial = 0; trial < 1; trial++ ){
                 printf("==================================================================\n");
                 printf("Performing Trial %i with tool %i on pose %i \n", trial, tool, pose);
                 observeAndDo(tool, pose);
@@ -490,8 +493,8 @@ void AffManager::simTool(int toolI,int orDeg )
     fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
     rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
 
-    Vector handPos,handOr;
-    icart->getPose(handPos,handOr);    
+    //Vector handPos,handOr;
+    //icart->getPose(handPos,handOr);
     //igaze->lookAtFixationPoint(handPos);    
     return;
 }
@@ -580,9 +583,12 @@ void AffManager::attachToolExe()
 void AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
+	igaze->setTrackingMode(false);
     handToCenter();
     //fprintf(stdout,"Moving hand to the center:\n");
     lookOverHand();
+    gazeAtTool();
+    //igaze->setTrackingMode(true);
     return;
 }
 
@@ -624,17 +630,36 @@ void AffManager::lookOverHand()
     }else {
         handPos[2] += 0.25;
     }
-              
-
-    //fprintf(stdout,"Looking to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
-    igaze->lookAtFixationPoint(handPos);     
-    igaze->waitMotionDone(0.04);                                // wait until the operation is done
-    
-    Vector fp;
-    igaze->getFixationPoint(fp); 							// retrieve the current fixation point 
+    fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
+    igaze->lookAtFixationPoint(handPos);
+    igaze->waitMotionDone(0.04);
+    //Vector fp;
+    //igaze->getFixationPoint(fp); 							// retrieve the current fixation point
 	//fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
-	
+
     return;
+}
+
+bool AffManager::gazeAtTool()
+{
+	Bottle toolTipB;
+	Bottle cmdKF, replyKF;    // bottles for Karma Finder
+    // Get ToolTip coordinates on image
+	cmdKF.clear();   replyKF.clear();
+	cmdKF.addString("tip");
+	fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+	rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
+	toolTipB = replyKF.tail();
+	cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
+	toolTipPix[0] = toolTipB.get(0).asInt();
+	toolTipPix[1] = toolTipB.get(1).asInt();
+
+	if ((toolTipPix[0]<0) || (toolTipPix[0]>320) ||(toolTipPix[1]<0) ||(toolTipPix[0]>240)){
+		cout <<"Tooltip out of sight, at pixel: " << toolTipB.toString().c_str() << endl;
+		return false;
+	}
+	cout <<" Tooltip within view, at pixel: " << toolTipB.toString().c_str() << endl;
+	return true;
 }
 
 /**********************************************************/
@@ -660,20 +685,35 @@ void AffManager::observeToolExe(){
     // XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.
     */
 
-       
-    // Get ToolTip coordinates on image
-    Bottle toolTipB;
-    Bottle cmdKF, replyKF;                                  // bottles for Karma Motor
-    cmdKF.clear();   replyKF.clear();
-    cmdKF.addString("tip");
-    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
-    rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
-    toolTipB = replyKF.tail();			                    
-    cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
-    
-    Vector toolTipPix(2);
-    toolTipPix[0] = toolTipB.get(0).asInt();
-    toolTipPix[1] = toolTipB.get(1).asInt();
+    /*
+	Bottle toolTipB;
+	Bottle cmdKF, replyKF;    // bottles for Karma Motor
+	Vector toolTipPix(2);
+    while (!tipOnView){
+    	// Get ToolTip coordinates on image
+		cmdKF.clear();   replyKF.clear();
+		cmdKF.addString("tip");
+		fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+		rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
+		toolTipB = replyKF.tail();
+		cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
+		toolTipPix[0] = toolTipB.get(0).asInt();
+		toolTipPix[1] = toolTipB.get(1).asInt();
+		if ((toolTipPix[0]<0) || (toolTipPix[0]>320) ||(toolTipPix[1]<0) ||(toolTipPix[0]>240))			{
+			printf("Tooltip not on view. Adjusting gaze \n");
+			lookOverHand();
+			}
+		else
+			tipOnView=true;
+	}
+     */
+    tipOnView = false;
+    while (!tipOnView){
+    	cout << "Tooltip no on view" << endl;
+    	lookOverHand();
+    	tipOnView = gazeAtTool();
+    }
+
 
     printf("Seeding ToolBlobber \n");
     Bottle cmdTB, replyTB;                                  // bottles for Tool Blobber
@@ -779,12 +819,13 @@ void AffManager::trackObjExe()
     trackingObj = true;
 
     // Set ARE to constantly track the object
-    Bottle cmdAre, replyAre;
+    /*Bottle cmdAre, replyAre;
     cmdAre.addString("track");
     cmdAre.addString("track");
     cmdAre.addString("no_sacc");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"tracking started %s:\n",replyAre.toString().c_str());
+    */
     return;
 }
 
@@ -872,6 +913,7 @@ void AffManager::finishRound()
     // reinitialize some flags for next round
     actionDone = false;
     objCoords3DLoc = false;
+    tipOnView = false;
     
     target3DcoordsIni.clear();		// Keeps the target position in 3D before the action
     target3DcoordsAfter.clear();	// Keeps the target position in 3D after the action

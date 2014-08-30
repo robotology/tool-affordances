@@ -243,7 +243,7 @@ bool ToolBlobber::open()
 
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
-    igaze->setTrackingMode(true);
+    //igaze->setTrackingMode(true);
 
     isDisp = false;
 
@@ -358,6 +358,16 @@ bool ToolBlobber::setConfMin(float confid)
 void ToolBlobber::onRead(Bottle& seedIn)
 {
     //yarp::os::Stamp ts;
+
+    /* Read seed coordinates */
+    Point seed;
+    seed.x = seedIn.get(0).asInt();
+    seed.y = seedIn.get(1).asInt();
+
+	if ((seed.x<0) || (seed.x>320) ||(seed.y<0) ||(seed.y>240)){
+		cout <<"Seed out of camera image, at pixel: " << seedIn.toString().c_str() << endl;
+		return;
+	}
     
     mutex.wait();    
     if(verbose){   cout << endl << " seed received "<< endl;}
@@ -389,11 +399,6 @@ void ToolBlobber::onRead(Bottle& seedIn)
 	}
     Mat leftIm((IplImage*) imInLeft->getIplImage());	
     
-    /* Read seed coordinates */
-    Point seed;
-    seed.x = seedIn.get(0).asInt();
-    seed.y = seedIn.get(1).asInt();
-
 
     /* Prepare output image for visualization */
     ImageOf<PixelRgb> &imageOut  = imageOutPort.prepare();
@@ -448,6 +453,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
     cmdGBS.addInt(targetBlob.x);
     cmdGBS.addInt(targetBlob.y);
     rpcGBS.write(cmdGBS, replyGBS);
+    fprintf(stdout,"Cmd sent to GBS %s:\n",cmdGBS.toString().c_str());
     if (replyGBS.size() > 0)
     {
         if (verbose) {cout << "Received " << replyGBS.size() <<  " bottle(s) from GBS " << endl;} 
@@ -577,9 +583,7 @@ bool ToolBlobber::getDispBlob(const Mat& disp, Mat& cntMask, Point seed)
     if (fixedRange){                                            // Set the flags for floodfill
         fillFlags += FLOODFILL_FIXED_RANGE;}
     Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
-    printf("fails here");
     floodFill(disp, fillMask, seed, Scalar(255), 0, Scalar(50) , Scalar(50), FLOODFILL_MASK_ONLY + FLOODFILL_FIXED_RANGE + 4);	
-    printf("Doesnt it");
     
 
     /* Find Contours */
@@ -588,7 +592,7 @@ bool ToolBlobber::getDispBlob(const Mat& disp, Mat& cntMask, Point seed)
     vector<vector<Point > > contours;
     vector<Vec4i> hierarchy;
     findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );    
-	printf("Found %i contours from the mask. \n", contours.size());
+	//printf("Found %i contours from the mask. \n", contours.size());
     /* If any blob is found */
     if (contours.size()>0){        
         /* Double check that only the bigger blob is selected as the valid one*/
@@ -598,7 +602,6 @@ bool ToolBlobber::getDispBlob(const Mat& disp, Mat& cntMask, Point seed)
             printf("area of blob found = %g ", a);
             if(a > minBlobSize){											// Keep only the bigger
                 blobI = c;
-                printf(" - valid blob\n"); 
             }
         }
         Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image

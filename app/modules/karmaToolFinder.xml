@@ -47,11 +47,6 @@
             <description> streams out a complete set of data used during the acquisition. </description>
         </output>
         <output>
-            <type>Bottle</type>
-            <port carrier="udp">/karmaToolFinder/tip:o </port>
-            <description> streams out the pixel position of the detected tool </description>
-        </output>
-        <output>
             <type>ImageOfPixelRgb</type>
             <port carrier="udp">/karmaToolFinder/img:o</port>
             <description> streams out images with superimposed information on the tool.</description>

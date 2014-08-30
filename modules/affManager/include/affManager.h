@@ -102,7 +102,9 @@ protected:
     bool                        actionDone;
     bool						objCoords3DLoc;
 	bool						trackingObj;
+	bool 						tipOnView;
     
+	yarp::sig::Vector			toolTipPix;		// Keeps the tool position in 2D for looking at it
 	yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D
 
@@ -127,7 +129,8 @@ protected:
     /* Look and featExt Functions */
     void						lookAtToolExe();
         void                        handToCenter();
-        void                        lookOverHand();	
+        void                        lookOverHand();
+        bool                        gazeAtTool();
     void						observeToolExe();   
        
 	/* Action and Effect functions*/    
@@ -163,11 +166,11 @@ public:
     bool                        slideAction(const int approach);
     bool                        computeEffect();
 
-    // Combined routinesg
-    bool                        getTool(const int toolI = 5, const int deg = 0); 
+    // Combined routines
+    bool                        getTool(const int toolI = 5, const int deg = 0);
     bool                        doAction(const int approach = 0 );
-    bool                        trainDraw(const int toolI = 5, const int deg = 0);    
-    bool                        trainObserve(const int toolI = 5, const int deg = 0);  
+    bool                        trainDraw(const int toolI = 5, const int deg = 0);
+    bool                        trainObserve(const int toolI = 5, const int deg = 0);
     bool                        observeAndDo(const int toolI = 5, const int deg = 0);
     bool                        runExp();
          
