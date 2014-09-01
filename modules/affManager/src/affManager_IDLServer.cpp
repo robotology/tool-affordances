@@ -386,13 +386,15 @@ class affManager_IDLServer_observeAndDo : public yarp::os::Portable {
 public:
   int32_t tool;
   int32_t deg;
+  int32_t trials;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeListHeader(4)) return false;
     if (!writer.writeTag("observeAndDo",1,1)) return false;
     if (!writer.writeI32(tool)) return false;
     if (!writer.writeI32(deg)) return false;
+    if (!writer.writeI32(trials)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -596,13 +598,14 @@ bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg) {
+bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials) {
   bool _return = false;
   affManager_IDLServer_observeAndDo helper;
   helper.tool = tool;
   helper.deg = deg;
+  helper.trials = trials;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -857,14 +860,18 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "observeAndDo") {
       int32_t tool;
       int32_t deg;
+      int32_t trials;
       if (!reader.readI32(tool)) {
         tool = 5;
       }
       if (!reader.readI32(deg)) {
         deg = 0;
       }
+      if (!reader.readI32(trials)) {
+        trials = 1;
+      }
       bool _return;
-      _return = observeAndDo(tool,deg);
+      _return = observeAndDo(tool,deg,trials);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1038,7 +1045,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
       helpString.push_back("to select ");
     }
     if (functionName=="observeAndDo") {
-      helpString.push_back("bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0) ");
+      helpString.push_back("bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0, const int32_t trials = 1) ");
       helpString.push_back("Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
