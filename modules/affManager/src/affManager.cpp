@@ -340,22 +340,25 @@ bool AffManager::trainObserve(int tool, int pose){
 	return true;
 }
 
-bool AffManager::observeAndDo(int toolI, int pose){
-    getTool(toolI, pose);
-    //goHomeNoHandsExe();
-    lookAtToolExe();
-    observeToolExe();
-    doAction(0.0);
-    //trainDraw(toolI,pose);
-    finishRound();
+bool AffManager::observeAndDo(int toolI, int pose, int trials){
+    for ( int trial = 0; trial < trials; trial++ ){
+        printf("==================================================================\n");
+        printf("Performing Trial %i with tool %i on pose %i \n", trial, toolI, pose);
+		getTool(toolI, pose);
+		lookAtToolExe();
+		observeToolExe();
+		trainDraw(toolI,pose);
+		finishRound();
+		Time::delay(2);
+    }
     return true;
 }
 
 bool AffManager::runExp(){
     printf("Starting Routine\n");
-    for ( int tool = 4; tool <= 9; tool++ ){
+    for ( int tool = 4; tool <= 7; tool++ ){
     	for ( int pose = -90; pose < 100; pose=pose+90 ){ //XXXXXXX
-            for ( int trial = 0; trial < 1; trial++ ){
+            for ( int trial = 0; trial < 10; trial++ ){
                 printf("==================================================================\n");
                 printf("Performing Trial %i with tool %i on pose %i \n", trial, tool, pose);
                 observeAndDo(tool, pose);

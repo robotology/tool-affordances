@@ -131,7 +131,7 @@ service affManager_IDLServer
      * @return true/false on success/failure 
      * to select 
      */
-    bool observeAndDo(1:i32 tool = 5, 2:i32 deg = 0);
+    bool observeAndDo(1:i32 tool = 5, 2:i32 deg = 0, 3:i32 trials = 1);
 
     /**
      * Performs ObserveAndDo for all the possible tools, each in the 3 poses

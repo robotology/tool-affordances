@@ -6,101 +6,79 @@
     </authors>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --dir camLeft --downsample 5 --rxTime</parameters>
+        <parameters>--type image --name camLeft --downsample 5 --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/camLeft</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir toolFeats --rxTime</parameters>
+        <parameters>--name toolFeats --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/toolFeats</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir actionEffect --rxTime</parameters>
+        <parameters>--name actionEffect --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/actionEffect</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --dir imgBin --rxTime</parameters>
+        <parameters>--type image --name imgBin --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/imgBin</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--type image --dir imgLoc --rxTime</parameters>
+        <parameters>--type image --name imgLoc --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/imgLoc</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
     <module>
         <name>dataDumper</name>
-        <parameters>--dir tooltip --downsample 10 --rxTime</parameters>
+        <parameters>--name dumpRightEEF --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/tooltip</prefix>
-        <workdir>/tmp/tooltip</workdir>
-    </module>    
+    </module>
+    <!--
     <module>
         <name>dataDumper</name>
-        <parameters>--dir dumpRightEEF --rxTime</parameters>
+        <parameters>--name dumpLeftEEF --rxTime</parameters>
         <node>localhost</node>
-        <prefix>/dumpRightEEF</prefix>
-        <workdir>/tmp/affData</workdir>
     </module>
-    <module>
-        <name>dataDumper</name>
-        <parameters>--dir dumpLeftEEF --rxTime</parameters>
-        <node>localhost</node>
-        <prefix>/dumpLeftEEF</prefix>
-        <workdir>/tmp/affData</workdir>
-    </module>
-
+    -->
 
     <connection>
         <from external="true">/icubSim/cam/left</from>
-        <to external="true">/camLeft/dump</to>
+        <to external="true">/camLeft</to>
         <protocol>mcast</protocol>
     </connection>
     <connection>
         <from external="true">/featExt/feats:o</from>
-        <to external="true">/toolFeats/dump</to>
+        <to external="true">/toolFeats</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
         <from external="true">/affManager/data:o</from>
-        <to external="true">/actionEffect/dump</to>
+        <to external="true">/actionEffect</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
         <from external="true">/toolBlobber/imgBin:o</from>
-        <to external="true">/imgBin/dump</to>
+        <to external="true">/imgBin</to>
         <protocol>mcast</protocol>
         <geometry></geometry>
     </connection>
     <connection>
         <from external="true">/objectFinder/imgOut:o</from>
-        <to external="true">/imgOut/dump</to>
+        <to external="true">/imgLoc</to>
         <protocol>mcast</protocol>
     </connection>
+
     <connection>
-        <from external="true">/karmaToolFinder/tip:o</from>
-        <to external="true">/tooltip/dump</to>
+        <from external="true">/icubSim/cartesianController/right_arm/state:o</from>
+        <to external="true">/dumpRightEEF</to>
         <protocol>udp</protocol>
     </connection>
+<!--
     <connection>
-        <from external="true">/icub/cartesianController/right_arm/state:o</from>
-        <to external="true">/dumpRightEEF/dump</to>
-        <protocol>udp</protocol>
-    </connection>
-    <connection>
-        <from external="true">/icub/cartesianController/left_arm/state:o</from>
+        <from external="true">/icubSim/cartesianController/left_arm/state:o</from>
         <to external="true">/dumpLeftEEF/dump</to>
         <protocol>udp</protocol>
     </connection>
+-->
 </application>

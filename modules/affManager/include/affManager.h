@@ -171,7 +171,7 @@ public:
     bool                        doAction(const int approach = 0 );
     bool                        trainDraw(const int toolI = 5, const int deg = 0);
     bool                        trainObserve(const int toolI = 5, const int deg = 0);
-    bool                        observeAndDo(const int toolI = 5, const int deg = 0);
+    bool                        observeAndDo(const int toolI = 5, const int deg = 0, const int trials = 1);
     bool                        runExp();
          
     // RF modules overrides
