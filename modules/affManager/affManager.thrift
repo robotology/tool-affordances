@@ -98,6 +98,15 @@ service affManager_IDLServer
      */
     bool computeEffect();
 
+    /**
+     * Sets the experiment flow flags to false (action done, object located, tip on view).
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool reset();
+
+
+
         
     /**
      * performs the sequence to get the tool from user, look at it and extract its features.

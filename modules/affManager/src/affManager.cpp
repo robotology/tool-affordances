@@ -257,6 +257,11 @@ bool AffManager::computeEffect(){
     return true;
 }
 
+bool AffManager::reset(){
+    finishRound();
+    return true;
+}
+
 /* Combined routines */
 bool AffManager::getTool(const int toolI, const int deg){
     
@@ -281,7 +286,10 @@ bool AffManager::getTool(const int toolI, const int deg){
             return false;
         }
         // Find tool dimensions using KARMA
-        findToolDimsExe();    // XXX Possibly substitute this by fixed dimension values
+        //findToolDimsExe();    // XXX Possibly substitute this by fixed dimension values
+        toolDim[0] = 0.16;
+        toolDim[1] = -0.16;
+        toolDim[2] = -0.04;
     }
     
     // Show and attach tooltip.
@@ -585,11 +593,18 @@ bool AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
 	igaze->setTrackingMode(false);
-    handToCenter();
-    //fprintf(stdout,"Moving hand to the center:\n");
-    lookOverHand();
 
-    return gazeAtTool();
+    tipOnView = false;
+    while (!tipOnView){
+        cout << "Tooltip not on view, looking for it" << endl;
+        tipOnView = lookAtToolExe();
+        handToCenter();
+        //fprintf(stdout,"Moving hand to the center:\n");
+        lookOverHand();
+        tipOnView = gazeAtTool();        
+    }
+    cout << "Tooltip now on view" << endl;
+    return true;
 }
 
 void AffManager::handToCenter()
@@ -598,7 +613,7 @@ void AffManager::handToCenter()
     if (robot== "icubSim")    {
         xd[0]=-0.35 + Rand::scalar(0,0.05); xd[1]=0.05 + Rand::scalar(0,0.04); xd[2]=0.05;}
     else {
-        xd[0]=-0.40 + Rand::scalar(0,0.05); xd[1]=0.10 + Rand::scalar(0,0.04); xd[2]=0.10;}
+        xd[0]=-0.35 + Rand::scalar(0,0.05); xd[1]=0.10 + Rand::scalar(0,0.04); xd[2]=0.10;}
     
     
     Vector oy(4), ox(4);
@@ -628,7 +643,7 @@ void AffManager::lookOverHand()
     {
         handPos[2] += 0.15;// Tool center round 15 cm over the hand
     }else {
-        handPos[2] += 0.25;
+        handPos[2] += 0.20;
     }
     fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
     igaze->lookAtFixationPoint(handPos);
@@ -642,23 +657,23 @@ void AffManager::lookOverHand()
 
 bool AffManager::gazeAtTool()
 {
-	Bottle toolTipB;
-	Bottle cmdKF, replyKF;    // bottles for Karma Finder
-    // Get ToolTip coordinates on image
-	cmdKF.clear();   replyKF.clear();
-	cmdKF.addString("tip");
-	fprintf(stdout,"%s\n",cmdKF.toString().c_str());
-	rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
-	toolTipB = replyKF.tail();
-	cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
-	toolTipPix[0] = toolTipB.get(0).asInt();
-	toolTipPix[1] = toolTipB.get(1).asInt();
 
-	if ((toolTipPix[0]<0) || (toolTipPix[0]>320) ||(toolTipPix[1]<0) ||(toolTipPix[0]>240)){
-		cout <<"Tooltip out of sight, at pixel: " << toolTipB.toString().c_str() << endl;
-		return false;
-	}
-	cout <<" Tooltip within view, at pixel: " << toolTipB.toString().c_str() << endl;
+    Bottle toolTipB;
+    Bottle cmdKF, replyKF;    // bottles for Karma Finder
+    // Get ToolTip coordinates on image
+    cmdKF.clear();   replyKF.clear();
+    cmdKF.addString("tip");
+    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+    rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
+    toolTipB = replyKF.tail();
+    toolTipPix[0] = toolTipB.get(0).asInt();
+    toolTipPix[1] = toolTipB.get(1).asInt();
+
+    if ((toolTipPix[0]<0) || (toolTipPix[0]>320) ||(toolTipPix[1]<0) ||(toolTipPix[0]>240)){
+        cout <<"Tooltip out of sight, at pixel: " << toolTipB.toString().c_str() << endl;
+        return false;
+    }
+    cout <<" Tooltip within view, at pixel: " << toolTipB.toString().c_str() << endl;	
 	return true;
 }
 
@@ -671,46 +686,19 @@ void AffManager::observeToolExe(){
     igaze->get2DPixel(0, handPose, handPix);
 
     /* So, 
-     * read tooltip from KF
-     * send it to toolBlobber (this will make tB output an image)
+     * read tooltip from KF - done on gezeAtTool
+     * send it to toolBlobber (this will make toolBobber output an image which will be fed to featExt)
      * call fExt snapshot to get the image
     */
 
-    /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
-    /*printf("Getting tip coordinates \n");
-    yarp::sig::Vector toolTipPix(2);
-    Bottle *toolTipIn = userDataPort.read(true);
-    toolTipPix[0] = toolTipIn->get(0).asInt();
-    toolTipPix[1] = toolTipIn->get(1).asInt();
-    // XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.
-    */
-
-    /*
-	Bottle toolTipB;
-	Bottle cmdKF, replyKF;    // bottles for Karma Motor
-	Vector toolTipPix(2);
-    while (!tipOnView){
-    	// Get ToolTip coordinates on image
-		cmdKF.clear();   replyKF.clear();
-		cmdKF.addString("tip");
-		fprintf(stdout,"%s\n",cmdKF.toString().c_str());
-		rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
-		toolTipB = replyKF.tail();
-		cout <<"Tooltip at pixel: " << toolTipB.toString().c_str() << endl;
-		toolTipPix[0] = toolTipB.get(0).asInt();
-		toolTipPix[1] = toolTipB.get(1).asInt();
-		if ((toolTipPix[0]<0) || (toolTipPix[0]>320) ||(toolTipPix[1]<0) ||(toolTipPix[0]>240))			{
-			printf("Tooltip not on view. Adjusting gaze \n");
-			lookOverHand();
-			}
-		else
-			tipOnView=true;
-	}
-     */
-    tipOnView = false;
-    while (!tipOnView){
-    	cout << "Tooltip not on view" << endl;
-    	tipOnView = lookAtToolExe();
+    if (robot != "icubSim") {
+         /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
+        printf("Getting tip coordinates \n");
+        Bottle *toolTipIn = userDataPort.read(true);
+        toolTipPix[0] = toolTipIn->get(0).asInt();
+        toolTipPix[1] = toolTipIn->get(1).asInt();
+        cout <<" Tooltip within view, at pixel: " << toolTipPix.toString().c_str() << endl;
+        // XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.    
     }
 
 
@@ -947,16 +935,6 @@ void AffManager::finishRound()
     cmd.addString("reset");
     cmdPort.write(cmd);      // Send the command
     cmdPort.close();
-
-
-    // Send command to featExt to reset ROI.
-    Bottle cmdFE, replyFE;
-    cmdFE.clear();
-    replyFE.clear();
-    cmdFE.addString("reset");
-    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
-    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    fprintf(stdout,"featExt reseted \n");
     */
 
 }

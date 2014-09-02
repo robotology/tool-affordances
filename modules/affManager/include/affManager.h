@@ -165,6 +165,7 @@ public:
     bool						trackObj(); 
     bool                        slideAction(const int approach);
     bool                        computeEffect();
+    bool                        reset();
 
     // Combined routines
     bool                        getTool(const int toolI = 5, const int deg = 0);

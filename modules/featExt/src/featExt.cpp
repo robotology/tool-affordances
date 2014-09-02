@@ -290,6 +290,8 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 
 	//Mat contoursIm = Mat::zeros( edges.size(), CV_8UC3 );
 	
+    int biggerBlobSize = 0;
+    int biggerBlobIdx = 0;
 	for( int i = 0; i< contoursPoint.size(); i++ )					// Iterate through each contour. 
 	{
         if (coordsInit){
@@ -301,15 +303,20 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
            }
         } else{            
 		    double a=contourArea(contoursPoint[i]);						// Find the area of contour
-		    if(a>minBlobSize){											// Keep only big contours
-			    contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
-			    drawContours( contoursIm, contoursPoint, i, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
+		    //if(a>minBlobSize){											// Keep only the big contours
+			//    contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
+			//    drawContours( contoursIm, contoursPoint, i, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
+            //}
+            if(a > biggerBlobSize){                                          // Keep only the big contours
+                biggerBlobSize = a;
+                biggerBlobIdx = i;
             }
         }
 	}
-	printf(" Found %d large contours out of %d contours \n", contours.size(), contoursPoint.size() );
-	//featFile << " Found " << contours.size() << " large contours out of " << contoursPoint.size() << " contours. \n";
-	
+    contours.push_back(Contour(contoursPoint[biggerBlobIdx]));          // Generate a vector of Contour objects
+    drawContours( contoursIm, contoursPoint, biggerBlobIdx, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
+	printf(" Largest contour on blob %d, out of %d blobs  \n", biggerBlobIdx, contoursPoint.size());
+    
 	// Initializationg vector of features
 	vector<Feature> feats (contours.size() );
 

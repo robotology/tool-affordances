@@ -1,40 +1,18 @@
 <application>
     <name>learnAffordancesAppSIM</name>
     <module>
-        <name>affManager</name>
-        <parameters>--robot icubSim</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 185) (y 25.9))</geometry>
-    </module>
-    <module>
-        <name>simtoolloader</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 525) (y 52.9))</geometry>
-    </module>
-    <module>
         <name>actionsRenderingEngine</name>
         <parameters>--from configSim_forTools.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 1274) (y 25.9))</geometry>
     </module>
-
     <module>
-        <name>graphBasedSegmentation</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 404) (y 718.9))</geometry>
-    </module>
-    <module>
-        <name>toolBlobber</name>
+        <name>affManager</name>
         <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 485) (y 565.9))</geometry>
+        <geometry>(Pos (x 185) (y 25.9))</geometry>
     </module>
     <module>
         <name>featExt</name>
@@ -43,7 +21,13 @@
         <prefix></prefix>
         <geometry>(Pos (x 1253) (y 490.9))</geometry>
     </module>
-
+    <module>
+        <name>graphBasedSegmentation</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 404) (y 718.9))</geometry>
+    </module>
     <module>
         <name>karmaMotor</name>
         <parameters>--robot icubSim --movTime 0.4</parameters>
@@ -58,7 +42,6 @@
         <prefix></prefix>
         <geometry>(Pos (x 782) (y 443.9))</geometry>
     </module>
-
     <module>
         <name>objectFinder</name>
         <parameters>--from objectFinderSim.ini</parameters>
@@ -67,13 +50,26 @@
         <geometry>(Pos (x 604) (y 128.9))</geometry>
     </module>
     <module>
+        <name>simtoolloader</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 525) (y 52.9))</geometry>
+    </module>
+    <module>
         <name>templatePFTracker</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 837) (y 149.9))</geometry>
+        <geometry>(Pos (x 854) (y 130.9))</geometry>
     </module>
-
+    <module>
+        <name>toolBlobber</name>
+        <parameters>--robot icubSim</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 485) (y 565.9))</geometry>
+    </module>
     <module>
         <name>yarpview</name>
         <parameters>--out /yarpview/out --x 0 --y 0</parameters>
@@ -86,14 +82,7 @@
         <parameters>--x 0 --y 350</parameters>
         <node>localhost</node>
         <prefix>/trackIm</prefix>
-        <geometry>(Pos (x 1097) (y 149.9))</geometry>
-    </module>
-    <module>
-        <name>yarpview</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix>/imgLoc</prefix>
-        <geometry>(Pos (x 838) (y 96.9))</geometry>
+        <geometry>(Pos (x 1094) (y 131.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
@@ -130,8 +119,6 @@
         <prefix>/featIm</prefix>
         <geometry>(Pos (x 1425) (y 542.9))</geometry>
     </module>
-
-
     <connection>
         <from>/affManager/are:rpc</from>
         <to>/actionsRenderingEngine/cmd:io</to>
@@ -160,13 +147,13 @@
         <from external="true">/icubSim/cam/left</from>
         <to>/karmaToolFinder/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 456) (y 515)) ((x 150) (y 518)) ((x 783) (y 512))  )</geometry>
+        <geometry>(Pos ((x 456) (y 515)) ((x 150) (y 517)) ((x 783) (y 512))  )</geometry>
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
         <to>/objectFinder/coords:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 414.5) (y 267)) ((x 245) (y 337)) ((x 605) (y 197))  )</geometry>
+        <geometry>(Pos ((x 414.5) (y 267)) ((x 245) (y 336)) ((x 605) (y 197))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/objFind:rpc</from>
@@ -190,19 +177,13 @@
         <from>/objectFinder/crop:o</from>
         <to>/templatePFTracker/template/image:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 803.5) (y 188.5)) ((x 790) (y 172)) ((x 838) (y 205))  )</geometry>
+        <geometry>(Pos ((x 812) (y 185)) ((x 790) (y 184)) ((x 855) (y 186))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icubSim/cam/left</from>
         <to>/objectFinder/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 367) (y 345)) ((x 150) (y 518)) ((x 605) (y 172))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objectFinder/imgOut:o</from>
-        <to>/imgLoc/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 804) (y 156)) ((x 790) (y 197)) ((x 839) (y 115))  )</geometry>
+        <geometry>(Pos ((x 367) (y 345)) ((x 150) (y 517)) ((x 605) (y 172))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
@@ -214,19 +195,19 @@
         <from>/templatePFTracker/target:o</from>
         <to>/objectFinder/track:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 823.5) (y 232.5)) ((x 1063) (y 268)) ((x 605) (y 197))  )</geometry>
+        <geometry>(Pos ((x 832) (y 235.5)) ((x 1080) (y 249)) ((x 605) (y 222))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icubSim/cam/left</from>
         <to>/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 114.5) (y 445)) ((x 150) (y 518)) ((x 100) (y 372))  )</geometry>
+        <geometry>(Pos ((x 114.5) (y 445)) ((x 150) (y 517)) ((x 100) (y 372))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icubSim/cam/left</from>
         <to>/toolBlobber/imLeft:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 307.5) (y 576)) ((x 150) (y 518)) ((x 486) (y 634))  )</geometry>
+        <geometry>(Pos ((x 307.5) (y 576)) ((x 150) (y 517)) ((x 486) (y 634))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
@@ -250,7 +231,7 @@
         <from>/templatePFTracker/left/image:o</from>
         <to>/trackIm/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 1070) (y 168)) ((x 1063) (y 168)) ((x 1098) (y 168))  )</geometry>
+        <geometry>(Pos ((x 1077) (y 149.5)) ((x 1080) (y 149)) ((x 1095) (y 150))  )</geometry>
     </connection>
     <connection>
         <from>/karmaToolFinder/img:o</from>
@@ -262,7 +243,7 @@
         <from external="true">/icubSim/cam/left</from>
         <to>/GBSeg/rawImg:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 267) (y 627.5)) ((x 150) (y 518)) ((x 405) (y 737))  )</geometry>
+        <geometry>(Pos ((x 267) (y 627.5)) ((x 150) (y 517)) ((x 405) (y 737))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/gbs:rpc</from>
@@ -280,7 +261,7 @@
         <from external="true">/icubSim/cam/left</from>
         <to>/templatePFTracker/left/image:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 483.5) (y 374)) ((x 150) (y 518)) ((x 838) (y 230))  )</geometry>
+        <geometry>(Pos ((x 492) (y 364)) ((x 150) (y 517)) ((x 855) (y 211))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/karmaFinder:rpc</from>
@@ -292,6 +273,6 @@
         <from external="true">/imLeft/yarpview/out</from>
         <to external="true">/affManager/user:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 204) (y 292)) ((x 245) (y 337)) ((x 184) (y 247))  )</geometry>
+        <geometry>(Pos ((x 204) (y 292)) ((x 245) (y 336)) ((x 192) (y 246))  )</geometry>
     </connection>
 </application>
