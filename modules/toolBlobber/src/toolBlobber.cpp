@@ -527,16 +527,16 @@ void ToolBlobber::onRead(Bottle& seedIn)
     printf("Cropping ROI\n");
     // Set the ROI to bound the tool and crop the arm away    
     yarp::sig::Vector ROIV(4);          // define ROI as tl.x, tl.y, br.x, br.y
-    ROIV[0] = toolTipRot.x - 40;     // ROI left side some pixels to the left of the tooltip
+    ROIV[0] = toolTipRot.x - 60;     // ROI left side some pixels to the left of the tooltip
     if (ROIV[0]<0) {ROIV[0] =0;}
     if (ROIV[0]>leftIm.cols) {ROIV[0]=leftIm.cols-1;}
 	ROIV[1] = toolTipRot.y - 40; // ROI top side a little bit over the height of the tooltip
     if (ROIV[1]<0) {ROIV[1] =0;}
     if (ROIV[1]>leftIm.rows) {ROIV[1]=leftIm.rows-1;}
-    ROIV[2] = toolTipRot.x + 40; // ROI right side some pixels to the right of the tooltip
+    ROIV[2] = toolTipRot.x + 60; // ROI right side some pixels to the right of the tooltip
     if (ROIV[2]<0) {ROIV[2] =0;}
     if (ROIV[2]>leftIm.cols) {ROIV[2]=leftIm.cols-1;}
-    ROIV[3] = hand.y - 60;  // ROI bottom side at the same height of the hands center
+    ROIV[3] = hand.y - 60;  // ROI bottom side a little bit over the hands center
     if (ROIV[3]<0) {ROIV[3] =0;}
     if (ROIV[3]>leftIm.rows) {ROIV[3]=leftIm.rows-1;}
     Rect ROI(Point(ROIV[0],ROIV[1]),Point(ROIV[2],ROIV[3]));

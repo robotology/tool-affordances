@@ -127,7 +127,7 @@ protected:
     void                        attachToolExe();
 
     /* Look and featExt Functions */
-    void						lookAtToolExe();
+    bool						lookAtToolExe();
         void                        handToCenter();
         void                        lookOverHand();
         bool                        gazeAtTool();

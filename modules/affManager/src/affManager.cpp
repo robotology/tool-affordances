@@ -229,8 +229,7 @@ bool AffManager::attachTool(){
 
 // Observation and fExt commands
 bool AffManager::lookAtTool(){
-	lookAtToolExe();
-	return true;
+	return lookAtToolExe();
 }
 bool AffManager::observeTool(){
 	observeToolExe();
@@ -270,8 +269,8 @@ bool AffManager::getTool(const int toolI, const int deg){
     if (robot== "icubSim")    {
         simTool(toolI, deg);
         // Tooltip positoin wrt hand
-        toolDim[0] = 0.17;
-        toolDim[1] = -0.17;
+        toolDim[0] = 0.16;
+        toolDim[1] = -0.16;
         toolDim[2] = 0.03;
 
     }else {
@@ -309,10 +308,6 @@ bool AffManager::doAction(const int approach){
 }
 
 bool AffManager::trainDraw(int toolI, int pose){
-    //getTool(toolI, pose);
-    goHomeNoHandsExe();
-    if (!trackingObj)
-        trackObjExe();
 	for ( int app = -5; app <= 5 ; app++ ){
         printf("\n Starting approach to %g\n", app/100.0);
         doAction(app);
@@ -330,6 +325,8 @@ bool AffManager::trainDraw(int toolI, int pose){
 
 bool AffManager::trainObserve(int tool, int pose){
     getTool(tool,pose);
+    if (!trackingObj)
+        trackObjExe();
 	for ( int d = 0; d < 20; d++ ){
         printf("Starting Action %i\n",d);
         lookAtToolExe();
@@ -341,10 +338,11 @@ bool AffManager::trainObserve(int tool, int pose){
 }
 
 bool AffManager::observeAndDo(int toolI, int pose, int trials){
+	getTool(toolI, pose);
     for ( int trial = 0; trial < trials; trial++ ){
         printf("==================================================================\n");
         printf("Performing Trial %i with tool %i on pose %i \n", trial, toolI, pose);
-		getTool(toolI, pose);
+
 		lookAtToolExe();
 		observeToolExe();
 		trainDraw(toolI,pose);
@@ -356,7 +354,7 @@ bool AffManager::observeAndDo(int toolI, int pose, int trials){
 
 bool AffManager::runExp(){
     printf("Starting Routine\n");
-    for ( int tool = 4; tool <= 7; tool++ ){
+    for ( int tool = 5; tool <= 7; tool++ ){
     	for ( int pose = -90; pose < 100; pose=pose+90 ){ //XXXXXXX
             for ( int trial = 0; trial < 10; trial++ ){
                 printf("==================================================================\n");
@@ -583,16 +581,15 @@ void AffManager::attachToolExe()
 
 // Look and featExt methods
 /**********************************************************/
-void AffManager::lookAtToolExe()
+bool AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
 	igaze->setTrackingMode(false);
     handToCenter();
     //fprintf(stdout,"Moving hand to the center:\n");
     lookOverHand();
-    gazeAtTool();
-    //igaze->setTrackingMode(true);
-    return;
+
+    return gazeAtTool();
 }
 
 void AffManager::handToCenter()
@@ -712,9 +709,8 @@ void AffManager::observeToolExe(){
      */
     tipOnView = false;
     while (!tipOnView){
-    	cout << "Tooltip no on view" << endl;
-    	lookOverHand();
-    	tipOnView = gazeAtTool();
+    	cout << "Tooltip not on view" << endl;
+    	tipOnView = lookAtToolExe();
     }
 
 
