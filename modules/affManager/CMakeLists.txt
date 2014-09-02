@@ -27,9 +27,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 add_executable(${PROJECTNAME} ${source} ${header} ${idl} )
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}  icubmod ctrlLib)
 
-add_executable(startAffEnv startAffEnv.cpp)
-target_link_libraries(startAffEnv ${YARP_LIBRARIES})
-
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
