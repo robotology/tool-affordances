@@ -288,6 +288,26 @@ public:
   }
 };
 
+class affManager_IDLServer_reset : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("reset",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class affManager_IDLServer_getTool : public yarp::os::Portable {
 public:
   int32_t tool;
@@ -555,6 +575,15 @@ bool affManager_IDLServer::computeEffect() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool affManager_IDLServer::reset() {
+  bool _return = false;
+  affManager_IDLServer_reset helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::reset()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_getTool helper;
@@ -785,6 +814,17 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "reset") {
+      bool _return;
+      _return = reset();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "getTool") {
       int32_t tool;
       int32_t deg;
@@ -939,6 +979,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("locateObj");
     helpString.push_back("slideAction");
     helpString.push_back("computeEffect");
+    helpString.push_back("reset");
     helpString.push_back("getTool");
     helpString.push_back("doAction");
     helpString.push_back("trainDraw");
@@ -1018,6 +1059,12 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="computeEffect") {
       helpString.push_back("bool computeEffect() ");
       helpString.push_back("Computes the effect of the action as the difference in the position of the object before and after the slide action. ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="reset") {
+      helpString.push_back("bool reset() ");
+      helpString.push_back("Sets the experiment flow flags to false (action done, object located, tip on view). ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }
