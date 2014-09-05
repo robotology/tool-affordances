@@ -161,12 +161,9 @@ bool CtrlThread::threadInit() {
 
     // Make a connection to the iCub Simulator world port:
     (*simToolLoaderSimOutputPort).addOutput("/icubSim/world");
-    cout << endl << "D1. SimWorld Constructor" << endl;
     simWorld = SimWorld(threadTable, threadObject);
-    cout << endl << "D1.1 Time Rand" << endl;
     srand (time(NULL));
 
-    cout << endl << "D2. Getting Model Directory" << endl;
     Bottle simCmd;
     simCmd.addString("world");
     simCmd.addString("set");
@@ -174,16 +171,11 @@ bool CtrlThread::threadInit() {
 
     //const ConstString icubRootEnvPath = yarp::os::getenv("ICUB_ROOT");
     //const ConstString localModelsPath = "/contrib/src/poeticon/poeticonpp/simtoolloader/models";
-    cout << endl << "D3. Adding extramodels" << endl;
     
     const ConstString icubContribEnvPath = yarp::os::getenv("ICUBcontrib_DIR");
-    cout << endl << "D3.1 Got Env" << icubContribEnvPath.c_str() << endl;
     const ConstString localModelsPath    = "/share/ICUBcontrib/contexts/simtoolloader/models";
-    cout << endl << "D3.2 got local path" << localModelsPath.c_str() << endl;
     const ConstString modelsPath         = icubContribEnvPath + localModelsPath;
-    cout << endl << "D3.1 Add Paths" << modelsPath.c_str() << endl;
     simCmd.addString(modelsPath);
-    cout << endl << "D4 write command" << endl;
     writeSim(simCmd);
 
     cout << endl << "D4. Opening cartesian controller" << endl;
@@ -212,6 +204,8 @@ void CtrlThread::run() {
     int objIndex  = 0;
     int toolIndex = 0;
     int toolPose = 0;
+    double objPosX = -0.1;
+    double objPosZ = 0.5;
     NetInt32 code;
 
 
@@ -235,6 +229,43 @@ void CtrlThread::run() {
 
                 break;
 
+            case VOCAB4('m','o','v','e'):
+
+			    cout << "Move object to original position on table." <<endl;
+            	objIndex = controlCmd.get(1).asInt();
+				//---------------------------------------------------------------
+				//Create one object:
+				//simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+
+			    if (simWorld.simObject[objIndex-1]->objSubIndex != 0)
+			    {
+					simWorld.simObject[objIndex-1]->setObjectPosition(
+												threadTable.get(4).asDouble()+objPosX,
+												threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
+												objPosZ);
+					simCmd = simWorld.simObject[objIndex-1]->moveObjectBottle();
+					writeSim(simCmd);
+
+	                simWorld.simObject[objIndex-1]->setObjectRotation(0, 0, 0);
+	                simCmd = simWorld.simObject[objIndex-1]->rotateObjectBottle();
+	                writeSim(simCmd);
+
+					//reply to the control manager the tool ID
+					controlCmd.clear();
+					controlCmd.addVocab(code);
+					controlCmd.addInt(objIndex);
+					replyCmd(controlCmd);
+			    }else {
+			    	cout << "No object of type " << objIndex << " is present, so it can't be moved." <<endl;
+			    	controlCmd.clear();
+					controlCmd.addString("nack");
+					controlCmd.addInt(objIndex);
+					replyCmd(controlCmd);
+			    }
+
+
+            	break;
+
             case VOCAB3('o','b','j'):
                 cout << "Create table and tool (on the table)." <<endl;
 
@@ -247,26 +278,24 @@ void CtrlThread::run() {
                 simCmd = simWorld.simTable->makeObjectBottle(simWorld.objSubIndex, false);
                 writeSim(simCmd);
 
-                //Create the tool on the table:
-                toolIndex = controlCmd.get(1).asInt();
-                if ( toolIndex==0 ) {
-                    toolIndex = rand() % simWorld.simObject.size() + 1;
-                }
-                //simWorld.simObject[toolIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
-                simWorld.simObject[toolIndex-1]->setObjectPosition(
-                                        threadTable.get(4).asDouble()+0.05,
-                                        threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                        0.35);
-                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
-                writeSim(simCmd);
-                simWorld.simObject[toolIndex-1]->setObjectRotation(0, -50, 0);
-                simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
-                writeSim(simCmd);
+                //---------------------------------------------------------------
+                //Create one object:
+				objIndex = controlCmd.get(1).asInt();
+				if ( objIndex==0 ) {
+					objIndex = rand() % simWorld.simObject.size() + 1;
+				}
+				//simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+				simWorld.simObject[objIndex-1]->setObjectPosition(
+										threadTable.get(4).asDouble()+objPosX,
+										threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
+										objPosZ);
+				simCmd = simWorld.simObject[objIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+				writeSim(simCmd);
 
                 //reply to the control manager the tool ID
                 controlCmd.clear();
                 controlCmd.addVocab(code);
-                controlCmd.addInt(toolIndex);
+                controlCmd.addInt(objIndex);
                 replyCmd(controlCmd);
 
                 break;
@@ -284,6 +313,7 @@ void CtrlThread::run() {
                 simCmd = simWorld.simTable->makeObjectBottle(simWorld.objSubIndex, false);
                 writeSim(simCmd);
 
+                //------------------------------------------------------------------
                 //Create one tool in the hand:
                 toolIndex = controlCmd.get(1).asInt();
                 if ( toolIndex==0 ) {
@@ -370,7 +400,7 @@ void CtrlThread::run() {
                 Vector T2WrpyDeg = T2Wrpy *(180.0/M_PI);
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",T2WrpyDeg.toString().c_str());
                 
-                /* create rotate and grab the object */
+                /* create rotate and grab the tool */
                 simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
                 simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
@@ -383,8 +413,9 @@ void CtrlThread::run() {
                 printf("Tool rotated \n");
                 simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //left arm by default
                 writeSim(simCmd);
-                printf("Tool catched \n");
+                printf("Tool caught \n");
 
+                //------------------------------------------------------------------
                 //Create one object:
                 objIndex = controlCmd.get(2).asInt();
                 if ( objIndex==0 ) {
@@ -392,9 +423,9 @@ void CtrlThread::run() {
                 }
                 //simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
                 simWorld.simObject[objIndex-1]->setObjectPosition(
-                                        threadTable.get(4).asDouble()-0.2,
+                                        threadTable.get(4).asDouble()+objPosX,
                                         threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                        0.45);
+                                        objPosZ);
                 simCmd = simWorld.simObject[objIndex-1]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
 
@@ -504,6 +535,19 @@ Bottle SimBox::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimBox::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("box");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimBox::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -599,6 +643,19 @@ Bottle SimSBox::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimSBox::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("sbox");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimSBox::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -683,6 +740,19 @@ Bottle SimSph::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimSph::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("sph");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimSph::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -764,6 +834,19 @@ Bottle SimSSph::rotateObjectBottle() {
     cmd.addDouble(rotationX);
     cmd.addDouble(rotationY);
     cmd.addDouble(rotationZ);
+    return cmd;
+}
+
+Bottle SimSSph::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("ssph");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
     return cmd;
 }
 
@@ -853,6 +936,19 @@ Bottle SimCyl::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimCyl::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("cyl");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimCyl::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -939,6 +1035,19 @@ Bottle SimSCyl::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimSCyl::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("scyl");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimSCyl::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -1021,6 +1130,20 @@ Bottle SimModel::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimModel::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("model");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
+
 Bottle SimModel::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -1099,6 +1222,19 @@ Bottle SimSModel::rotateObjectBottle() {
     return cmd;
 }
 
+Bottle SimSModel::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("smodel");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
 Bottle SimSModel::grabObjectBottle(iCubArm arm) {
 
     Bottle cmd;
@@ -1127,14 +1263,19 @@ SimWorld::SimWorld() {
 SimWorld::SimWorld(const Bottle& threadTable,
                    vector<Bottle>& threadObject) {
 
-    cout << endl << "D.A. SimWorld Constructor" << endl;
+	//SimWorld is a class keeping the descriptions of all the possible objects:
+	// -simObject is a vector which keeps instances of all the objects than can be created.
+	// 		- each index in simObject is populated by instances of a class of objects
+	//		- objSubIndex keeps track of the number of objects of each class that have been created
+
     simObject.resize(threadObject.size());
-    cout << endl << "D.A.1 Setting indices" << endl;
+
     objSubIndex.resize(9);
     for ( int n=0 ; n<9 ; n++ ) {
         objSubIndex[n]=0;
     }
-    cout << endl << "D.A.SimSBox Constructor" << endl;
+    cout << endl << "D.A.SimSBox -Table - Constructor" << endl;
+    cout << endl << "threadTable" << " = " << threadTable.toString() << endl;
     simTable = new SimSBox(threadTable.get(4).asDouble(),
                            threadTable.get(5).asDouble(),
                            threadTable.get(6).asDouble(),
@@ -1147,7 +1288,9 @@ SimWorld::SimWorld(const Bottle& threadTable,
                            threadTable.get(3).asDouble());
     simTable->objSubIndex=0;
 
+    cout << endl << "D.B. Models Initialization" << endl;
     for ( int n=0 ; n<threadObject.size() ; n++ ) {
+    	cout << endl << "threadObject" << n << " = " << threadObject[n].toString() << endl;
         if      (threadObject[n].get(1).asString() == "Box") {
             simObject[n] = new SimBox(threadTable.get(4).asDouble()-0.05,
                                       threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
@@ -1231,7 +1374,7 @@ SimWorld::SimWorld(const Bottle& threadTable,
                                          threadObject[n].get(2).asString(),
                                        threadObject[n].get(3).asString());
         }*/
-        simObject[n]->objSubIndex=0;        
+        simObject[n]->objSubIndex=0;
     }
     cout << endl << "D.B. Model indices initialized" << endl;
 }

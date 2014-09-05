@@ -263,7 +263,7 @@ public:
 
     bool getBox()
     {
-        // Crops the image based on user input and creats a template for the tracker with it.
+        // Crops the image based on user input and creates a template for the tracker with it.
         printf("Reading image!!\n");
         ImageOf<PixelRgb> *imgIn = imInPort.read();  // read an image
         cv::Mat img((IplImage*) imgIn->getIplImage());	   
@@ -287,7 +287,7 @@ public:
             printf("Point read at %d, %d!!\n", br.x, br.y);
 
             BBox = cv::Rect(tl,br);            
-            if (BBox.area() > 0) {
+            if (BBox.area() > 20) {
                 printf("valid coordinates, cropping image!\n");
                 boxOK = true;}
             else {printf("Coordinates not valid, click again!\n");}

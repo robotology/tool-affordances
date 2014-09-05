@@ -1,13 +1,6 @@
 <application>
     <name>icubSim_Startup</name>
     <module>
-        <name>iCubSkinGui</name>
-        <parameters>--from left_hand.ini --useCalibration --xpos 2510 --ypos 0 --width 400 --height 400</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 270.90) (y 240.90))</geometry>
-    </module>
-    <module>
         <name>iKinCartesianSolver</name>
         <parameters>--part right_arm --context simCartesianControl</parameters>
         <node>localhost</node>
@@ -36,6 +29,14 @@
         <geometry>(Pos (x 270.90) (y 105.90))</geometry>
     </module>
     <module>
+        <name>simCartesianControl</name>
+        <parameters>--no_legs</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 510.90) (y 195.90))</geometry>
+    </module>
+
+    <module>
         <name>wholeBodyDynamics</name>
         <parameters>--robot icubSim --autoconnect --dummy_ft --no_legs</parameters>
         <node>localhost</node>
@@ -43,10 +44,10 @@
         <geometry>(Pos (x 270.90) (y 105.90))</geometry>
     </module>
     <module>
-        <name>simCartesianControl</name>
-        <parameters>--no_legs</parameters>
+        <name>iCubSkinGui</name>
+        <parameters>--from left_hand.ini --useCalibration --xpos 2510 --ypos 0 --width 400 --height 400</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 510.90) (y 195.90))</geometry>
+        <geometry>(Pos (x 270.90) (y 240.90))</geometry>
     </module>
 </application>

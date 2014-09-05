@@ -73,7 +73,8 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true)  = 0;
     virtual Bottle   grabObjectBottle(iCubArm arm)                     = 0;
     virtual Bottle rotateObjectBottle()                                = 0;
-    virtual Bottle deleteObject()                                      = 0; //no implementation yet
+    virtual Bottle moveObjectBottle()	                               = 0;
+    virtual Bottle deleteObject()                                      = 0; //XXX no implementation yet
 };
 
 class SimBox: public SimObject {
@@ -90,6 +91,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 
 };
@@ -108,6 +110,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -123,6 +126,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -138,6 +142,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -154,6 +159,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -170,6 +176,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -185,6 +192,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 
@@ -200,6 +208,7 @@ public:
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
     virtual Bottle deleteObject();
     virtual Bottle rotateObjectBottle();
+    virtual Bottle moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
 };
 

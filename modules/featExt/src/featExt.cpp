@@ -315,8 +315,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	}
     contours.push_back(Contour(contoursPoint[biggerBlobIdx]));          // Generate a vector of Contour objects
     drawContours( contoursIm, contoursPoint, biggerBlobIdx, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
-	printf(" Largest contour on blob %d, out of %d blobs  \n", biggerBlobIdx, contoursPoint.size());
-    
+	cout << "Largest contour on blob " << biggerBlobIdx << " out of "<< contoursPoint.size() << " blobs." << endl;
 	// Initializationg vector of features
 	vector<Feature> feats (contours.size() );
 
@@ -478,7 +477,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
         contours[i].drawArrow(contoursIm,contours[i].getPoints()[0], refAngle, color, 30, 2);
 
 		featSend.content.push_back(feats[i]);
-        if (verbose){printf("Feature Vector of length %i \n", feats[i].content.size());}
+        if (verbose){cout << "Feature Vector of length " << feats[i].content.size() << endl;}
     } //end contours loop
 
     if (ROIinit){

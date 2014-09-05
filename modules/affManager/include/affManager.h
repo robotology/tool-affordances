@@ -93,6 +93,9 @@ protected:
 	yarp::dev::ICartesianControl			*icart;
     int                                     cartCntxt;
 
+    yarp::dev::PolyDriver					clientTorso;
+    yarp::dev::IPositionControl				*iTorso;
+
     yarp::dev::PolyDriver                   clientGaze;
     yarp::dev::IGazeControl                 *igaze;
     int                                     gazeCntxt;
@@ -121,6 +124,7 @@ protected:
 	void						askForToolExe();	
 	bool						graspToolExe();
     void                        simTool(int toolI = 5,int orDeg = 0);
+    void                        simMoveObj();
         bool                        setLabel(const std::string &label);
 
     void                        findToolDimsExe();

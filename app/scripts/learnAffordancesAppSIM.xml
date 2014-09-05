@@ -1,13 +1,6 @@
 <application>
     <name>learnAffordancesAppSIM</name>
     <module>
-        <name>actionsRenderingEngine</name>
-        <parameters>--from configSim_forTools.ini</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1274) (y 25.9))</geometry>
-    </module>
-    <module>
         <name>affManager</name>
         <parameters>--robot icubSim</parameters>
         <node>localhost</node>
@@ -119,12 +112,6 @@
         <prefix>/featIm</prefix>
         <geometry>(Pos (x 1425) (y 542.9))</geometry>
     </module>
-    <connection>
-        <from>/affManager/are:rpc</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 802) (y 43.5)) ((x 350) (y 43)) ((x 1275) (y 44))  )</geometry>
-    </connection>
     <connection>
         <from>/affManager/sim:rpc</from>
         <to>/simtoolloader/cmd:i</to>

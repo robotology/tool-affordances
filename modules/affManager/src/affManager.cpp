@@ -74,7 +74,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	}
     //rpc
     bool retRPC = true; 
-    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   //rpc client to interact with the affManager
+    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   //rpc client to interact with the affManager
     retRPC = retRPC && rpcSim.open(("/"+name+"/sim:rpc").c_str());					   //rpc client to interact with the simulator
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
@@ -89,16 +89,25 @@ bool AffManager::configure(ResourceFinder &rf)
 		return false;
 	}
 
-	// Cartesian Controller Interface
+	// Cartesian Controller Interface for arm
 	Property optCart;
 	optCart.put("device","cartesiancontrollerclient");
     optCart.put("remote","/"+robot+"/cartesianController/"+hand+"_arm");
     optCart.put("local","/"+name+"/cartesian_client/"+hand+"_arm");
 	if (!clientCart.open(optCart))
 		return false;    
-    clientCart.view(icart);	// open the view	
-
+    clientCart.view(icart);	// open the view
+    clientCart.view(iTorso);	// open the view
     icart->storeContext(&cartCntxt);
+
+    // Cartesian Controller Interface for torso
+	Property optPosTorso;
+	optPosTorso.put("device","remote_controlboard");
+	optPosTorso.put("remote","/"+robot+"/torso");
+	optPosTorso.put("local","/"+name+"/torsoControl/torso");
+	if (!clientTorso.open(optPosTorso))
+		return false;
+	clientTorso.view(iTorso);	// open the view
 
     // Gaze Controller Interface
     Property optGaze("(device gazecontrollerclient)");
@@ -113,7 +122,8 @@ bool AffManager::configure(ResourceFinder &rf)
 
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
-    igaze->setTrackingMode(false);
+    igaze->setTrackingMode(true);
+    igaze->blockEyes(0.0);
 
     printf("Manager configured correctly \n");
 
@@ -169,6 +179,7 @@ bool AffManager::close()
 
     clientGaze.close();
     clientCart.close();
+    clientTorso.close();
     igaze->restoreContext(gazeCntxt);       // ... and then retrieve the stored context_0
     icart->restoreContext(cartCntxt);
 
@@ -273,7 +284,7 @@ bool AffManager::getTool(const int toolI, const int deg){
     // Get the tool in the hand
     if (robot== "icubSim")    {
         simTool(toolI, deg);
-        // Tooltip positoin wrt hand
+        // Tooltip position wrt hand
         toolDim[0] = 0.16;
         toolDim[1] = -0.16;
         toolDim[2] = 0.03;
@@ -304,10 +315,12 @@ bool AffManager::doAction(const int approach){
 	goHomeNoHandsExe();
     if (!trackingObj)
         trackObjExe();
+    Time::delay(2);
 	if (locateObjExe())
 	{
 		slideActionExe(approach);
 		goHomeNoHandsExe();
+		Time::delay(2);
 		locateObjExe();
 		computeEffectExe();
 	}
@@ -316,12 +329,15 @@ bool AffManager::doAction(const int approach){
 }
 
 bool AffManager::trainDraw(int toolI, int pose){
+    if (!trackingObj)
+        trackObjExe();
 	for ( int app = -5; app <= 5 ; app++ ){
         printf("\n Starting approach to %g\n", app/100.0);
         doAction(app);
         //printf("Action with approach %g Finished\n", app/100.0);
         if (robot== "icubSim")    {
-            simTool(toolI,pose);
+        	printf("Action finished, recreating objects!! \n");
+            simMoveObj();
         } else{
             printf("Put the object back in place!!! \n");
             Time::delay(5);
@@ -332,10 +348,7 @@ bool AffManager::trainDraw(int toolI, int pose){
 }
 
 bool AffManager::trainObserve(int tool, int pose){
-    getTool(tool,pose);
-    if (!trackingObj)
-        trackObjExe();
-	for ( int d = 0; d < 20; d++ ){
+	for ( int d = 0; d < 10; d++ ){
         printf("Starting Action %i\n",d);
         lookAtToolExe();
         observeToolExe();
@@ -362,16 +375,13 @@ bool AffManager::observeAndDo(int toolI, int pose, int trials){
 
 bool AffManager::runExp(){
     printf("Starting Routine\n");
-    for ( int tool = 5; tool <= 7; tool++ ){
-    	for ( int pose = -90; pose < 100; pose=pose+90 ){ //XXXXXXX
-            for ( int trial = 0; trial < 10; trial++ ){
-                printf("==================================================================\n");
-                printf("Performing Trial %i with tool %i on pose %i \n", trial, tool, pose);
-                observeAndDo(tool, pose);
-                Time::delay(2);    
-            }
+    //for ( int tool = 5; tool <= 7; tool++ ){
+    int tool=7;
+    	for ( int pose = -90; pose < 100; pose=pose+90 ){
+			observeAndDo(tool, pose, 10);
+			Time::delay(2);
         }
-    }
+    //}
 	return true;
 }
 
@@ -398,23 +408,45 @@ void AffManager::goHomeExe()
 /**********************************************************/
 void AffManager::goHomeNoHandsExe()
 {
-    /*
+	fprintf(stdout,"Command go home no hands");
     if (robot== "icubSim")    {
-        // Move the arm
-        Vector pos,or;
-        icart->getPose(pos,or);
-        pos[0]=-0.25; pos[1]=0.30; pos[2]=0.10;
-        icart->goToPoseSync(pos,or);   // send request and wait for reply
-        icart->waitMotionDone(0.04);
+    	fprintf(stdout,"Homing ");
+    	iTorso->positionMove(0,0.0);
+    	iTorso->positionMove(1,0.0);
+    	iTorso->positionMove(2,0.0);
+    	fprintf(stdout," Torso ");
+
+        // Move the arm to home position
+    	Vector posV,orV;
+    	icart->getPose(posV,orV);
+        posV[0]= -0.25; posV[1] = 0.15; posV[2] = 0.10;
+    	icart->goToPoseSync(posV,orV);   // first take the tool out of the way
+        icart->waitMotionDone(0.1,3.0);
+
+        Vector posH(3),orH(4);
+        posH[0]= -0.25; posH[1] = 0.30; posH[2] = 0.10;
+        Matrix R2(4,4);
+        // pose x-axis   y-axis         z-axis            translation
+        R2(0,0)= 0.0;  R2(0,1)= 0.0;  R2(0,2)=-1.0;    R2(0,3)= 0.0;        // x-coordinate in root frame
+        R2(1,0)= 1.0;  R2(1,1)= 0.0;  R2(1,2)= 0.0;    R2(1,3)= 0.0;     // y-coordinate    "
+        R2(2,0)= 0.0;  R2(2,1)= 1.0;  R2(2,2)= 0.0;    R2(2,3)= 0.0;     // z-coordinate    "
+        R2(3,0)= 0.0;  R2(3,1)= 0.0;  R2(3,2)= 0.0;    R2(3,3)= 1.0;        // Translation
+        orH = iCub::ctrl::dcm2axis(R2);     // from rotation matrix back to the axis/angle notation
+
+        icart->goToPoseSync(posH,orH);   // then go to the home position
+        icart->waitMotionDone(0.1, 3.0);
+        fprintf(stdout,", arm");
 
         // Move the head
         Vector ang;
         igaze->getAngles(ang);          // 
         ang[0]= 0.0;                    // azimuth-component [deg]
-        ang[1]=-45.0;                   // elevation-component [deg]
+        ang[1]=-60.0;                   // elevation-component [deg]
         igaze->lookAtAbsAngles(ang);    // move the gaze
+        fprintf(stdout,", and head");
 
-    } else{*/
+    } else{
+
 	    //fprintf(stdout,"Start 'home' 'arms' 'head' proceedure:\n");
         Bottle cmdAre, replyAre;
         cmdAre.clear();
@@ -423,8 +455,8 @@ void AffManager::goHomeNoHandsExe()
         cmdAre.addString("arms");
         cmdAre.addString("head");
         rpcMotorAre.write(cmdAre,replyAre);     
-        //fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());  
-    //}    
+        fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());
+    }
     return;
 }
 
@@ -473,7 +505,7 @@ bool AffManager::graspToolExe()
 /**********************************************************/
 void AffManager::simTool(int toolI,int orDeg )
 {
-    // Put the hand in a safe position
+    // Put the hand in a s0afe position
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
     xd[0]=-0.25; xd[1]=0.15; xd[2]=0.05;
     Vector oy(4), ox(4);
@@ -489,10 +521,15 @@ void AffManager::simTool(int toolI,int orDeg )
     od = iCub::ctrl::dcm2axis(R);     // from rotation matrix back to the axis/angle notation     
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
-    icart->waitMotionDone(0.04);
+    icart->waitMotionDone(0.1, 3.0);
     
     // Query simtoolloader to create the virtual tool and object
-    Bottle cmdSim,replySim;       // bottles for Karma Motor
+    Bottle cmdSim,replySim;       // bottles for Simulator
+    cmdSim.clear();   replySim.clear();
+    cmdSim.addString("del");
+    fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
+    rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
+
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("tool");
     cmdSim.addInt(toolI);	// tool
@@ -506,6 +543,17 @@ void AffManager::simTool(int toolI,int orDeg )
     //icart->getPose(handPos,handOr);
     //igaze->lookAtFixationPoint(handPos);    
     return;
+}
+
+void AffManager::simMoveObj()
+{	// Query simtoolloader move the object to its original position object
+    Bottle cmdSim,replySim;       // bottles for Simulator
+    cmdSim.clear();   replySim.clear();
+	cmdSim.addString("move");
+	cmdSim.addInt(2);	// object
+
+	fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
+    rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
 }
 
 bool AffManager::setLabel(const string &label){
@@ -592,12 +640,11 @@ void AffManager::attachToolExe()
 bool AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
-	igaze->setTrackingMode(false);
+	igaze->setTrackingMode(true);
 
     tipOnView = false;
     while (!tipOnView){
         cout << "Tooltip not on view, looking for it" << endl;
-        tipOnView = lookAtToolExe();
         handToCenter();
         //fprintf(stdout,"Moving hand to the center:\n");
         lookOverHand();
@@ -631,7 +678,7 @@ void AffManager::handToCenter()
     //fprintf(stdout,"Command send to move to %.2f, %.2f, %.2f on the robot frame\n", xd[0], xd[1], xd[2] );
 
     icart->goToPoseSync(xd,od);   // send request and wait for reply
-    icart->waitMotionDone(0.04);
+    icart->waitMotionDone(0.1,3.0);
     return;
 }
 
@@ -647,7 +694,7 @@ void AffManager::lookOverHand()
     }
     fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
     igaze->lookAtFixationPoint(handPos);
-    igaze->waitMotionDone(0.04);
+    igaze->waitMotionDone(0.1, 3.0);
     //Vector fp;
     //igaze->getFixationPoint(fp); 							// retrieve the current fixation point
 	//fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
@@ -690,49 +737,56 @@ void AffManager::observeToolExe(){
      * send it to toolBlobber (this will make toolBobber output an image which will be fed to featExt)
      * call fExt snapshot to get the image
     */
-
-    if (robot != "icubSim") {
-         /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
-        printf("Getting tip coordinates \n");
-        Bottle *toolTipIn = userDataPort.read(true);
-        toolTipPix[0] = toolTipIn->get(0).asInt();
-        toolTipPix[1] = toolTipIn->get(1).asInt();
-        cout <<" Tooltip within view, at pixel: " << toolTipPix.toString().c_str() << endl;
-        // XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.    
+    if (!gazeAtTool()){
+    	cout << "Tool not on sight, cant observe it, trying to look at it" << endl;
+    	lookAtToolExe();
+    	observeToolExe();
     }
+    else{
+
+		if (robot != "icubSim") {
+			 /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
+			printf("Getting tip coordinates \n");
+			Bottle *toolTipIn = userDataPort.read(true);
+			toolTipPix[0] = toolTipIn->get(0).asInt();
+			toolTipPix[1] = toolTipIn->get(1).asInt();
+			cout <<" Tooltip within view, at pixel: " << toolTipPix.toString().c_str() << endl;
+			// XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.
+		}
 
 
-    printf("Seeding ToolBlobber \n");
-    Bottle cmdTB, replyTB;                                  // bottles for Tool Blobber
-    cmdTB.clear();   replyTB.clear();
-    cmdTB.addString("seed");
-    cmdTB.addInt(toolTipPix[0]);
-    cmdTB.addInt(toolTipPix[1]);
-    fprintf(stdout,"%s\n",cmdTB.toString().c_str());
-    rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
-        
+		printf("Seeding ToolBlobber \n");
+		Bottle cmdTB, replyTB;                                  // bottles for Tool Blobber
+		cmdTB.clear();   replyTB.clear();
+		cmdTB.addString("seed");
+		cmdTB.addInt(toolTipPix[0]);
+		cmdTB.addInt(toolTipPix[1]);
+		fprintf(stdout,"%s\n",cmdTB.toString().c_str());
+		rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
 
-    // Get the features
-    printf("Computing Features \n");
-    Bottle cmdFE,replyFE;
-    cmdFE.clear();
-    replyFE.clear();
-    cmdFE.addString("snapshot");
-    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
-    rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    // At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
 
-    // Send them to Afflearn to be analyzed
-    printf("Sending data to affLearn\n");
-    Bottle cmdLearn,replyLearn;
-    cmdLearn.clear();
-    replyLearn.clear();
-    cmdLearn.addString("addData");
-    cmdLearn.addString("toolFeats");
-    cmdLearn.append(replyFE);
-    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
-    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
-    fprintf(stdout,"Data processed by learner \n");    
+		// Get the features
+		printf("Computing Features \n");
+		Bottle cmdFE,replyFE;
+		cmdFE.clear();
+		replyFE.clear();
+		cmdFE.addString("snapshot");
+		fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+		rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
+		// At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
+
+		// Send them to Afflearn to be analyzed
+		printf("Sending data to affLearn\n");
+		Bottle cmdLearn,replyLearn;
+		cmdLearn.clear();
+		replyLearn.clear();
+		cmdLearn.addString("addData");
+		cmdLearn.addString("toolFeats");
+		cmdLearn.append(replyFE);
+		fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+		rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+		fprintf(stdout,"Data processed by learner \n");
+    }
     
     return;
 }
@@ -752,9 +806,9 @@ void AffManager::slideActionExe(int approach)
         
         //double minusTool = 0.15;
         cmdKM.addString("draw");
-        cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.05); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
+        cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.03); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
         cmdKM.addDouble(target3DcoordsIni[1] + goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
-        cmdKM.addDouble(target3DcoordsIni[2]);      // Z (height) is constant on the table plane + 0.04 not to hit the table itself
+        cmdKM.addDouble(target3DcoordsIni[2] + 0.05 - fabs(goPoint)/2);      // Z (height) is constant on the table plane + 0.04 not to hit the table itself
         cmdKM.addInt(angle);                        // Set the approach always on che center of the object
         cmdKM.addDouble(radius);                    // At 90deg, this means the tooltip will get always the radius dist behind the object.
         cmdKM.addDouble(dist);
@@ -763,7 +817,7 @@ void AffManager::slideActionExe(int approach)
         fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
 
-        icart->waitMotionDone(0.04);
+        icart->waitMotionDone(0.1,20.0);
         actionDone = true;
 
 
@@ -794,6 +848,7 @@ void AffManager::slideActionExe(int approach)
 /**********************************************************/
 void AffManager::trackObjExe()
 {
+	goHomeNoHands();
     // Select the target object to be tracked
     printf("\n \n Click first TOP LEFT and then BOTTOM RIGHT from the object to set the tracking template. Please.\n");
     Bottle cmdFinder,replyFinder;
@@ -847,14 +902,14 @@ bool AffManager::locateObjExe()
         printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		target3DcoordsIni[0] = coords3D[0];
 		target3DcoordsIni[1] = coords3D[1];
-		target3DcoordsIni[2] = coords3D[2] + 0.04;        // Set the point 4 cm over the table plane
+		target3DcoordsIni[2] = coords3D[2];        // Set the point 4 cm over the table plane
 		//fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
 		objCoords3DLoc = true;
 	}else{
 		printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		target3DcoordsAfter[0] = coords3D[0];
 		target3DcoordsAfter[1] = coords3D[1];
-		target3DcoordsAfter[2] = coords3D[2] + 0.04;
+		target3DcoordsAfter[2] = coords3D[2];
 		//fprintf(stdout,"Object is located at %s:\n", target3DcoordsAfter.toString().c_str());
 	}
 
