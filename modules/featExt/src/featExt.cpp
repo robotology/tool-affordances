@@ -343,8 +343,8 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
 		printf(" * Contour[%i] \n", i);
 		//featFile << "\n CONTOUR " << i << "\n";
-        feats[i].name.assign(objName);
-			
+		feats[i].name.assign(objName);
+		feats[i].content.push_back(' ');		// Include a space after opening parenthesis to make reading easier
 		Rect boundRect = boundingRect( contours[i].getPoints());
 
 		//==== Convex Hull and Convexity Defects ====
@@ -465,6 +465,8 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 			feats[i].content.push_back(fourierDesc[p]);
 			feats[i].content.push_back(waveletDesc[p]);
 		}
+
+		feats[i].content.push_back(' ');		// Include a space before closing parenthesis to make reading easier
 
 		// Draw results on images
 		contours[i].drawOnImg(src, color);
