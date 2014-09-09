@@ -166,12 +166,14 @@
         <protocol>udp</protocol>
         <geometry>(Pos ((x 802.5) (y 126.5)) ((x 773) (y 126)) ((x 853) (y 127))  )</geometry>
     </connection>
+    <!--
     <connection>
         <from>/templatePFTracker/target:o</from>
         <to>/actionsRenderingEngine/tracker:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 1166.5) (y 245)) ((x 1078) (y 190)) ((x 1276) (y 300))  )</geometry>
     </connection>
+    -->
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/objectFinder/img:i</to>

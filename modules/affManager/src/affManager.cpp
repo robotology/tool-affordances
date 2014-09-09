@@ -122,7 +122,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
     igaze->setNeckTrajTime(0.8);
     igaze->setEyesTrajTime(0.4);
-    igaze->setTrackingMode(true);
+    igaze->setTrackingMode(false);
     igaze->blockEyes(0.0);
 
     printf("Manager configured correctly \n");
@@ -456,6 +456,13 @@ void AffManager::goHomeNoHandsExe()
         cmdAre.addString("head");
         rpcMotorAre.write(cmdAre,replyAre);     
         fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());
+
+        cmdAre.clear();
+        replyAre.clear();
+        cmdAre.addString("idle");
+        rpcMotorAre.write(cmdAre,replyAre);     
+        fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());
+
     }
     return;
 }
@@ -471,6 +478,7 @@ void AffManager::askForToolExe()
     replyAre.clear();
     cmdAre.addString("tato");
     cmdAre.addString("right");
+    cmdAre.addString("no_gaze");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"Waiting for tool %s:\n",replyAre.toString().c_str());
     return;
@@ -487,6 +495,7 @@ bool AffManager::graspToolExe()
     replyAre.clear();
     cmdAre.addString("clto");
     cmdAre.addString("right");
+    cmdAre.addString("no_gaze");
     fprintf(stdout,"%s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
     fprintf(stdout,"'clto' 'right' action is %s:\n",replyAre.toString().c_str());
@@ -640,17 +649,20 @@ void AffManager::attachToolExe()
 bool AffManager::lookAtToolExe()
 {
     // Put tool on a comfortable lookable position
-	igaze->setTrackingMode(true);
+	igaze->setTrackingMode(false);
 
     tipOnView = false;
+    double disp = 0;
     while (!tipOnView){
         cout << "Tooltip not on view, looking for it" << endl;
         handToCenter();
         //fprintf(stdout,"Moving hand to the center:\n");
-        lookOverHand();
+        lookOverHand(disp);
         tipOnView = gazeAtTool();        
+        disp += 0.02;
     }
     cout << "Tooltip now on view" << endl;
+	igaze->setTrackingMode(true);
     return true;
 }
 
@@ -682,15 +694,15 @@ void AffManager::handToCenter()
     return;
 }
 
-void AffManager::lookOverHand()
+void AffManager::lookOverHand(double disp)
 {
     Vector handPos,handOr;
     icart->getPose(handPos,handOr);
     if (robot== "icubSim")
-    {
-        handPos[2] += 0.15;// Tool center round 15 cm over the hand
+    {        
+        handPos[2] += 0.15 + disp;// Tool center round 15 cm over the hand
     }else {
-        handPos[2] += 0.20;
+        handPos[2] += 0.20 + disp;
     }
     fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
     igaze->lookAtFixationPoint(handPos);

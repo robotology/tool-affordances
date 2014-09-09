@@ -133,7 +133,7 @@ protected:
     /* Look and featExt Functions */
     bool						lookAtToolExe();
         void                        handToCenter();
-        void                        lookOverHand();
+        void                        lookOverHand(double disp);
         bool                        gazeAtTool();
     void						observeToolExe();   
        

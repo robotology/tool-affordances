@@ -230,6 +230,10 @@ public:
         // Put the input image at the moment of computing out
         printf("Propagating image!!\n");
         ImageOf<PixelRgb> *imgIn = imInPort.read();  // read an image
+		if(imgIn == NULL)		{
+            printf("No object tracked \n");
+			return false;
+		}	
         ImageOf<PixelRgb> &imOut  = imOutPort.prepare();
         imOut = *imgIn;
         imOutPort.write();
