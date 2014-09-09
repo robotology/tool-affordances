@@ -348,7 +348,7 @@ bool AffManager::trainDraw(int toolI, int pose){
 }
 
 bool AffManager::trainObserve(int tool, int pose){
-	for ( int d = 0; d < 10; d++ ){
+	for ( int d = 0; d < 5; d++ ){
         printf("Starting Action %i\n",d);
         lookAtToolExe();
         observeToolExe();
@@ -376,7 +376,7 @@ bool AffManager::observeAndDo(int toolI, int pose, int trials){
 bool AffManager::runExp(){
     printf("Starting Routine\n");
     //for ( int tool = 5; tool <= 7; tool++ ){
-    int tool=7;
+    int tool=3;
     	for ( int pose = -90; pose < 100; pose=pose+90 ){
 			observeAndDo(tool, pose, 10);
 			Time::delay(2);
@@ -657,7 +657,10 @@ bool AffManager::lookAtToolExe()
         cout << "Tooltip not on view, looking for it" << endl;
         handToCenter();
         //fprintf(stdout,"Moving hand to the center:\n");
+
         lookOverHand(disp);
+        Time::delay(1);
+
         tipOnView = gazeAtTool();        
         disp += 0.02;
     }
