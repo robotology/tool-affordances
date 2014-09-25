@@ -161,6 +161,12 @@
         <geometry>(Pos ((x 810) (y 276.5)) ((x 335) (y 124)) ((x 1306) (y 429))  )</geometry>
     </connection>
     <connection>
+        <from external="true">/matlab/data:o</from>
+        <to>/affManager/matlab:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 791) (y 325.5)) ((x 350) (y 143)) ((x 1253) (y 508))  )</geometry>
+    </connection>
+    <connection>
         <from>/objectFinder/crop:o</from>
         <to>/templatePFTracker/template/image:i</to>
         <protocol>udp</protocol>
@@ -209,6 +215,12 @@
         <to>/featIm/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1454.5) (y 479)) ((x 1452) (y 480)) ((x 1478) (y 478))  )</geometry>
+    </connection>
+    <connection>
+        <from>/featExt/feats:o</from>
+        <to external="true">/matlab/read</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1402) (y 560)) ((x 1399) (y 559)) ((x 1426) (y 561))  )</geometry>
     </connection>
     <connection>
         <from>/toolBlobber/img:o</from>

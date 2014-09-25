@@ -26,6 +26,11 @@
             <port carrier="tcp">/affManager/rpc:i</port>
             <description>takes RPC commands from Human or stateMachine</description>
         </input>
+        <input>
+            <type>Bottle</type>
+            <port>/affManager/matlab:i</port>
+            <description> Receives the prediction of the affordance from the matlab modules</description>
+        </input>
         
         <!-- output data if available -->
         <output port_type="service">

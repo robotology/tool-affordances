@@ -67,7 +67,8 @@ bool AffManager::configure(ResourceFinder &rf)
 	//ports
 	bool ret = true;  
     ret = userDataPort.open(("/"+name+"/user:i").c_str());	                       // input port to receive data from user
-    ret = ret &&outDataPort.open(("/"+name+"/data:o").c_str());                           // port to send data out for recording
+    ret = ret && outDataPort.open(("/"+name+"/data:o").c_str());                           // port to send data out for recording
+    ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                           // port to send data out for recording
     if (!ret){
 		printf("Problems opening ports\n");
 		return false;
@@ -144,6 +145,7 @@ bool AffManager::interruptModule()
 {
     outDataPort.interrupt();
     userDataPort.interrupt();
+    matlabPort.interrupt();
 
     rpcCmd.interrupt();
     rpcSim.interrupt();
@@ -164,6 +166,7 @@ bool AffManager::close()
 {
     outDataPort.close();
     userDataPort.close();
+    matlabPort.close();
 
     rpcCmd.close();
     rpcSim.close();
@@ -376,13 +379,37 @@ bool AffManager::observeAndDo(int toolI, int pose, int trials){
 bool AffManager::runExp(){
     printf("Starting Routine\n");
     //for ( int tool = 5; tool <= 7; tool++ ){
-    int tool=3;
-    	for ( int pose = -90; pose < 100; pose=pose+90 ){
+		int tool=3;
+		for ( int pose = -90; pose < 100; pose=pose+90 ){
 			observeAndDo(tool, pose, 10);
 			Time::delay(2);
-        }
+		}
     //}
 	return true;
+}
+
+bool AffManager::predictDo(){
+	getTool();
+	lookAtToolExe();
+	observeToolExe();
+	 Bottle *affPred = matlabPort.read(true);
+	 // Find the maximum for affPred and perform doAction on the max index.
+	 int numPoint = affPred->size();
+	 double bestEff = 0;
+	 int bestApproachI = 0;
+	 printf("Received bottle of size %i \n", numPoint);
+	 for ( int approachI = 0; approachI < numPoint; approachI++ ) // Find the approach that will generate predicted maximum effect
+	 {
+		double predEff = affPred->get(approachI).asDouble();
+		if (predEff > bestEff){
+			bestEff = 	predEff;
+			bestApproachI = approachI;
+		}
+     }
+	 int bestApproach = -5 + bestApproachI; // Transform the index to the distance between -5 ad 5 cm
+	 printf("Best predicted approach at  %i, predicted effect of %f m  \n", bestApproach, bestEff);
+
+	 doAction(bestApproach);
 }
 
 
@@ -394,7 +421,7 @@ bool AffManager::runExp(){
 /**********************************************************/
 void AffManager::goHomeExe()
 {
-	fprintf(stdout,"Start 'home' 'all' proceedure:\n");
+	fprintf(stdout,"Start 'home' 'all' procedure:\n");
     Bottle cmdAre, replyAre;
     cmdAre.clear();
     replyAre.clear();

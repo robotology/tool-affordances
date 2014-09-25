@@ -80,8 +80,9 @@ protected:
     yarp::os::RpcClient         rpcAffLearn;	    //rpc motor port affLearn
 	yarp::os::RpcClient         rpcFeatExt;	        //rpc motor port featExtractor
 
-    yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  //port to receive user data.
-    yarp::os::Port                             outDataPort;     // port to send out data
+    yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  // port to receive user data.
+    yarp::os::Port                             outDataPort;   // port to send out data
+    yarp::os::BufferedPort<yarp::os::Bottle >  matlabPort;    // port to receive predictions from MATLAB
 
     /* class variables */
 
@@ -178,6 +179,7 @@ public:
     bool                        trainObserve(const int toolI = 5, const int deg = 0);
     bool                        observeAndDo(const int toolI = 5, const int deg = 0, const int trials = 1);
     bool                        runExp();
+    bool                        predictDo();
          
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

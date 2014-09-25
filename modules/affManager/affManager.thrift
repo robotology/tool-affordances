@@ -148,6 +148,13 @@ service affManager_IDLServer
      * to select 
      */
     bool runExp();
+    
+    /**
+     * Gets a tool, observes it, reads the predicted affordance from MATLAB and perform the best predicted action.
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool predictDo(1:i32 tool = 5, 2:i32 deg = 0);
 }
 
 
