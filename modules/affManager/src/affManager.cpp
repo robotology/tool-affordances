@@ -388,7 +388,7 @@ bool AffManager::runExp(){
 	return true;
 }
 
-bool AffManager::predictDo(){
+bool AffManager::predictDo(const int toolI, const int deg){
 	getTool();
 	lookAtToolExe();
 	observeToolExe();
@@ -409,8 +409,8 @@ bool AffManager::predictDo(){
 	 int bestApproach = -5 + bestApproachI; // Transform the index to the distance between -5 ad 5 cm
 	 printf("Best predicted approach at  %i, predicted effect of %f m  \n", bestApproach, bestEff);
 
-	 doAction(bestApproach);
-}
+	 return doAction(bestApproach);
+ }
 
 
 /**********************************************************

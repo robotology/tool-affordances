@@ -131,6 +131,12 @@ public:
  * to select
  */
   virtual bool runExp();
+/**
+ * Gets a tool, observes it, reads the predicted affordance from MATLAB and perform the best predicted action.
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool predictDo(const int32_t tool = 5, const int32_t deg = 0);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

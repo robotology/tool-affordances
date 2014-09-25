@@ -448,6 +448,30 @@ public:
   }
 };
 
+class affManager_IDLServer_predictDo : public yarp::os::Portable {
+public:
+  int32_t tool;
+  int32_t deg;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeTag("predictDo",1,1)) return false;
+    if (!writer.writeI32(tool)) return false;
+    if (!writer.writeI32(deg)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 bool affManager_IDLServer::start() {
   bool _return = false;
   affManager_IDLServer_start helper;
@@ -644,6 +668,17 @@ bool affManager_IDLServer::runExp() {
   affManager_IDLServer_runExp helper;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::runExp()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg) {
+  bool _return = false;
+  affManager_IDLServer_predictDo helper;
+  helper.tool = tool;
+  helper.deg = deg;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -931,6 +966,25 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "predictDo") {
+      int32_t tool;
+      int32_t deg;
+      if (!reader.readI32(tool)) {
+        tool = 5;
+      }
+      if (!reader.readI32(deg)) {
+        deg = 0;
+      }
+      bool _return;
+      _return = predictDo(tool,deg);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -986,6 +1040,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("trainObserve");
     helpString.push_back("observeAndDo");
     helpString.push_back("runExp");
+    helpString.push_back("predictDo");
     helpString.push_back("help");
   }
   else {
@@ -1100,6 +1155,12 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="runExp") {
       helpString.push_back("bool runExp() ");
       helpString.push_back("Performs ObserveAndDo for all the possible tools, each in the 3 poses ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="predictDo") {
+      helpString.push_back("bool predictDo(const int32_t tool = 5, const int32_t deg = 0) ");
+      helpString.push_back("Gets a tool, observes it, reads the predicted affordance from MATLAB and perform the best predicted action. ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }
