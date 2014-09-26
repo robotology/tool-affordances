@@ -180,6 +180,7 @@ public:
     bool                        observeAndDo(const int toolI = 5, const int deg = 0, const int trials = 1);
     bool                        runExp();
     bool                        predictDo(const int toolI = 5, const int deg = 0);
+    bool	 					testPredict(const int trials =1);
          
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

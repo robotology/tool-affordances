@@ -155,6 +155,13 @@ service affManager_IDLServer
      * to select 
      */
     bool predictDo(1:i32 tool = 5, 2:i32 deg = 0);
+    
+    /**
+     * Performs the prediction and action several times to evaluate its performance
+     * @return true/false on success/failure 
+     * to select 
+     */
+    bool testPredict(1:i32 trials = 1);
 }
 
 

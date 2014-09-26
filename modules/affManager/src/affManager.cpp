@@ -388,16 +388,21 @@ bool AffManager::runExp(){
 	return true;
 }
 
-bool AffManager::predictDo(const int toolI, const int deg){
-	getTool();
+bool AffManager::predictDo(const int toolI, const int pose){
+	getTool(toolI, pose);
 	lookAtToolExe();
 	observeToolExe();
-	 Bottle *affPred = matlabPort.read(true);
+	 Bottle *matReply = matlabPort.read(true);
+
+	 //cout << " Read reply form Matlab " << matReply->toString().c_str() << endl;
+
 	 // Find the maximum for affPred and perform doAction on the max index.
+	 int predClust = matReply->get(0).asInt();
+	 Bottle *affPred = matReply->get(1).asList();
+	 //cout << "Cluster " << predClust << ", Predicted Effect Vector " << affPred->toString().c_str() << endl;
 	 int numPoint = affPred->size();
 	 double bestEff = 0;
 	 int bestApproachI = 0;
-	 printf("Received bottle of size %i \n", numPoint);
 	 for ( int approachI = 0; approachI < numPoint; approachI++ ) // Find the approach that will generate predicted maximum effect
 	 {
 		double predEff = affPred->get(approachI).asDouble();
@@ -409,8 +414,41 @@ bool AffManager::predictDo(const int toolI, const int deg){
 	 int bestApproach = -5 + bestApproachI; // Transform the index to the distance between -5 ad 5 cm
 	 printf("Best predicted approach at  %i, predicted effect of %f m  \n", bestApproach, bestEff);
 
+	 Bottle bOut;bOut.clear();
+	 bOut.addString("toolpose");
+	 bOut.addInt(toolI);
+	 bOut.addInt(pose);
+
+	 cout << "writing out " << bOut.toString().c_str() << endl;
+	 outDataPort.write(bOut);
+
+
+	 bOut.clear();
+	 bOut.addString("prediction");
+	 bOut.addInt(predClust);
+     Bottle& bPredEff = bOut.addList();
+	 bPredEff.addDouble(bestEff);
+
+	 cout << "writing out " << bOut.toString().c_str() << endl;
+	 outDataPort.write(bOut);
+
 	 return doAction(bestApproach);
  }
+
+
+bool AffManager::testPredict(int trials)
+{
+	for ( int trial = 0; trial < trials; trial++ ){
+			int toolI = floor(Rand::scalar(3, 9+0.9999));
+			int poseI = floor(Rand::scalar(0,2+0.9999));
+			int pose = -90 + 90*poseI; // transform the index from 0 1 2 to -90 0 90;
+	        printf("==================================================================\n");
+	        printf("Performing Prediction test Trial %i with tool %i on pose %i \n", trial, toolI, pose);
+	        predictDo(toolI, pose);
+	    }
+	return true;
+}
+
 
 
 /**********************************************************
@@ -435,13 +473,11 @@ void AffManager::goHomeExe()
 /**********************************************************/
 void AffManager::goHomeNoHandsExe()
 {
-	fprintf(stdout,"Command go home no hands");
+	//fprintf(stdout,"Command go home no hands");
     if (robot== "icubSim")    {
-    	fprintf(stdout,"Homing ");
     	iTorso->positionMove(0,0.0);
     	iTorso->positionMove(1,0.0);
     	iTorso->positionMove(2,0.0);
-    	fprintf(stdout," Torso ");
 
         // Move the arm to home position
     	Vector posV,orV;
@@ -462,7 +498,6 @@ void AffManager::goHomeNoHandsExe()
 
         icart->goToPoseSync(posH,orH);   // then go to the home position
         icart->waitMotionDone(0.1, 3.0);
-        fprintf(stdout,", arm");
 
         // Move the head
         Vector ang;
@@ -470,7 +505,6 @@ void AffManager::goHomeNoHandsExe()
         ang[0]= 0.0;                    // azimuth-component [deg]
         ang[1]=-60.0;                   // elevation-component [deg]
         igaze->lookAtAbsAngles(ang);    // move the gaze
-        fprintf(stdout,", and head");
 
     } else{
 
@@ -488,7 +522,6 @@ void AffManager::goHomeNoHandsExe()
         replyAre.clear();
         cmdAre.addString("idle");
         rpcMotorAre.write(cmdAre,replyAre);     
-        fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());
 
     }
     return;
@@ -734,7 +767,7 @@ void AffManager::lookOverHand(double disp)
     }else {
         handPos[2] += 0.20 + disp;
     }
-    fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
+    //fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
     igaze->lookAtFixationPoint(handPos);
     igaze->waitMotionDone(0.1, 3.0);
     //Vector fp;
@@ -818,7 +851,7 @@ void AffManager::observeToolExe(){
 		// At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
 
 		// Send them to Afflearn to be analyzed
-		printf("Sending data to affLearn\n");
+		//printf("Sending data to affLearn\n");
 		Bottle cmdLearn,replyLearn;
 		cmdLearn.clear();
 		replyLearn.clear();
@@ -827,7 +860,7 @@ void AffManager::observeToolExe(){
 		cmdLearn.append(replyFE);
 		fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
 		rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
-		fprintf(stdout,"Data processed by learner \n");
+		//fprintf(stdout,"Data processed by learner \n");
     }
     
     return;
@@ -851,12 +884,12 @@ void AffManager::slideActionExe(int approach)
         cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.03); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
         cmdKM.addDouble(target3DcoordsIni[1] + goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
         cmdKM.addDouble(target3DcoordsIni[2] + 0.05 - fabs(goPoint)/2);      // Z (height) is constant on the table plane + 0.04 not to hit the table itself
-        cmdKM.addInt(angle);                        // Set the approach always on che center of the object
+        cmdKM.addInt(angle);                        // Set the approach always on the center of the object
         cmdKM.addDouble(radius);                    // At 90deg, this means the tooltip will get always the radius dist behind the object.
         cmdKM.addDouble(dist);
         fprintf(stdout,"%s\n",cmdKM.toString().c_str());
         
-        fprintf(stdout,"Performing draw with angle %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
+        fprintf(stdout,"Performing pull on approach %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
 
         icart->waitMotionDone(0.1,20.0);
@@ -876,7 +909,7 @@ void AffManager::slideActionExe(int approach)
         Bottle& toolData = bSample.addList();
         toolData.addDouble(goPoint);
         
-        fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+        //fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
         rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 
         outDataPort.write(bSample);
@@ -921,7 +954,7 @@ bool AffManager::locateObjExe()
     Vector coords3D(2);
     
     Bottle cmdFinder,replyFinder;
-    fprintf(stdout,"Get 3D coords of tracked object:\n");
+    //fprintf(stdout,"Get 3D coords of tracked object:\n");
     cmdFinder.clear();
     replyFinder.clear();
     cmdFinder.addString("getPointTrack");
@@ -941,14 +974,14 @@ bool AffManager::locateObjExe()
 
 
 	if (!actionDone){			
-        printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
+        //printf("The point selected is %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		target3DcoordsIni[0] = coords3D[0];
 		target3DcoordsIni[1] = coords3D[1];
 		target3DcoordsIni[2] = coords3D[2];        // Set the point 4 cm over the table plane
 		//fprintf(stdout,"Object is located at %s:\n", target3DcoordsIni.toString().c_str());
 		objCoords3DLoc = true;
 	}else{
-		printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
+		//printf("After action, the object is in %.2f %.2f %.2f\n", coords3D[0], coords3D[1], coords3D[2]);
 		target3DcoordsAfter[0] = coords3D[0];
 		target3DcoordsAfter[1] = coords3D[1];
 		target3DcoordsAfter[2] = coords3D[2];
@@ -970,6 +1003,8 @@ void AffManager::computeEffectExe()
     effectAlpha = atan2 (dy,dx) * 180 / M_PI;
     effectDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
 
+    printf("Object Displaced: %g m \n", effectDist);
+
     // save the effect features
     Bottle cmdLearn,replyLearn;
     cmdLearn.clear();
@@ -983,7 +1018,7 @@ void AffManager::computeEffectExe()
     Bottle& effData = bSample.addList();
     effData.addDouble(effectAlpha);
     effData.addDouble(effectDist);
-    fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
+    //fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
     rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 
      outDataPort.write(bSample);
