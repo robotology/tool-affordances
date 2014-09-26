@@ -472,6 +472,28 @@ public:
   }
 };
 
+class affManager_IDLServer_testPredict : public yarp::os::Portable {
+public:
+  int32_t trials;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeTag("testPredict",1,1)) return false;
+    if (!writer.writeI32(trials)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 bool affManager_IDLServer::start() {
   bool _return = false;
   affManager_IDLServer_start helper;
@@ -679,6 +701,16 @@ bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg) {
   helper.deg = deg;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affManager_IDLServer::testPredict(const int32_t trials) {
+  bool _return = false;
+  affManager_IDLServer_testPredict helper;
+  helper.trials = trials;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::testPredict(const int32_t trials)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -985,6 +1017,21 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "testPredict") {
+      int32_t trials;
+      if (!reader.readI32(trials)) {
+        trials = 1;
+      }
+      bool _return;
+      _return = testPredict(trials);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -1041,6 +1088,7 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     helpString.push_back("observeAndDo");
     helpString.push_back("runExp");
     helpString.push_back("predictDo");
+    helpString.push_back("testPredict");
     helpString.push_back("help");
   }
   else {
@@ -1161,6 +1209,12 @@ std::vector<std::string> affManager_IDLServer::help(const std::string& functionN
     if (functionName=="predictDo") {
       helpString.push_back("bool predictDo(const int32_t tool = 5, const int32_t deg = 0) ");
       helpString.push_back("Gets a tool, observes it, reads the predicted affordance from MATLAB and perform the best predicted action. ");
+      helpString.push_back("@return true/false on success/failure ");
+      helpString.push_back("to select ");
+    }
+    if (functionName=="testPredict") {
+      helpString.push_back("bool testPredict(const int32_t trials = 1) ");
+      helpString.push_back("Performs the prediction and action several times to evaluate its performance ");
       helpString.push_back("@return true/false on success/failure ");
       helpString.push_back("to select ");
     }

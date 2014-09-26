@@ -137,6 +137,12 @@ public:
  * to select
  */
   virtual bool predictDo(const int32_t tool = 5, const int32_t deg = 0);
+/**
+ * Performs the prediction and action several times to evaluate its performance
+ * @return true/false on success/failure
+ * to select
+ */
+  virtual bool testPredict(const int32_t trials = 1);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
