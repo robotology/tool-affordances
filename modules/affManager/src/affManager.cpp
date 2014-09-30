@@ -389,7 +389,7 @@ bool AffManager::runExp(){
 }
 
 bool AffManager::predictDo(const int toolI, const int pose){
-	getTool(toolI, pose);
+	//getTool(toolI, pose);
 	lookAtToolExe();
 	observeToolExe();
 	 Bottle *matReply = matlabPort.read(true);
@@ -436,17 +436,24 @@ bool AffManager::predictDo(const int toolI, const int pose){
  }
 
 
-bool AffManager::testPredict(int trials)
+bool AffManager::testPredict(int tool)
 {
-	for ( int trial = 0; trial < trials; trial++ ){
-			int toolI = floor(Rand::scalar(3, 9+0.9999));
-			int poseI = floor(Rand::scalar(0,2+0.9999));
-			int pose = -90 + 90*poseI; // transform the index from 0 1 2 to -90 0 90;
-	        printf("==================================================================\n");
-	        printf("Performing Prediction test Trial %i with tool %i on pose %i \n", trial, toolI, pose);
-	        predictDo(toolI, pose);
-	    }
+    //for ( int tool = 3; tool <= 9; tool++ ){
+		for ( int pose = -90; pose < 100; pose=pose+90 ){
+			getTool(tool, pose);
+			printf("==================================================================\n");
+	        printf("Performing prediction test with tool %i on pose %i \n", tool, pose);
+	        for ( int trial = 1; trial <= 5; trial++ ){
+	        	printf("Trial %i \n", trial);
+	        	predictDo(tool, pose);
+	        	simMoveObj();
+	        }
+		}
+    //}
+
 	return true;
+
+
 }
 
 
