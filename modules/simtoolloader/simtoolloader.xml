@@ -1,9 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>simtoolloader</name>
     <description> Loads objects, tools and a table on the simulator.</description>
-    <version>2.0</version>
+        <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+    <version>1.2</version>
 
+    <description-long>
+    This module helps creating different tools and objects on the simulator. Tools will be created on the robot hand 
+    matching the 'tool grasp' orientation provided by the Actions Rendering Engine module. Objects will be created
+    on a table also created on front of the robot so that they can be interacted with. 
+    Models have to be installed from the folder ./app/models
+    Indices corresponding to each model can be found and changed on simtoolloader.ini, which is installed from ./app/conf
+    </description-long>
+    
     <!-- <arguments> can have multiple <param> tags-->
     <arguments>
         <param desc="Name of the module" default="simtoolloader"> name</param>
@@ -13,7 +25,7 @@
 
     <!-- <authors> can have multiple <author> tags. -->
     <authors>
-	  <author email=""> Tanis Mar</author>
+	  <author email="tanis.mar@iit.it"> Tanis Mar</author>
     </authors>
 
      <!-- <data> can have multiple <input> or <output> tags. -->
@@ -22,7 +34,14 @@
         <input port_type="service">
             <type>rpc</type>
             <port carrier="tcp">/simtoolloader/cmd:i</port>
-            <description>takes RPC commands from Human or manager</description>
+            <description>Takes the following RPC commands from Human or manager
+                -# <b>del</b>: Deletes all previously created objects (tools, objects and table) from the simulator
+                -# <b>move</b> : Moves object to original position on the table, slightly to the front and the right, without regenerating it. 
+                -# <b>obj</b> <i>(int) objI</i>: Creates table and object 'objI' on the table on front of the iCub. 
+                -# <b>tool</b>  <i>(int) objI (int) toolI (int)toolOrient</i>: Creates table, object 'objI' on the table, and tool 'toolI' on the hand of the iCub oriented 'toolOrient' degrees w.r.t to the frontal position.
+                (refer to simtoolloader.ini for the list of tools). 
+                Note: tool orientation is only set correctly if the hand is in front of the iCub, around coordinates (-0.25,0.15,0.05) and oriented towards the iCub bisector plane, i.e. towards the center.
+                </description>
         </input>
         
         <!-- output data if available -->
@@ -36,6 +55,7 @@
 
     <dependencies>
         <computer>
+            icubSim and simCartesianController have to be running.
         </computer>
     </dependencies>
 

@@ -122,14 +122,14 @@ protected:
     /* Setting up functions*/
     void                        goHomeExe();
     void                        goHomeNoHandsExe();
-	void						askForToolExe();	
-	bool						graspToolExe();
+	void						askForTool();	
+	bool						graspTool();
     void                        simTool(int toolI = 5,int orDeg = 0);
     void                        simMoveObj();
         bool                        setLabel(const std::string &label);
 
     void                        findToolDimsExe();
-    void                        attachToolExe();
+    void                        attachTool();
 
     /* Look and featExt Functions */
     bool						lookAtToolExe();
@@ -139,11 +139,11 @@ protected:
     void						observeToolExe();   
        
 	/* Action and Effect functions*/    
-    bool						locateObjExe();
+    bool						locateObj();
     void						trackObjExe();
-    void                        slideActionExe(int approach = 0);
+    void                        slideAction(int approach = 0);
 
-    void                        computeEffectExe();
+    void                        computeEffect();
     void                        finishRound();
 
 	
@@ -157,30 +157,23 @@ public:
 
 	bool                        goHome();       
 	bool                        goHomeNoHands();
-    bool						askForTool();   
-    bool						graspTool();    
-	bool						attachTool();
     bool                        findToolDims();
     
 
 	bool						lookAtTool();
 	bool						observeTool();  
 
-	bool						locateObj();   
     bool						trackObj(); 
-    bool                        slideAction(const int approach);
-    bool                        computeEffect();
     bool                        reset();
 
     // Combined routines
     bool                        getTool(const int toolI = 5, const int deg = 0);
     bool                        doAction(const int approach = 0 );
-    bool                        trainDraw(const int toolI = 5, const int deg = 0);
+    bool                        trainDraw();
     bool                        trainObserve(const int toolI = 5, const int deg = 0);
     bool                        observeAndDo(const int toolI = 5, const int deg = 0, const int trials = 1);
-    bool                        runExp();
     bool                        predictDo(const int toolI = 5, const int deg = 0);
-    bool	 					testPredict(const int trials =1);
+    bool	 					testPredict(const int tool = 5);
          
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

@@ -475,7 +475,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
         return;
     }
 
-    cvtColor(imAux, imOut, CV_GRAY2RGB);    						//XXX grayscale to RGB
+    cvtColor(imAux, imOut, CV_GRAY2RGB);    						//grayscale to RGB
 
     // Rotate the tool blob according to the handling angle
     printf("Rotating Image\n");
@@ -505,7 +505,7 @@ void ToolBlobber::onRead(Bottle& seedIn)
     //Compute the angle and the tip distance to normalize the tool image size
     double angle = -90+handAngle;
     double tipDist = sqrt(tipDif[0]*tipDif[0] + tipDif[1]*tipDif[1]);
-    //double scale = 150/tipDist; 
+
 
     /// Get the rotation matrix with the specifications above
     if (verbose) {printf("Before rotation, the hand is on point %i,%i and the tooltip at %i,%i \n", hand.x,hand.y,seed.x,seed.y);}

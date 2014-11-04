@@ -1,6 +1,6 @@
  /*
-  * Copyright (C) 2013 RobotCub Consortium, European Commission FP6 Project IST-004370
-  * Author:  Afonso Gonçalves
+  * Copyright (C) 2013 RobotCub Consortium, European Commission FP6 Project IST-004370 / iCub Facility
+  * Author:  Afonso Gonçalves, Tanis Mar
   * email:   agoncalves@isr.ist.utl.pt
   * website: www.robotcub.org
   * Permission is granted to copy, distribute, and/or modify this program

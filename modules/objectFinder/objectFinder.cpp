@@ -15,9 +15,66 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
 */
-/*
+
+/** 
+\defgroup objectFinder facilitates interaction with tracker
+
+Feature Extraction Module: Provides location and template for a tracker as well as 3D location from 2D tracked position.
+
+\section intro_sec Description 
+The objectFinder module provides a set of RPC commands which allow the user to easily set a template and initalize a tracker, 
+as well as get the 3D coordinates of the tracked object on a ginven plane. 
+ 
+\section lib_sec Libraries 
+- YARP libraries. 
+- icubmod library
+
+\section parameters_sec Parameters 
+--robot \e robot
+- Select the robot to connect to.
+  By default is <i>icub</i>
+
+--name \e name
+- Select the stem-name of the module used to open up ports. 
+  By default \e name is <i>objectFinder</i>.
+
+--camera \e name
+- Select the eye camera to use. 
+  By default \e camera is <i>left</i>.
+
+--tableHeight \e name
+- Provides the vertical distance between the robot's center of coordinates and the table plane, used to project from 2D to 3D. 
+  By default \e tableHeight is <i>-0.10</i>.
+  
+\section portsa_sec Ports Accessed
+Requires the Gaze Cotnroller to be running. Assumes connection to a tracker module
+
+\section portsc_sec Ports Created 
+- \e /objectFinder/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+It manages the following commands through respond interface:
+
+    -# <b>getBox</b>: Creates a template by cropping the image based on user input (click on viewer) and initializes the tracker with it.\n
+    
+    -# <b>getPointClick</b>: Reads a click and returns the 2D coordinates.\n
+
+    -# <b>getPointTrack</b>: Retrieves 2D coords form the tracker and returns the 3D coordinates of the object tracked based on the table Height.\n
+     
+     -# <b>help </b>: Produces help on rpc commands. \n
+
+- \e /objectFinder/img:i        Port receiving images to propagate or prepare the template
+- \e /objectFinder/coords:i     Port to receive coordinates from user-yarpview/out to define Bounding Box for template or 2D coordinates
+- \e /objectFinder/track:i      Port to receive coordinates from tracker to get object 2D or 3D location
+- \e /objectFinder/coords:o     Port to send computed object coordinates
+- \e /objectFinder/imgOut:o     Port sending images on the frames when the objects location is computed
+- \e /objectFinder/crop:o       Port to send croped image for template
+ 
+
+\section tested_os_sec Tested OS
+Windows, Linux
+
 \author Tanis Mar
 */ 
+
 
 //#include <iostream>
 //#include <string>
@@ -117,8 +174,6 @@ public:
     bool respond(const Bottle &      command,
                  Bottle &      reply)
     {
-        // This method is called when a command string is sent via RPC
-
         // Get command string
         string receivedCmd = command.get(0).asString().c_str();
        

@@ -1,3 +1,76 @@
+/*
+ * 2D GEOMETRIC FEATURE EXTRACTION
+ * Copyright (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
+ * Author: Tanis Mar
+ * email: tanis.mar@iit.it
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+/** 
+\defgroup featExt 2D geometric feature extraction module.
+
+Feature Extraction Module: Extracts a set of 75 geometrical and contour features from the biggest blob in the image.
+ 
+
+\section intro_sec Description 
+This modules receives an image, either binary or not, extracts the blobs and performs feature Extraction 
+of the biggest blob found. Features can be ordered in the following categories: 
+Convexity, Skeleton, Moments, Shape, Angle Signature, Fourier and Wavelet.
+By default is idle until a particular process order is received (snapshot or click), but can be set to process all incoming images with 'go'. 
+ 
+\section lib_sec Libraries 
+- YARP libraries. 
+- openCV libraries
+
+\section parameters_sec Parameters 
+No inline parameters
+  
+\section portsa_sec Ports Accessed
+Assumes an input image port (straming or not) connected to /featExt/img:i
+
+\section portsc_sec Ports Created 
+- \e /featExt/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+It manages the following commands through respond interface:
+
+    -# <b>go</b>: Enables feature extraction on streaming images. Once this option is activated, it won't accept further rpc commands. \n
+     
+    -# <b>label</b>  <i>(string) label</i> (default = 'undef'): sets the label that will be given to subsequently extracted feature vectors to string 'label'. \n
+        
+    -# <b>setROI</b> <i>(int) tl.x (int) tl.y (int) br.x (int) br.y</i>: Sets a region of interest for feature extraction from the coordinates given as pixel positions. \n
+
+    -# <b>refAngle</b>  <i>(int) angle</i>: Sets the refernece angle for prespective nomalization of the blob to 'angle'. \n 
+        
+    -# <b>snapshot</b>: Performs feature extraction on a single frame. \n
+    
+    -# <b>click</b>: "Asks user to click on viewer and performs feature extraction on the selected blob on one frame.\n
+
+    -# <b>verbose</b> <i>(string) ON/OFF</i> : ON/OFF sets printfs of the extraction process on or off, respectively.
+
+    -# <b>reset</b>: Resets ROI and all other set values to default. \n
+
+    -# <b>help </b>: Produces help on rpc commands. \n
+    
+- \e /featExt/img:i             Port receiving incoming images to be processed
+- \e /featExt/coords:i          Port to receive coordinates to specify blob
+- \e /featExt/imgProp:o         Port propagating the frame on which the feature extraction is peformed, with the selected blob marked on top
+- \e /featExt/imgFeat:o         Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
+- \e /featExt/feats:o			Port which outputs the vector containing all the extracted features
+ 
+\section tested_os_sec Tested OS
+Windows, Linux
+
+\author Tanis Mar
+*/ 
 
 #include "featExt.h"
 #include "contourFeats.h"
@@ -9,9 +82,6 @@ using namespace std;
 
 void FeatExt::loop()
 {
-
-    // XXX TODO: Improve it so that respond is asynchronous, or at least, streaming processing can be stopped.
-   
     if (processing){        		
         ImageOf<PixelRgb> *imageIn = inImPort.read(false);  // read an image
 		if(imageIn == NULL)		{
@@ -30,7 +100,7 @@ void FeatExt::loop()
 	    rpcCmd.read(cmd, true);
 	    int rxCmd=processRpcCmd(cmd,val);
 
-        if (rxCmd==Vocab::encode("setROI")){
+        if (rxCmd==Vocab::encode("setROI")){                    // sets Region of Interest for Feature Extraction
             Point tl,br;
 			tl.x=(int)val.get(0).asInt();
             printf("Setting tl x to = %d \n", tl.x);
@@ -58,7 +128,7 @@ void FeatExt::loop()
             rpcCmd.reply(reply);
             return;
 
-        } else if (rxCmd==Vocab::encode("refAngle")){
+        } else if (rxCmd==Vocab::encode("refAngle")){               // sets vector feature label
             Point tl,br;
 			refAngle = (int)val.get(0).asInt();
             printf("reference Angle set to %i \n", refAngle);
@@ -68,12 +138,12 @@ void FeatExt::loop()
             rpcCmd.reply(reply);
             return;
 
-        } else if (rxCmd==Vocab::encode("label")){              //process only one and return feats in rpc reply
+        } else if (rxCmd==Vocab::encode("label")){                  // sets vector feature label
 		    objName = val.get(0).asString();
             return;
 
-        } else if (rxCmd==Vocab::encode("snapshot")){              //process only one and return feats in rpc reply
-		    ImageOf<PixelRgb> *imageIn = inImPort.read();  // read an image
+        } else if (rxCmd==Vocab::encode("snapshot")){               // process one signle frame and return feats in rpc reply
+		    ImageOf<PixelRgb> *imageIn = inImPort.read();  
 		    if(imageIn == NULL)		    {
 			    printf("No input image \n"); 
                 reply.addString("nack");
@@ -84,15 +154,15 @@ void FeatExt::loop()
             rpcCmd.reply(feats);
             return;
 
-        } else if (rxCmd==Vocab::encode("click")){              //process only one and return feats in rpc reply
+        } else if (rxCmd==Vocab::encode("click")){                  //asks for blob coordinates and returns feats in rpc reply
 		    
             printf("Click on the image \n"); 
-            Bottle *coordsIn = coordsInPort.read();             // read coordinates            
+            Bottle *coordsIn = coordsInPort.read();       // read coordinates            
             coords.x = coordsIn->get(0).asInt();
             coords.y = coordsIn->get(1).asInt();
             printf("Selected coords are %i, %i \n", coords.x, coords.y); 
             coordsInit = true;
-            ImageOf<PixelRgb> *imageIn = inImPort.read();       // read an image
+            ImageOf<PixelRgb> *imageIn = inImPort.read();
 		    if(imageIn == NULL)		    {
 			    printf("No input image \n"); 
                 reply.addString("nack");
@@ -105,7 +175,7 @@ void FeatExt::loop()
             return;
 
 
-        } else if (rxCmd==Vocab::encode("verbose")){        
+        } else if (rxCmd==Vocab::encode("verbose")){            // sets verbose on or off
             string verb = val.get(0).asString();
             if (verb == "ON"){
                 verbose = true;
@@ -140,20 +210,23 @@ void FeatExt::loop()
             rpcCmd.reply(reply);
 			return;
 
-	    } else if (rxCmd==Vocab::encode("stop")){        
+	    /*} else if (rxCmd==Vocab::encode("stop")){        
             processing = false;
             reply.addString("ack");
             rpcCmd.reply(reply);
 			return;
-
+        */
         } else if (rxCmd==Vocab::encode("help")){ 
             reply.addVocab(Vocab::encode("many"));
             reply.addString("Available commands are: \n");
             reply.addString("setROI (int) (int) (int) (int) - sets a region of interest of feature extraction");
+            reply.addString("refAngle (int) - sets the refernece angle for prespective nomalization of the blob.");
+            reply.addString("label (string) - sets the label that will be given to subsequently extracted feature vectors.");
             reply.addString("snapshot - Performs feature extracton on a single frame.");
             reply.addString("click - Ask user to click on viewer and performs feature extraction on the selected blob.");
+            reply.addString("verbose - ON/OFF Sets printfs of the extraction process on or off.");
             reply.addString("reset - Resets ROI and all other set values.");
-            reply.addString("go - Enables feature extraction on streaming images.");
+            reply.addString("go - Enables feature extraction on streaming images. Once this option is activated, it won't accept further rpc commands");
             //reply.addString("stop - Disables feature extraction on streaming images.");
             reply.addString("help - Produces this help.");
             //reply.addString("quit -Quits the module. \n");
@@ -171,11 +244,11 @@ bool FeatExt::open()
 {
     bool ret=true;
     ret = rpcCmd.open("/featExt/rpc:i");					// Port for receiving rpc commands
-	ret = ret && inImPort.open("/featExt/img:i");			// give the port a name
-    ret = ret && coordsInPort.open("/featExt/coords:i");	//port to receive coordinates to specify blob
-	ret = ret && imPropOutPort.open("/featExt/imgProp:o");
-	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");
-	ret = ret && featPort.open("/featExt/feats:o");			//port to receive info confirming reception of template.
+	ret = ret && inImPort.open("/featExt/img:i");			// Port receiving incoming images to be processed
+    ret = ret && coordsInPort.open("/featExt/coords:i");	// Port to receive coordinates to specify blob on 'click'
+	ret = ret && imPropOutPort.open("/featExt/imgProp:o");  // Port propagating the frame on which the feature extraction is peformed
+	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");  // Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
+	ret = ret && featPort.open("/featExt/feats:o");			// Port which outputs the vector containing all the extracted features
 
 	processing = false;
     ROIinit = false;
@@ -244,27 +317,23 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
     Scalar white = Scalar(255,255,255);
 
 	//prepare ports
-	//featSend = featPort.prepare();						    // Prepare port to send features	
-    ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
+	ImageOf<PixelRgb> &imPropOut = imPropOutPort.prepare();	// Prepare the port for propagated output image 
 	ImageOf<PixelRgb> &imFeatOut = imFeatOutPort.prepare();	// Prepare the port for features output image	
 
     // Set the pointer to the original image which will be modified
 	imPropOut = imageIn;									
-	Mat src = cvarrToMat(imPropOut.getIplImage(),false);
-	//Mat src((IplImage*) imPropOut.getIplImage());				// Create the src image form the received frame		
-
+	Mat src = cvarrToMat(imPropOut.getIplImage(),false);    // Create the src image form the received frame	
 
     // Create an image to draw the visual features
     imFeatOut.resize(imageIn.width(), imageIn.height());	
 	imFeatOut.zero();
 	Mat contoursIm = cvarrToMat(imFeatOut.getIplImage(),false);
-	//Mat contoursIm((IplImage*) imFeatOut.getIplImage());	
 
     if (ROIinit){
         src = src(ROI);
     }
 
-    	//Prepare random generator
+    //Prepare random generator
 	RNG rng(12345);
 		
 	// Find contours out of the received blobs
@@ -287,9 +356,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	// Recomputing the contour needed to close possible open contours
 	findContours( edges, contoursPoint, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0));
 	drawContours( contoursIm, contoursPoint, -1, white, 1 , 8); // Paint all found contours in thin white
-
-	//Mat contoursIm = Mat::zeros( edges.size(), CV_8UC3 );
-	
+    	
     int biggerBlobSize = 0;
     int biggerBlobIdx = 0;
 	for( int i = 0; i< contoursPoint.size(); i++ )					// Iterate through each contour. 
@@ -303,11 +370,11 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
            }
         } else{            
 		    double a=contourArea(contoursPoint[i]);						// Find the area of contour
-		    //if(a>minBlobSize){											// Keep only the big contours
+		    //if(a>minBlobSize){											// Keep only big contours
 			//    contours.push_back(Contour(contoursPoint[i]));			// Generate a vector of Contour objects
 			//    drawContours( contoursIm, contoursPoint, i, blue, 2, 8, hierarchy, 0, Point() ); //Paint all big contours in blue
             //}
-            if(a > biggerBlobSize){                                          // Keep only the big contours
+            if(a > biggerBlobSize){                                          // Keep only the biggest contour
                 biggerBlobSize = a;
                 biggerBlobIdx = i;
             }
@@ -319,25 +386,7 @@ void FeatExt::featExtractor(const ImageOf<PixelRgb>& imageIn, VecVec& featSend)
 	// Initializationg vector of features
 	vector<Feature> feats (contours.size() );
 
-
-	/*// ==== Mutual similarities ====
-	Mat similarityMatrix = Mat::zeros(contours.size(),contours.size(), CV_32F);
-	for( int i = 0; i < contours.size(); i++ ){
-		std::ostringstream cntNum; 
-        cntNum << "Object "<< i;
-		feats[i].name.assign(cntNum.str());
-		for( int j = 0; j < contours.size(); j++ ){
-			double similarity = matchShapes(contours[i].getPoints(),contours[j].getPoints(),CV_CONTOURS_MATCH_I3,0);
-			similarityMatrix.at<float>(i,j) = similarity;
-			//feats[i].content.push_back(similarity);
-		}
-	}
-	printf("Similarity Matrix:");
-	cout << "M = "<< endl << " "  << similarityMatrix << endl << endl;
-    */
-    
-    
-	// ++++++++++ LOOP THROUGH CONTOURS +++++++++++++
+    // ++++++++++ LOOP THROUGH CONTOURS +++++++++++++
 	for( int i = 0; i < contours.size(); i++ )
 	{
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );

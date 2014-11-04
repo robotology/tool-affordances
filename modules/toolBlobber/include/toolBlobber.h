@@ -1,7 +1,8 @@
 /*
+ * IMAGE SEEDING AND NORMALIZATION 
  * Copyright (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
  * Author: Tanis Mar
- * email:  Tanis Mar
+ * email: tanis.mar@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -13,7 +14,56 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
- */
+*/
+
+/** 
+\defgroup toolBlobber Normalizes segmentated image to prepare it for Feature Extraction
+Uses Graph-Based Segmentation and optionally StereoVision to segment the tool blob from the background on 2D.
+ 
+
+\section intro_sec Description 
+This module objective is to segment the tool from the background and output only the tool's blob on a binary image. 
+It can do so based solely on the Graph-Based Segmentation algorithm seeded with the tooltip position (computed elsewhere), 
+or using the iCubs stereoVision to detect the tool as the closest blob to the iCub. 
+
+\section lib_sec Libraries 
+    - YARP
+    - icubmod
+    - OpenCV
+    - stereoVision
+
+\section parameters_sec Parameters 
+No inline parameters
+  
+\section portsa_sec Ports Accessed
+Assumes that robotInterface (with ICartesianControl interface implemented) is running. 
+
+\section portsc_sec Ports Created 
+- \e /toolBlobber/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+It manages the following commands through respond interface:
+   -# <b>seed</b> <i>(int) x (int) y </i> Calls the toolBlobber with the seed coordinates given.
+   -# <b>label</b>  <i>(string) label</i> (default = 'undef'): sets the label that will be given to subsequently extracted feature vectors to string 'label'.             
+   -# <b>setROI</b> <i>(int) tl.x (int) tl.y (int) br.x (int) br.y</i>: Sets a region of interest for feature extraction from the coordinates given as pixel positions. 
+   -# <b>refAngle</b>  <i>(int) angle</i>: Sets the refernece angle for prespective nomalization of the blob to 'angle'.    
+   -# <b>snapshot</b>: Performs feature extraction on a single frame. 
+   -# <b>click</b>: "Asks user to click on viewer and performs feature extraction on the selected blob on one frame.
+   -# <b>verbose</b> <i>(string) ON/OFF</i> : ON/OFF sets printfs of the extraction process on or off, respectively.
+   -# <b>reset</b>: Resets ROI and all other set values to default. 
+   -# <b>help </b>: Produces help on rpc commands. 
+    
+- \e /toolBlobber/seed:i            Receives seed coordinates to generate blob from GBS module
+- \e /toolBlobber/imLeft:i          Left camera image to feed stereoVision Library
+- \e /toolBlobber/disp:i            StereoDisparity disparity image
+- \e /toolBlobber/img:o             Send out the selected blob and coordinates superposed on the disparity image
+- \e /toolBlobber/target:o			Sends out coordinates of selected object
+- \e /toolBlobber/imgBin:o			Send out the binary image of selected blob
+- \e /toolBlobber/gbs:rpc			Send commands to the Graph Based Segmentation module
+
+\section tested_os_sec Tested OS
+Windows, Linux
+
+\author Tanis Mar
+*/ 
 
 #ifndef __TOOLBLOBBER_H__
 #define __TOOLBLOBBER_H__
