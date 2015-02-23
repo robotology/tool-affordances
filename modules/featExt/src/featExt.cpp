@@ -250,6 +250,12 @@ bool FeatExt::open()
 	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");  // Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
 	ret = ret && featPort.open("/featExt/feats:o");			// Port which outputs the vector containing all the extracted features
 
+    if (!ret){
+        printf("Problems opening ports\n");
+        return false;
+    }
+
+
 	processing = false;
     ROIinit = false;
     coordsInit = false;

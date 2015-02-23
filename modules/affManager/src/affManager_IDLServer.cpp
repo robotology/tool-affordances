@@ -9,181 +9,73 @@
 class affManager_IDLServer_start : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("start",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_reset : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("reset",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_goHome : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("goHome",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_goHomeNoHands : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("goHomeNoHands",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_findToolDims : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("findToolDims",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_lookAtTool : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("lookAtTool",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_observeTool : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("observeTool",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_trackObj : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("trackObj",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_getTool : public yarp::os::Portable {
@@ -191,65 +83,26 @@ public:
   int32_t tool;
   int32_t deg;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("getTool",1,1)) return false;
-    if (!writer.writeI32(tool)) return false;
-    if (!writer.writeI32(deg)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t tool, const int32_t deg);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_doAction : public yarp::os::Portable {
 public:
   int32_t approach;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("doAction",1,1)) return false;
-    if (!writer.writeI32(approach)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t approach);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_trainDraw : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("trainDraw",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_trainObserve : public yarp::os::Portable {
@@ -257,23 +110,9 @@ public:
   int32_t tool;
   int32_t deg;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("trainObserve",1,1)) return false;
-    if (!writer.writeI32(tool)) return false;
-    if (!writer.writeI32(deg)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t tool, const int32_t deg);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_observeAndDo : public yarp::os::Portable {
@@ -282,24 +121,9 @@ public:
   int32_t deg;
   int32_t trials;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(4)) return false;
-    if (!writer.writeTag("observeAndDo",1,1)) return false;
-    if (!writer.writeI32(tool)) return false;
-    if (!writer.writeI32(deg)) return false;
-    if (!writer.writeI32(trials)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t tool, const int32_t deg, const int32_t trials);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_predictDo : public yarp::os::Portable {
@@ -307,50 +131,385 @@ public:
   int32_t tool;
   int32_t deg;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("predictDo",1,1)) return false;
-    if (!writer.writeI32(tool)) return false;
-    if (!writer.writeI32(deg)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t tool, const int32_t deg);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affManager_IDLServer_testPredict : public yarp::os::Portable {
 public:
   int32_t tool;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("testPredict",1,1)) return false;
-    if (!writer.writeI32(tool)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t tool);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool affManager_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("start",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_start::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_start::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_quit::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_reset::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("reset",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_reset::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_reset::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_goHome::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("goHome",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_goHome::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_goHome::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_goHomeNoHands::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("goHomeNoHands",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_goHomeNoHands::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_goHomeNoHands::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_findToolDims::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("findToolDims",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_findToolDims::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_findToolDims::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_lookAtTool::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("lookAtTool",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_lookAtTool::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_lookAtTool::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_observeTool::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("observeTool",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_observeTool::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_observeTool::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_trackObj::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("trackObj",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_trackObj::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_trackObj::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_getTool::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("getTool",1,1)) return false;
+  if (!writer.writeI32(tool)) return false;
+  if (!writer.writeI32(deg)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_getTool::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_getTool::init(const int32_t tool, const int32_t deg) {
+  _return = false;
+  this->tool = tool;
+  this->deg = deg;
+}
+
+bool affManager_IDLServer_doAction::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("doAction",1,1)) return false;
+  if (!writer.writeI32(approach)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_doAction::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_doAction::init(const int32_t approach) {
+  _return = false;
+  this->approach = approach;
+}
+
+bool affManager_IDLServer_trainDraw::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("trainDraw",1,1)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_trainDraw::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_trainDraw::init() {
+  _return = false;
+}
+
+bool affManager_IDLServer_trainObserve::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("trainObserve",1,1)) return false;
+  if (!writer.writeI32(tool)) return false;
+  if (!writer.writeI32(deg)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_trainObserve::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_trainObserve::init(const int32_t tool, const int32_t deg) {
+  _return = false;
+  this->tool = tool;
+  this->deg = deg;
+}
+
+bool affManager_IDLServer_observeAndDo::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("observeAndDo",1,1)) return false;
+  if (!writer.writeI32(tool)) return false;
+  if (!writer.writeI32(deg)) return false;
+  if (!writer.writeI32(trials)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_observeAndDo::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_observeAndDo::init(const int32_t tool, const int32_t deg, const int32_t trials) {
+  _return = false;
+  this->tool = tool;
+  this->deg = deg;
+  this->trials = trials;
+}
+
+bool affManager_IDLServer_predictDo::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("predictDo",1,1)) return false;
+  if (!writer.writeI32(tool)) return false;
+  if (!writer.writeI32(deg)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_predictDo::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_predictDo::init(const int32_t tool, const int32_t deg) {
+  _return = false;
+  this->tool = tool;
+  this->deg = deg;
+}
+
+bool affManager_IDLServer_testPredict::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("testPredict",1,1)) return false;
+  if (!writer.writeI32(tool)) return false;
+  return true;
+}
+
+bool affManager_IDLServer_testPredict::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affManager_IDLServer_testPredict::init(const int32_t tool) {
+  _return = false;
+  this->tool = tool;
+}
+
+affManager_IDLServer::affManager_IDLServer() {
+  yarp().setOwner(*this);
+}
 bool affManager_IDLServer::start() {
   bool _return = false;
   affManager_IDLServer_start helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::start()");
   }
@@ -360,6 +519,7 @@ bool affManager_IDLServer::start() {
 bool affManager_IDLServer::quit() {
   bool _return = false;
   affManager_IDLServer_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::quit()");
   }
@@ -369,6 +529,7 @@ bool affManager_IDLServer::quit() {
 bool affManager_IDLServer::reset() {
   bool _return = false;
   affManager_IDLServer_reset helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::reset()");
   }
@@ -378,6 +539,7 @@ bool affManager_IDLServer::reset() {
 bool affManager_IDLServer::goHome() {
   bool _return = false;
   affManager_IDLServer_goHome helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::goHome()");
   }
@@ -387,6 +549,7 @@ bool affManager_IDLServer::goHome() {
 bool affManager_IDLServer::goHomeNoHands() {
   bool _return = false;
   affManager_IDLServer_goHomeNoHands helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::goHomeNoHands()");
   }
@@ -396,6 +559,7 @@ bool affManager_IDLServer::goHomeNoHands() {
 bool affManager_IDLServer::findToolDims() {
   bool _return = false;
   affManager_IDLServer_findToolDims helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::findToolDims()");
   }
@@ -405,6 +569,7 @@ bool affManager_IDLServer::findToolDims() {
 bool affManager_IDLServer::lookAtTool() {
   bool _return = false;
   affManager_IDLServer_lookAtTool helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtTool()");
   }
@@ -414,6 +579,7 @@ bool affManager_IDLServer::lookAtTool() {
 bool affManager_IDLServer::observeTool() {
   bool _return = false;
   affManager_IDLServer_observeTool helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeTool()");
   }
@@ -423,6 +589,7 @@ bool affManager_IDLServer::observeTool() {
 bool affManager_IDLServer::trackObj() {
   bool _return = false;
   affManager_IDLServer_trackObj helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trackObj()");
   }
@@ -432,8 +599,7 @@ bool affManager_IDLServer::trackObj() {
 bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_getTool helper;
-  helper.tool = tool;
-  helper.deg = deg;
+  helper.init(tool,deg);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg)");
   }
@@ -443,7 +609,7 @@ bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg) {
 bool affManager_IDLServer::doAction(const int32_t approach) {
   bool _return = false;
   affManager_IDLServer_doAction helper;
-  helper.approach = approach;
+  helper.init(approach);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::doAction(const int32_t approach)");
   }
@@ -453,6 +619,7 @@ bool affManager_IDLServer::doAction(const int32_t approach) {
 bool affManager_IDLServer::trainDraw() {
   bool _return = false;
   affManager_IDLServer_trainDraw helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainDraw()");
   }
@@ -462,8 +629,7 @@ bool affManager_IDLServer::trainDraw() {
 bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_trainObserve helper;
-  helper.tool = tool;
-  helper.deg = deg;
+  helper.init(tool,deg);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg)");
   }
@@ -473,9 +639,7 @@ bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg) {
 bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials) {
   bool _return = false;
   affManager_IDLServer_observeAndDo helper;
-  helper.tool = tool;
-  helper.deg = deg;
-  helper.trials = trials;
+  helper.init(tool,deg,trials);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials)");
   }
@@ -485,8 +649,7 @@ bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, c
 bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg) {
   bool _return = false;
   affManager_IDLServer_predictDo helper;
-  helper.tool = tool;
-  helper.deg = deg;
+  helper.init(tool,deg);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg)");
   }
@@ -496,7 +659,7 @@ bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg) {
 bool affManager_IDLServer::testPredict(const int32_t tool) {
   bool _return = false;
   affManager_IDLServer_testPredict helper;
-  helper.tool = tool;
+  helper.init(tool);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::testPredict(const int32_t tool)");
   }
@@ -509,6 +672,8 @@ bool affManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "start") {

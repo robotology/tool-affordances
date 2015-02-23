@@ -177,7 +177,7 @@ bool AffManager::configure(ResourceFinder &rf)
 
 	//ports
 	bool ret = true;  
-    ret = userDataPort.open(("/"+name+"/user:i").c_str());	                       // input port to receive data from user
+    ret = ret &&  userDataPort.open(("/"+name+"/user:i").c_str());	                       // input port to receive data from user
     ret = ret && outDataPort.open(("/"+name+"/data:o").c_str());                   // port to send data out for recording
     ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                  // port to send data out for recording
     if (!ret){
@@ -604,7 +604,6 @@ void AffManager::goHomeNoHandsExe()
     }
     return;
 }
-
 
 /**********************************************************/
 void AffManager::askForTool()

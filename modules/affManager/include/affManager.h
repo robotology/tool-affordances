@@ -126,16 +126,16 @@ protected:
 	bool						graspTool();
     void                        simTool(int toolI = 5,int orDeg = 0);
     void                        simMoveObj();
-        bool                        setLabel(const std::string &label);
+    bool                        setLabel(const std::string &label);
 
     void                        findToolDimsExe();
     void                        attachTool();
 
     /* Look and featExt Functions */
     bool						lookAtToolExe();
-        void                        handToCenter();
-        void                        lookOverHand(double disp);
-        bool                        gazeAtTool();
+    void                        handToCenter();
+    void                        lookOverHand(double disp);
+    bool                        gazeAtTool();
     void						observeToolExe();   
        
 	/* Action and Effect functions*/    
