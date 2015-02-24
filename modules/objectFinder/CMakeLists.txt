@@ -1,5 +1,5 @@
 # Copyright: (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
-# Author: Matej Hoffmann
+# Author: Tanis Mar
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.6)
