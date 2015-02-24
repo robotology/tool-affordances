@@ -1,5 +1,5 @@
 /*
- * AFFORNDACE MOTOR
+ * AFFORNDACE MANAGER
  * Copyright (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
  * Author: Tanis Mar
  * email: tanis.mar@iit.it
@@ -15,6 +15,119 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
 */
+
+/** 
+\defgroup affManager Manager for the tool-pose dependent affordance Experiment
+ 
+Manager which controls the rest of the modules of the tool-pose dependent affordance Experiment
+and enables user control.
+
+\section intro_sec Description 
+This modules relies user commands to the rest of the modules in the tool-pose dependent affordance 
+Experiment, in order to allow for the required feature extraction, action performance and effect observation. \n
+It also executes basic motor actions to observe the tool. \n
+It works with minor differences on the real robot and the simulator, save the necessary ones to grab the tool. 
+ 
+\section lib_sec Libraries 
+- YARP libraries. 
+- icubmod library.
+
+\section parameters_sec Parameters 
+--robot \e robot
+- Select the robot to connect to.
+
+--name \e name
+- Select the stem-name of the module used to open up ports. 
+  By default \e name is <i>affManager</i>.
+
+--camera \e camera
+- Select the eye camera to use. 
+  By default \e camera is <i>left</i>.
+
+--hand \e hand
+- Select the arm which will grasp the tool and do the actions. 
+  By default \e name is <i>right</i>.
+  
+\section portsa_sec Ports Accessed
+Assume that iCubInterface (with ICartesianControl interface
+implemented) is running. 
+ 
+\section portsc_sec Ports Created 
+- \e /affManager/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+It manages the following commands through thrift interface:
+    -# <b>start</b>:  Start the module \n
+     return true/false on success/failure.
+
+    -# <b>start</b>: Quit the module \n
+     return true/false on success/failure
+    
+    -# <b>reset</b>: Sets the experiment flow flags to false (action done, object located, tip on view).\n
+     return true/false on success/failure      
+
+    -# <b>goHome</b>: Adopt home position, also opening hands \n 
+    return true/false on success/failure
+    
+    -# <b>goHomeNoHands</b>: Adopt home position while keeping hand pose (tools remain grasped) \n
+     return true/false on success/failure
+    
+    -# <b>findToolDims</b>: Uses active exploration and non-linear optimization to compute the tool dimensions (only on real robot) \n
+     Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder \n
+     return true/false on success/failure 
+
+    -# <b>lookAtTool</b>: Moves the tool in hand in front of iCub eyes to a position where it can be observed fully. \n
+     return true/false on success/failure of bringing the tool in front
+     
+    -# <b>observeTool</b>: Finds tool in hand and does Feature Extraction. \n
+     return true/false on success/failure finding and extracting feats from tool
+     
+    -# <b>trackObj</b>: Gets the bounding box of the object from the user, and uses the template to train the particle filter tracker. \n
+    return true/false on success/failure of finding/looking at object
+    
+    -# <b>getTool</b>: <i>tool deg</i> (default tool = 5, deg = 0).Performs the sequence to get the tool: \n
+    On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and uses magnet to hold it to hand.\n
+    On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given \n    
+    return true/false on success/failure holding a tool
+    
+    -# <b>doAction</b>: <i>approach</i> (default approach = 0). Performs an pull trial on <i>approach</i> cm wrt the object. \n
+    The trial consist on locating the object, executing the pull, locating the potentially displaced object and computing the effect.\n
+    return true/false on success/failure 
+    
+    -# <b>trainDraw</b>:  Performs several pull trials with approaches from -5 to 5 cm to learn the mapping: \n
+    return true/false on success/failure 
+    
+    -# <b>trainObserve</b>: <i>tool deg</i> (default tool = 5 deg = 0). Performs  feature extraction on the given tool 5 times from slighlty different prespectives \n
+     return true/false on success/failure 
+
+    -# <b>observeAndDo</b>: <i>tool deg trials</i> (default tool = 5, deg = 0, trials = 1). Performs the whole routine a given number of trials with the given tool in the given orientation:  looking at the tool, feature extraction, perform a pull action, and compute the effect. \n
+    return true/false on success/failure 
+   
+    -# <b>predictDo</b>: <i>tool deg</i> (default tool = 5, deg = 0). Gets a tool, observes it (feature extraction), reads the predicted affordance from MATLAB and perform the best predicted action.
+   Needs matlab script running prediction based on the model. 
+   return true/false on success/failure 
+     
+    -# <b>testPredict</b>: <i>tool</i> (default tool = 5). Performs the prediction and action (predictDo routine) 5 times on each orientation with the given tool.
+    return true/false on success/failure 
+    
+- \e /affManager/matlab:i   Receives the affordance vector prediction from matlab to select te max effect and perfomr an action.
+- \e /affManager/user:i     Port for user input. Can be used for user selection of the tooltip, tool dimensions or other data. 
+ 
+- \e /affManager/are:rpc            Send commands to the Actions Rendering Engine module. \n
+- \e /affManager/sim:rpc            Send commands to the Simulator. \n
+- \e /affManager/karmaMotor:rpc     Send commands to the Karma motor for tool use related actions. \n
+- \e /affManager/karmaFinder:rpc    Send commands to the finder part of the KARMA application in order to display and locate the tooltip. \n
+- \e /affManager/featExt:rpc        Send commands to the Feature Extraction Module. \n
+- \e /affManager/affLearn:rpc       Send commands to the affordance Learning Module. \n
+- \e /affManager/objFind:rpc        Send commands to the objectFinder Module. \n
+- \e /affManager/toolBlob:rpc       Send commands to the toolBlobber Module.\n
+
+- \e /affManager/data:o             Outputs affordance data for recording (action parameters, effect, etc) .\n
+ 
+\section tested_os_sec Tested OS
+Windows, Linux
+
+\author Tanis Mar
+*/ 
+
 
 #include "affManager.h"
 
@@ -49,8 +162,6 @@ bool AffManager::configure(ResourceFinder &rf)
 
     tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
 
-    //simMode=rf.check("simMode", Value("off"),"simMode (string)").asString();
-	
 	attach(rpcCmd);
 	running = true;
     actionDone = false;
@@ -60,15 +171,15 @@ bool AffManager::configure(ResourceFinder &rf)
 
     toolDim.resize(3, 0.0);
     toolTipPix.resize(2,0.0);
-    target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D
-    target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D
+    target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D before the action
+    target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D after the action
     toolPoseName = "undef";
 
 	//ports
 	bool ret = true;  
-    ret = userDataPort.open(("/"+name+"/user:i").c_str());	                       // input port to receive data from user
-    ret = ret && outDataPort.open(("/"+name+"/data:o").c_str());                           // port to send data out for recording
-    ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                           // port to send data out for recording
+    ret = ret &&  userDataPort.open(("/"+name+"/user:i").c_str());	                       // input port to receive data from user
+    ret = ret && outDataPort.open(("/"+name+"/data:o").c_str());                   // port to send data out for recording
+    ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                  // port to send data out for recording
     if (!ret){
 		printf("Problems opening ports\n");
 		return false;
@@ -223,21 +334,9 @@ bool AffManager::goHomeNoHands(){
 	goHomeNoHandsExe();
 	return true;
 }
-bool AffManager::askForTool(){
-	askForToolExe();
-	return true;
-}
-bool AffManager::graspTool(){	
-	return graspToolExe();
-}
 
 bool AffManager::findToolDims(){
 	findToolDimsExe();
-	return true;
-}
-
-bool AffManager::attachTool(){
-	attachToolExe();
 	return true;
 }
 
@@ -254,21 +353,6 @@ bool AffManager::observeTool(){
 bool AffManager::trackObj(){
 	trackObjExe();
 	return true;
-}
-
-bool AffManager::locateObj(){
-	locateObjExe();
-	return true;
-}
-
-bool AffManager::slideAction(const int approach){
-	slideActionExe(approach);
-	return true;
-}
-
-bool AffManager::computeEffect(){
-    computeEffectExe();
-    return true;
 }
 
 bool AffManager::reset(){
@@ -293,21 +377,21 @@ bool AffManager::getTool(const int toolI, const int deg){
         toolDim[2] = 0.03;
 
     }else {
-        askForToolExe();
+        askForTool();
         std::cout << "Give the tool to the iCub oriented " <<  deg << "!" << std::endl;
-        if (!graspToolExe()){
+        if (!graspTool()){
             std::cout << "Tool could not be grasped properly, stopping!" << std::endl;
             return false;
         }
         // Find tool dimensions using KARMA
-        //findToolDimsExe();    // XXX Possibly substitute this by fixed dimension values
+        //findToolDimsExe();    //  For similar tools it can be performed once and then subsittuted by fixed values like below.
         toolDim[0] = 0.16;
         toolDim[1] = -0.16;
         toolDim[2] = -0.04;
     }
     
     // Show and attach tooltip.
-    attachToolExe();
+    attachTool();
 
     // Go home position with tool
     // goHomeNoHandsExe();
@@ -319,19 +403,19 @@ bool AffManager::doAction(const int approach){
     if (!trackingObj)
         trackObjExe();
     Time::delay(2);
-	if (locateObjExe())
+	if (locateObj())
 	{
-		slideActionExe(approach);
+		slideAction(approach);
 		goHomeNoHandsExe();
 		Time::delay(2);
-		locateObjExe();
-		computeEffectExe();
+		locateObj();
+		computeEffect();
 	}
     finishRound();
 	return true;
 }
 
-bool AffManager::trainDraw(int toolI, int pose){
+bool AffManager::trainDraw(){
     if (!trackingObj)
         trackObjExe();
 	for ( int app = -5; app <= 5 ; app++ ){
@@ -369,31 +453,18 @@ bool AffManager::observeAndDo(int toolI, int pose, int trials){
 
 		lookAtToolExe();
 		observeToolExe();
-		trainDraw(toolI,pose);
+		trainDraw();
 		finishRound();
 		Time::delay(2);
     }
     return true;
 }
 
-bool AffManager::runExp(){
-    printf("Starting Routine\n");
-    //for ( int tool = 5; tool <= 7; tool++ ){
-		int tool=3;
-		for ( int pose = -90; pose < 100; pose=pose+90 ){
-			observeAndDo(tool, pose, 10);
-			Time::delay(2);
-		}
-    //}
-	return true;
-}
-
 bool AffManager::predictDo(const int toolI, const int pose){
-	//getTool(toolI, pose);
 	lookAtToolExe();
 	observeToolExe();
-	 Bottle *matReply = matlabPort.read(true);
-
+	Bottle *matReply = matlabPort.read(true);
+    
 	 //cout << " Read reply form Matlab " << matReply->toString().c_str() << endl;
 
 	 // Find the maximum for affPred and perform doAction on the max index.
@@ -452,8 +523,6 @@ bool AffManager::testPredict(int tool)
     //}
 
 	return true;
-
-
 }
 
 
@@ -466,14 +535,14 @@ bool AffManager::testPredict(int tool)
 /**********************************************************/
 void AffManager::goHomeExe()
 {
-	fprintf(stdout,"Start 'home' 'all' procedure:\n");
-    Bottle cmdAre, replyAre;
+	Bottle cmdAre, replyAre;
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("home");
     cmdAre.addString("all");
-    rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"gone home %s:\n",replyAre.toString().c_str()); 
+    fprintf(stdout,"RPC to ARE %s\n",cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre,replyAre);    
+    fprintf(stdout,"Reply ARE home %s:\n",replyAre.toString().c_str()); 
     return;
 }
 
@@ -522,50 +591,50 @@ void AffManager::goHomeNoHandsExe()
         cmdAre.addString("home");
         cmdAre.addString("arms");
         cmdAre.addString("head");
+        fprintf(stdout,"RPC to ARE %s\n",cmdAre.toString().c_str());
         rpcMotorAre.write(cmdAre,replyAre);     
-        fprintf(stdout,"gone home with ARE: %s:\n",replyAre.toString().c_str());
-
+        fprintf(stdout,"Reply from ARE: %s:\n",replyAre.toString().c_str());
+        
         cmdAre.clear();
         replyAre.clear();
         cmdAre.addString("idle");
-        rpcMotorAre.write(cmdAre,replyAre);     
+        rpcMotorAre.write(cmdAre,replyAre);
+        fprintf(stdout,"Reply from ARE: %s:\n",replyAre.toString().c_str());
 
     }
     return;
 }
 
-
 /**********************************************************/
-void AffManager::askForToolExe()
+void AffManager::askForTool()
 {
 	fprintf(stdout,"Reach me a tool please.\n");
-	fprintf(stdout,"Start 'take_tool' procedure:\n");
     Bottle cmdAre, replyAre;
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("tato");
-    cmdAre.addString("right");
+    cmdAre.addString(hand);
     cmdAre.addString("no_gaze");
+    fprintf(stdout,"RPC to ARE: %s:\n", cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"Waiting for tool %s:\n",replyAre.toString().c_str());
+    fprintf(stdout,"Reply from ARE %s:\n", replyAre.toString().c_str());
     return;
 }
 
 /**********************************************************/
-bool AffManager::graspToolExe()
+bool AffManager::graspTool()
 {
     Time::delay(1);
-	// Close hand toolwise
-    fprintf(stdout,"Start 'clto' 'right' (close tool right) procedure:\n");
+	// Close hand on tool grasp
     Bottle cmdAre,replyAre;
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("clto");
-    cmdAre.addString("right");
+    cmdAre.addString(hand);
     cmdAre.addString("no_gaze");
-    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
+    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"'clto' 'right' action is %s:\n",replyAre.toString().c_str());
+    fprintf(stdout,"Reply from ARE: %s:\n", replyAre.toString().c_str());
 	Time::delay(0.5);
 
 	// Check if grasp was successful
@@ -573,7 +642,6 @@ bool AffManager::graspToolExe()
     replyAre.clear();
     cmdAre.addString("get");
 	cmdAre.addString("holding");
-    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
     return replyAre.get(0).asBool();
 }
@@ -581,7 +649,7 @@ bool AffManager::graspToolExe()
 /**********************************************************/
 void AffManager::simTool(int toolI,int orDeg )
 {
-    // Put the hand in a s0afe position
+    // Put the hand in a safe position
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
     xd[0]=-0.25; xd[1]=0.15; xd[2]=0.05;
     Vector oy(4), ox(4);
@@ -603,21 +671,18 @@ void AffManager::simTool(int toolI,int orDeg )
     Bottle cmdSim,replySim;       // bottles for Simulator
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("del");
-    fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
+    fprintf(stdout,"RPC to Simulator %s\n",cmdSim.toString().c_str());
     rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
 
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("tool");
-    cmdSim.addInt(toolI);	// tool
-    cmdSim.addInt(2);	// object
-    cmdSim.addInt(orDeg);	// pose
+    cmdSim.addInt(toolI);	    // tool
+    cmdSim.addInt(2);	        // object
+    cmdSim.addInt(orDeg);	    // pose
 
     fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
     rpcSim.write(cmdSim, replySim); // Call simtoolloader to create the tool
 
-    //Vector handPos,handOr;
-    //icart->getPose(handPos,handOr);
-    //igaze->lookAtFixationPoint(handPos);    
     return;
 }
 
@@ -636,13 +701,12 @@ bool AffManager::setLabel(const string &label){
 
     printf("Setting trial label \n");
     Bottle cmdFE,replyFE;
-    cmdFE.clear();
-    replyFE.clear();
+    cmdFE.clear();   replyFE.clear();
     cmdFE.addString("label");
     cmdFE.addString(label);
-    fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+    fprintf(stdout,"RPC to featExt: %s\n",cmdFE.toString().c_str());
     rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-    // At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
+    
 
     return true;
 }
@@ -657,13 +721,13 @@ void AffManager::findToolDimsExe()
     
     // If it is not working, bridge the "find" command by measuring the tool by hand and adding those values to toolDim.
     // Tooldim cooresponds to the difference in x, y, z between the hand end-effector and the tool end-effector, so does not really measure the tool dimensions
-    // Then, to check, set the arm in idle and move it in front of the camera, to check if the dot still is in place.
+    // Then, to check, set the arm in idle and move it in front of the camera, to check if the tooltip dot indicator is still in place.
     cmdKM.addString("find");
-    cmdKM.addString("right");	// arm
+    cmdKM.addString(hand);	    // arm
     cmdKM.addString("left");	// eye
-    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    fprintf(stdout,"RCP to KarmaMotor:  %s\n", cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM); // Call karma Motor to find the tool
-    fprintf(stdout,"Tool frame found\n");
+    fprintf(stdout,"Reply from KarmaMotor: %s:\n", replyKM.toString().c_str());
 
     //  if find not working, substitute here the values by hand measured ones.
     Bottle toolDimB = replyKM.tail();
@@ -682,7 +746,7 @@ void AffManager::findToolDimsExe()
     return;
 }
 
-void AffManager::attachToolExe()
+void AffManager::attachTool()
 {
     // Send the coordinates to Karmafinder to display it and get the tip pixel
     Bottle cmdKF,replyKF;       // bottles for Karma Motor
@@ -691,21 +755,22 @@ void AffManager::attachToolExe()
     cmdKF.addDouble(toolDim[0]);
     cmdKF.addDouble(toolDim[1]);
     cmdKF.addDouble(toolDim[2]);
-    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+    fprintf(stdout,"RCP to KarmaFinder%s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);
+    fprintf(stdout,"Reply from KarmaFinder%s\n", replyKF.toString().c_str());
 
     // Attach the new tooltip to the "body schema"  
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("attach");
-    cmdKM.addString("right");
+    cmdKM.addString(hand);
     cmdKM.addDouble(toolDim[0]);
     cmdKM.addDouble(toolDim[1]);
     cmdKM.addDouble(toolDim[2]);
-    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"reply is %s:\n",replyKM.toString().c_str());
+    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
     fprintf(stdout,"Tool attached \n ");
     return;
 }
@@ -714,8 +779,7 @@ void AffManager::attachToolExe()
 // Look and featExt methods
 /**********************************************************/
 bool AffManager::lookAtToolExe()
-{
-    // Put tool on a comfortable lookable position
+{    
 	igaze->setTrackingMode(false);
 
     tipOnView = false;
@@ -738,6 +802,7 @@ bool AffManager::lookAtToolExe()
 
 void AffManager::handToCenter()
 {
+    // Move arm to have the tool within the visual field
     Vector xd(3), od(4);                            // Set a position in the center in front of the robot
     if (robot== "icubSim")    {
         xd[0]=-0.35 + Rand::scalar(0,0.05); xd[1]=0.05 + Rand::scalar(0,0.04); xd[2]=0.05;}
@@ -777,9 +842,6 @@ void AffManager::lookOverHand(double disp)
     //fprintf(stdout,"Looking over hand to %.2f, %.2f, %.2f\n", handPos[0], handPos[1], handPos[2] );
     igaze->lookAtFixationPoint(handPos);
     igaze->waitMotionDone(0.1, 3.0);
-    //Vector fp;
-    //igaze->getFixationPoint(fp); 							// retrieve the current fixation point
-	//fprintf(stdout,"Tool looked at %.2f, %.2f, %.2f \n", fp[0], fp[1], fp[2] );
 
     return;
 }
@@ -792,8 +854,9 @@ bool AffManager::gazeAtTool()
     // Get ToolTip coordinates on image
     cmdKF.clear();   replyKF.clear();
     cmdKF.addString("tip");
-    fprintf(stdout,"%s\n",cmdKF.toString().c_str());
+    fprintf(stdout,"RPC to KarmaFinder: %s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);                   // Call karmaFinder module to get the tooltip
+    fprintf(stdout,"Reply from KarmaFinder: %s\n",replyKF.toString().c_str());
     toolTipB = replyKF.tail();
     toolTipPix[0] = toolTipB.get(0).asInt();
     toolTipPix[1] = toolTipB.get(1).asInt();
@@ -814,27 +877,27 @@ void AffManager::observeToolExe(){
     icart->getPose(handPose, handOr);
     igaze->get2DPixel(0, handPose, handPix);
 
-    /* So, 
-     * read tooltip from KF - done on gezeAtTool
+    
+    /* read tooltip - done on gezeAtTool
      * send it to toolBlobber (this will make toolBobber output an image which will be fed to featExt)
      * call fExt snapshot to get the image
     */
     if (!gazeAtTool()){
-    	cout << "Tool not on sight, cant observe it, trying to look at it" << endl;
+    	cout << "Tool not on sight, cant observe it, trying to look at it again" << endl;
     	lookAtToolExe();
     	observeToolExe();
     }
     else{
 
 		if (robot != "icubSim") {
-			 /* Read tooltip coordinates  XXX this is a hack, it should be reading from KTF via rpc, as below*/
+			/* Read tooltip coordinates  
+            XXX this is a hack to cope with unstability in the segmentatoin. Ideally, it should be reading from KTF via rpc, as performed in gazeAtTool() */
 			printf("Getting tip coordinates \n");
 			Bottle *toolTipIn = userDataPort.read(true);
 			toolTipPix[0] = toolTipIn->get(0).asInt();
 			toolTipPix[1] = toolTipIn->get(1).asInt();
 			cout <<" Tooltip within view, at pixel: " << toolTipPix.toString().c_str() << endl;
-			// XXX The waiting read has to be done because featExt doesnt work asyncronously, or rather, only does that with RPC query. gonan change that.
-		}
+        }
 
 
 		printf("Seeding ToolBlobber \n");
@@ -843,9 +906,9 @@ void AffManager::observeToolExe(){
 		cmdTB.addString("seed");
 		cmdTB.addInt(toolTipPix[0]);
 		cmdTB.addInt(toolTipPix[1]);
-		fprintf(stdout,"%s\n",cmdTB.toString().c_str());
+		fprintf(stdout,"RPC to toolBlobber: %s\n", cmdTB.toString().c_str());
 		rpcToolBlobber.write(cmdTB, replyTB);                   // Send tool blobber the seed point to retrieve from GBS
-
+        fprintf(stdout,"Reply from toolBlobber: %s\n", replyTB.toString().c_str());
 
 		// Get the features
 		printf("Computing Features \n");
@@ -853,10 +916,11 @@ void AffManager::observeToolExe(){
 		cmdFE.clear();
 		replyFE.clear();
 		cmdFE.addString("snapshot");
-		fprintf(stdout,"%s\n",cmdFE.toString().c_str());
+		fprintf(stdout,"RPC to featExt: %s\n", cmdFE.toString().c_str());
 		rpcFeatExt.write(cmdFE, replyFE); // Call and featExt module to get tool features.
-		// At this point, other moduel running on parallel should be providing the featExt module a clear blob segmentation of the tool
+        fprintf(stdout,"Reply from featExt: %s\n", replyFE.toString().c_str());
 
+        /*
 		// Send them to Afflearn to be analyzed
 		//printf("Sending data to affLearn\n");
 		Bottle cmdLearn,replyLearn;
@@ -868,6 +932,7 @@ void AffManager::observeToolExe(){
 		fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
 		rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 		//fprintf(stdout,"Data processed by learner \n");
+        */
     }
     
     return;
@@ -875,7 +940,7 @@ void AffManager::observeToolExe(){
 
 //------------ Action and effect Routines -------------
 /**********************************************************/
-void AffManager::slideActionExe(int approach)
+void AffManager::slideAction(int approach)
 {
     if (objCoords3DLoc){
         Bottle cmdKM,replyKM;       // bottles for Karma Motor
@@ -887,17 +952,18 @@ void AffManager::slideActionExe(int approach)
         double dist = 0.2;      // drag 20 cm
         
         //double minusTool = 0.15;
+        fprintf(stdout,"Performing pull on approach %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
         cmdKM.addString("draw");
         cmdKM.addDouble(target3DcoordsIni[0] + radius - 0.03); // approach circle means it would go radius cm behind the robot, so we substract it and add 3 cm to go 3 cm behind the object center
         cmdKM.addDouble(target3DcoordsIni[1] + goPoint);     // Vary the approach coordinates on the Y axis between + and -radius.
         cmdKM.addDouble(target3DcoordsIni[2] + 0.05 - fabs(goPoint)/2);      // Z (height) is constant on the table plane + 0.04 not to hit the table itself
         cmdKM.addInt(angle);                        // Set the approach always on the center of the object
         cmdKM.addDouble(radius);                    // At 90deg, this means the tooltip will get always the radius dist behind the object.
-        cmdKM.addDouble(dist);
-        fprintf(stdout,"%s\n",cmdKM.toString().c_str());
+        cmdKM.addDouble(dist);               
         
-        fprintf(stdout,"Performing pull on approach %d on object on coords %s\n",angle, target3DcoordsIni.toString().c_str());
+        fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
         rpcKarmaMotor.write(cmdKM, replyKM); // Call karmaMotor to execute the action
+        fprintf(stdout,"Reply to KarmaMotor: %s\n", replyKM.toString().c_str());
 
         icart->waitMotionDone(0.1,20.0);
         actionDone = true;
@@ -917,7 +983,7 @@ void AffManager::slideActionExe(int approach)
         toolData.addDouble(goPoint);
         
         //fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
-        rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+        //rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 
         outDataPort.write(bSample);
 
@@ -937,8 +1003,10 @@ void AffManager::trackObjExe()
     cmdFinder.clear();
     replyFinder.clear();
     cmdFinder.addString("getBox");
-	// XXX So far track at the object. Improve to detect it automatically.
+    fprintf(stdout,"RPC to objFinder %s:\n", cmdFinder.toString().c_str());
 	rpcObjFinder.write(cmdFinder, replyFinder);
+    fprintf(stdout,"Reply from objFinder %s:\n",replyFinder.toString().c_str());
+
     printf("Object template has been set properly\n");
     trackingObj = true;
 
@@ -954,7 +1022,7 @@ void AffManager::trackObjExe()
 }
 
 /**********************************************************/
-bool AffManager::locateObjExe()
+bool AffManager::locateObj()
 {
 
     // Get the 2D coordinates of the object from objectFinder
@@ -966,8 +1034,9 @@ bool AffManager::locateObjExe()
     replyFinder.clear();
     cmdFinder.addString("getPointTrack");
     cmdFinder.addDouble(tableHeight);
+    printf("RPC to objFinder: %s \n", cmdFinder.toString().c_str());
 	rpcObjFinder.write(cmdFinder, replyFinder);
-    //printf("Received from rpc: %s \n", replyFinder.toString().c_str());
+    printf("Reply from objFinder: %s \n", replyFinder.toString().c_str());
 
     if (replyFinder.size() >1){
         coords3D(0) = replyFinder.get(1).asList()->get(0).asDouble();
@@ -999,7 +1068,7 @@ bool AffManager::locateObjExe()
 }
 
 /**********************************************************/
-void AffManager::computeEffectExe()
+void AffManager::computeEffect()
 {
     //To compute the effect, we assume that the object hasnt move in the z axis ( that is, has remained on the table)
     Vector delta = target3DcoordsAfter - target3DcoordsIni;
@@ -1026,7 +1095,7 @@ void AffManager::computeEffectExe()
     effData.addDouble(effectAlpha);
     effData.addDouble(effectDist);
     //fprintf(stdout,"%s\n",cmdLearn.toString().c_str());
-    rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
+    //rpcAffLearn.write(cmdLearn, replyLearn);            // Send features to affLearn so they are saved and used for learning
 
      outDataPort.write(bSample);
     
@@ -1047,35 +1116,6 @@ void AffManager::finishRound()
     target3DcoordsIni.resize(3);    // Keeps the target position in 3D before the action
     target3DcoordsAfter.resize(3);	// Keeps the target position in 3D after the action
 
-/*  This should be done only once per tool, for redoing an action with the same tool, it can be kept
-    // Remove the tool from the "body schema"
-    Bottle cmdKM,replyKM;       // bottles for Karma Motor
-    cmdKM.clear();   replyKM.clear();
-    cmdKM.addString("tool ");
-    cmdKM.addString("remove");	    
-    fprintf(stdout,"%s\n",cmdKM.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM); // Call and featExt module to get tool features.
-    fprintf(stdout,"Tool removed \n");
-
-    toolDim.resize(3, 0.0);    
-    
-    Bottle cmdAre,replyAre;
-    cmdAre.clear();    replyAre.clear();
-    cmdAre.addString("drop");
-    cmdAre.addString("away");
-    fprintf(stdout,"%s\n",cmdAre.toString().c_str());
-    rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"Tool dropped \n");
-
-    // Send command to templatePFTracker to reset tracker
-    Port cmdPort;
-    cmdPort.open("/templatePFTracker");
-    Bottle cmd;
-    cmd.addString("reset");
-    cmdPort.write(cmd);      // Send the command
-    cmdPort.close();
-    */
-
 }
 
 
@@ -1094,6 +1134,7 @@ int main(int argc, char *argv[])
     rf.setDefault("name","affManager");
 	rf.setDefault("camera","left");
 	rf.setDefault("robot","icub");
+    rf.setDefault("hand","right");
     //rf.setDefaultContext("affManager");
     //rf.setDefaultConfigFile("affManager.ini");
     //rf.setDefault("tracking_period","30");

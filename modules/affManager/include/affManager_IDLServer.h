@@ -16,133 +16,93 @@ class affManager_IDLServer;
  */
 class affManager_IDLServer : public yarp::os::Wire {
 public:
-  affManager_IDLServer() { yarp().setOwner(*this); }
-/**
- * Start the module
- * @return true/false on success/failure
- */
+  affManager_IDLServer();
+  /**
+   * Start the module
+   * @return true/false on success/failure
+   */
   virtual bool start();
-/**
- * Quit the module
- * @return true/false on success/failure
- */
+  /**
+   * Quit the module
+   * @return true/false on success/failure
+   */
   virtual bool quit();
-/**
- * Adopt home position
- * @return true/false on success/failure
- */
-  virtual bool goHome();
-/**
- * Adopt home position while keeping hand pose
- * @return true/false on success/failure
- */
-  virtual bool goHomeNoHands();
-/**
- * Asks for tool and move the arm to receiving position
- * @return true/false on success/failure on going to receive position
- */
-  virtual bool askForTool();
-/**
- * Closes hand on tool previously reached or received.
- * @return true/false on success/failure on holding the tool.
- */
-  virtual bool graspTool();
-/**
- * Uses active exploration and non-linear optimization to compute the tool dimensions
- * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
- * @return true/false on success/failure
- */
-  virtual bool findToolDims();
-/**
- * Attaches its end-effector relative position (provided by findToolDims or else wise) to the robot's kinematic chain.
- * @return true/false on success/failure
- */
-  virtual bool attachTool();
-/**
- * Moves the tool in hand to a position where it can be observed fully, i.e., in front of iCub eyes
- * @return true/false on success/failure of bringing the tool in front
- */
-  virtual bool lookAtTool();
-/**
- * Finds tool in hand and observes it extracting features
- * @return true/false on success/failure finding and extracting feats from tool
- */
-  virtual bool observeTool();
-/**
- * Gets position of the object from the user, and uses the template to train the particle filter tracker.
- * @return true/false on success/failure of finding/looking at object
- */
-  virtual bool trackObj();
-/**
- * Look and locate in 3D the target object
- * @return true/false on success/failure of finding/looking at object
- */
-  virtual bool locateObj();
-/**
- * Executes a sliding action using the end-effector (tool or hand)
- * @return true/false on success/failure
- * to select
- */
-  virtual bool slideAction(const int32_t approach = 0);
-/**
- * Computes the effect of the action as the difference in the position of the object before and after the slide action.
- * @return true/false on success/failure
- * to select
- */
-  virtual bool computeEffect();
-/**
- * Sets the experiment flow flags to false (action done, object located, tip on view).
- * @return true/false on success/failure
- * to select
- */
+  /**
+   * Sets the experiment flow flags to false (action done, object located, tip on view).
+   * @return true/false on success/failure
+   * to select
+   */
   virtual bool reset();
-/**
- * performs the sequence to get the tool from user, look at it and extract its features.
- * @return true/false on success/failure of looking at that position
- */
+  /**
+   * Adopt home position
+   * @return true/false on success/failure
+   */
+  virtual bool goHome();
+  /**
+   * Adopt home position while keeping hand pose  (tools remain grasped)
+   * @return true/false on success/failure
+   */
+  virtual bool goHomeNoHands();
+  /**
+   * Uses active exploration and non-linear optimization to compute the tool dimensions (only on real robot)
+   * Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder
+   * @return true/false on success/failure
+   */
+  virtual bool findToolDims();
+  /**
+   * Moves the tool in hand in front of iCub eyes to a position where it can be observed fully.
+   * @return true/false on success/failure of bringing the tool in front
+   */
+  virtual bool lookAtTool();
+  /**
+   * Finds tool in hand and does Feature Extraction.
+   * @return true/false on success/failure finding and extracting feats from tool
+   */
+  virtual bool observeTool();
+  /**
+   * Gets position of the object from the user, and uses the template to train the particle filter tracker.
+   * @return true/false on success/failure of finding/looking at object
+   */
+  virtual bool trackObj();
+  /**
+   * Performs the sequence to get the tool: \n
+   * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and uses magnet to hold it to hand.
+   * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given
+   * @return true/false on success/failure of looking at that position
+   */
   virtual bool getTool(const int32_t tool = 5, const int32_t deg = 0);
-/**
- * Executes the sequence to clear the visual field, look at the object, perform the action and observe the effect.
- * @return true/false on success/failure
- * to select
- */
+  /**
+   * Performs an pull trial on <i>approach</i> cm wrt the object. \n
+   * The trial consist on locating the object, executing the pull, locating the potentially displaced object and computing the effect.\n
+   * @return true/false on success/failure to do Action
+   */
   virtual bool doAction(const int32_t approach = 0);
-/**
- * Performs the drawing action a given number of times to learn the mapping
- * @return true/false on success/failure
- * to select
- */
-  virtual bool trainDraw(const int32_t tool = 5, const int32_t deg = 0);
-/**
- * Performs the feature Extraction on the tool a given number of times from slighlty different prespectives
- * @return true/false on success/failure
- * to select
- */
+  /**
+   * Performs several pull trials with approaches from -5 to 5 cm to learn the mapping:
+   * @return true/false on success/failure
+   */
+  virtual bool trainDraw();
+  /**
+   * Performs  feature extraction on the given tool 5 times from slighlty different prespectives
+   * @return true/false on success/failure
+   */
   virtual bool trainObserve(const int32_t tool = 5, const int32_t deg = 0);
-/**
- * Performs once the whole routine of looking at the tool getting its features ad then performing an action, getting also parameters and effect of the action
- * @return true/false on success/failure
- * to select
- */
+  /**
+   * Performs the whole routine a given number of trials with the given tool in the given orientation:  looking at the tool, feature extraction, perform a pull action, and compute the effect. \n
+   * @return true/false on success/failure
+   */
   virtual bool observeAndDo(const int32_t tool = 5, const int32_t deg = 0, const int32_t trials = 1);
-/**
- * Performs ObserveAndDo for all the possible tools, each in the 3 poses
- * @return true/false on success/failure
- * to select
- */
-  virtual bool runExp();
-/**
- * Gets a tool, observes it, reads the predicted affordance from MATLAB and perform the best predicted action.
- * @return true/false on success/failure
- * to select
- */
+  /**
+   * Gets a tool, observes it (feature extraction), reads the predicted affordance from MATLAB and perform the best predicted action.
+   * Needs matlab script running prediction based on the model.
+   * @return true/false on success/failure
+   */
   virtual bool predictDo(const int32_t tool = 5, const int32_t deg = 0);
-/**
- * Performs the prediction and action several times to evaluate its performance
- * @return true/false on success/failure
- * to select
- */
-  virtual bool testPredict(const int32_t trials = 1);
+  /**
+   * Performs the prediction and action (predictDo routine) 5 times on each orientation with the given tool.
+   * @return true/false on success/failure
+   */
+  virtual bool testPredict(const int32_t tool = 5);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

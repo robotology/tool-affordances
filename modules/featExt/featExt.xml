@@ -1,22 +1,24 @@
-<module>
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+ <module>
     <!-- module's name should match its executable file's name. -->
     <name>featExt</name>
-    <description>Extract functional features - shape descriptors from a blob</description>
-    <version>0.1</version>
-
-    <!-- <arguments> can have multiple <param> tags-->
-    <arguments>
-    <!-- <param default = "" desc="indices of desired features"> featInd </param> -->
-    <!--    
-    <param desc="Name of the module" default="blobExtractor"> name</param>
-    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="blobExtractor/conf"> context </param>
-	<param desc="Configuration file" default="config.ini"> from </param>
-    -->
-    </arguments>
-
+    <description> Extracts a set of 75 geometrical and contour features from the biggest blob in the image.</description>
+        <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+    <version>1.0</version>
+    
+    <description-long>
+    This modules receives an image, either binary or not, extracts the blobs and performs feature Extraction 
+    of the biggest blob found. Features can be ordered in the following categories: 
+    Convexity, Skeleton, Moments, Shape, Angle Signature, Fourier and Wavelet.
+    By default is idle until a particular process order is received (snapshot or click), but can be set to process all incoming images with 'go'. 
+     
+    </description-long>
+    
     <!-- <authors> can have multiple <author> tags. -->
     <authors>
-	  <author email=""> Tanis </author>
+	  <author email="tanis.mar@iit.it"> Tanis Mar </author>
     </authors>
 
      <!-- <data> can have multiple <input> or <output> tags. -->
@@ -24,38 +26,48 @@
         <input port_type="service">
             <type>rpc</type>
             <port carrier="tcp">/featExt/rpc:i</port>
-            <description> Takes RPC commands from Human or stateMachine</description>
+            <description> Takes the following RPC commands from Human or stateMachine
+                -# <b>go</b>: Enables feature extraction on streaming images. Once this option is activated, it won't accept further rpc commands. 
+                -# <b>label</b>  <i>(string) label</i> (default = 'undef'): sets the label that will be given to subsequently extracted feature vectors to string 'label'.             
+                -# <b>setROI</b> <i>(int) tl.x (int) tl.y (int) br.x (int) br.y</i>: Sets a region of interest for feature extraction from the coordinates given as pixel positions. 
+                -# <b>refAngle</b>  <i>(int) angle</i>: Sets the refernece angle for prespective nomalization of the blob to 'angle'.    
+                -# <b>snapshot</b>: Performs feature extraction on a single frame. 
+                -# <b>click</b>: "Asks user to click on viewer and performs feature extraction on the selected blob on one frame.
+                -# <b>verbose</b> <i>(string) ON/OFF</i> : ON/OFF sets printfs of the extraction process on or off, respectively.
+                -# <b>reset</b>: Resets ROI and all other set values to default. 
+                -# <b>help </b>: Produces help on rpc commands. 
+            </description>
         </input>
         <input>
             <type>ImageOfPixelRgb</type>
             <port carrier="udp">/featExt/img:i</port>
             <required>yes</required>
             <priority>no</priority>
-            <description> Receives the camera image.</description>
+            <description> Port receiving incoming images to be processed</description>
         </input>
         <input>
             <type>Bottle</type>
             <port carrier="tcp">/featExt/coords:i</port>
             <required>no</required>
             <priority>no</priority>
-            <description> Receives image pixel coordinates.</description>
+            <description> Port to receive coordinates to specify blob</description>
         </input>
         
         <!-- output data if available -->
         <output>
             <type>Vector(Vector(double))</type>
             <port carrier="udp">/featExt/feats:o</port>
-            <description>Sends a vector with the obtained features</description>
+            <description>Sends the vector containing all the extracted features. </description>
         </output>
         <output>
             <type>Image</type>
             <port carrier="udp">/featExt/imgProp:o</port>
-            <description>Propagates the original image, with the blobs detected drawn on top</description>
+            <description>Propagates the frame on which the feature extraction is performed, with the selected blob marked on top</description>
         </output>        
         <output>
             <type>Image</type>
             <port carrier="udp">/featExt/imgFeat:o</port>
-            <description>Sends an image with detected blobs and some of their features shown</description>
+            <description>Sends an image with a visual rpresentation of some of the features extracted, for assessment</description>
         </output>
 
     </data>

@@ -20,7 +20,7 @@
  
 @ingroup icub_module  
  
-Uses 3D and image info to find the closest object and segment it out
+Uses Graph-Based Segmentation and optionally StereoVision to segment the tool from the background on 2D.
  
 Author: Tanis
 

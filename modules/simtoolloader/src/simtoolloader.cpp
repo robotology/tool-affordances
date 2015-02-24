@@ -267,7 +267,7 @@ void CtrlThread::run() {
             	break;
 
             case VOCAB3('o','b','j'):
-                cout << "Create table and tool (on the table)." <<endl;
+                cout << "Create table and object (on the table)." <<endl;
 
                 //Clear the World:
                 simCmd = simWorld.deleteAll();
@@ -327,12 +327,12 @@ void CtrlThread::run() {
                 // Transformation to express coordinate from the tool in the hand coordinate system.
                 Vector rot1(4), rot2(4), rot3(4);   
                 // Orientation in all 3 axis in axis-angle notation
-                //--- this works form rest position (0 10 0 90 -10)
+                //--- this works on positions around the rest position (0 10 0 90 -10)
                 rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling 
                 rot2[0] = 0.0; rot2[1] = 0.0; rot2[2] = 1.0; rot2[3] = 45*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
                 rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180; //rotate around the tool axis (Z) to select the tool orientation.
                 
-                //--- this works form upper position (-40 100 50 70 -10)
+                //--- this works on positions around upper position (-40 100 50 70 -10)
                 //rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling 
                 //rot2[0] = 0.0; rot2[1] = 1.0; rot2[2] = 0.0; rot2[3] = 45*M_PI/180;         
                 //rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180;
@@ -346,7 +346,7 @@ void CtrlThread::run() {
                 // rotate first around Y axis to orient tool along the hand's X axis
                 // then around the X axis to tilt the tool 45deg wrt the hand
                 // finally around the tool axis (Z) axis to tool-pose (orientation) of the tool effector                
-                Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.     // XXX this works (from rest position (0 10 0 90 -10)).
+                Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.     
                 
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
                 T2H(2,3)= 0.03;             // This accounts for the traslation of 3 cm in the Z axis in the hand coord system. 
