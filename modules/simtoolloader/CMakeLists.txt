@@ -24,7 +24,7 @@ source_group("Header Files" FILES ${folder_header})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
 
 # we now add the YARP and iCub libraries to our project.
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} icubmod ctrlLib)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} icubmod)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})

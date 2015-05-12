@@ -43,7 +43,7 @@ bool   SimToolLoaderModule::configure(yarp::os::ResourceFinder &rf) {
 
     Bottle table;
     Bottle temp;
-    char objectName[] = {'o', 'b', 'j', '0', '\0'};
+    string objectName = "obj";
 
     /* module name */
     moduleName = rf.check("name", Value("simtoolloader"),
@@ -93,17 +93,32 @@ bool   SimToolLoaderModule::configure(yarp::os::ResourceFinder &rf) {
     /* Read Table Configuration */
     table = rf.findGroup("table");
 
-
     /* Read the Objects configurations */
-    numberObjs  = rf.findGroup("objects").find("number").asInt();
     vector<Bottle> object;
-    for ( int n=0 ; n<numberObjs ; n++ ) {
-        objectName[3]++;
-        //cout << objectName;
-        temp = rf.findGroup("objects").findGroup(objectName);
-        object.push_back(temp);
-        temp.clear();
+
+    cout << "Loading objects to buffer" << endl;
+    bool noMoreModels = false;
+    int n =1;
+    while (!noMoreModels){      // read until there are no more objects.
+        stringstream s;
+        s.str("");
+        s << objectName << n;
+        string objNameNum = s.str();
+        temp = rf.findGroup("objects").findGroup(objNameNum);
+
+        if(!temp.isNull()) {
+            cout << "object" << n << ", id: " << objNameNum;
+            cout << ", model: " << temp.get(2).asString() << endl;
+            object.push_back(temp);
+            temp.clear();
+            n++;
+        }else {
+            noMoreModels = true;
+        }
     }
+    numberObjs = n;
+
+    cout << "Loaded " << object.size() << " objects " << endl;
 
     /* Create the control rate thread */
     ctrlThread = new CtrlThread(&simToolLoaderSimOutputPort,
@@ -151,8 +166,8 @@ CtrlThread::CtrlThread(RpcClient *simToolLoaderSimOutput,
     simToolLoaderSimOutputPort = simToolLoaderSimOutput;
     simToolLoaderCmdInputPort  = simToolLoaderCmdInput;
     threadTable  = table;
-    threadHand = hand;
     threadObject = object;
+    threadHand = hand;    
 }
 
 bool CtrlThread::threadInit() {
@@ -323,6 +338,8 @@ void CtrlThread::run() {
                 //receive the orientation of the tool
                 toolPose = controlCmd.get(3).asInt();
 
+                cout << "Requested to create tool " << toolIndex << " with orientation " << toolPose << endl;
+
                 /* Tool to hand transformation*/
                 // Transformation to express coordinate from the tool in the hand coordinate system.
                 Vector rot1(4), rot2(4), rot3(4);   
@@ -339,9 +356,9 @@ void CtrlThread::run() {
 
                 printf("Tool oriented %i deg wrt hand:\n", toolPose);
 
-                Matrix Rrot1=iCub::ctrl::axis2dcm(rot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
-                Matrix Rrot2=iCub::ctrl::axis2dcm(rot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
-                Matrix Rrot3=iCub::ctrl::axis2dcm(rot3);                //printf("Rotation in Z in hand coords:\n %s \n", Rrot3.toString().c_str());
+                Matrix Rrot1 = axis2dcm(rot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
+                Matrix Rrot2 = axis2dcm(rot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
+                Matrix Rrot3 = axis2dcm(rot3);                //printf("Rotation in Z in hand coords:\n %s \n", Rrot3.toString().c_str());
                 
                 // rotate first around Y axis to orient tool along the hand's X axis
                 // then around the X axis to tilt the tool 45deg wrt the hand
@@ -351,7 +368,7 @@ void CtrlThread::run() {
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
                 T2H(2,3)= 0.03;             // This accounts for the traslation of 3 cm in the Z axis in the hand coord system. 
                 printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", T2H.toString().c_str());
-                Vector T2Hrpy = iCub::ctrl::dcm2rpy(T2H);  // from rot Matrix to roll pitch yaw
+                Vector T2Hrpy = dcm2rpy(T2H);  // from rot Matrix to roll pitch yaw
                 Vector T2HrpyDeg = T2Hrpy *(180.0/M_PI);
                 printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",T2HrpyDeg.toString().c_str());
 
@@ -362,8 +379,8 @@ void CtrlThread::run() {
                 Vector posRobot, H2Raa, H2Rrpy, H2RrpyDeg;
                 icart->getPose(posRobot, H2Raa);      // Get hand to robot rotation matrix from iCart.    
 
-                Matrix H2R=iCub::ctrl::axis2dcm(H2Raa);   // from axis/angle to rotation matrix notation
-                H2Rrpy = iCub::ctrl::dcm2rpy(H2R);  // from rot Matrix to roll pitch yaw
+                Matrix H2R=axis2dcm(H2Raa);   // from axis/angle to rotation matrix notation
+                H2Rrpy = dcm2rpy(H2R);  // from rot Matrix to roll pitch yaw
                 H2RrpyDeg = H2Rrpy *(180.0/M_PI);
                 printf("Orientation of hand in robot coords, in degrees:\n %s \n",H2RrpyDeg.toString().c_str());
                 // Include translation
@@ -396,7 +413,7 @@ void CtrlThread::run() {
                 posWorld[1]= T2W(1,3); 
                 posWorld[2]= T2W(2,3);                     
 
-                Vector T2Wrpy  = iCub::ctrl::dcm2rpy(T2W);  // from rot Matrix to roll pitch yaw
+                Vector T2Wrpy  =  dcm2rpy(T2W);  // from rot Matrix to roll pitch yaw
                 Vector T2WrpyDeg = T2Wrpy *(180.0/M_PI);
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",T2WrpyDeg.toString().c_str());
                 
@@ -411,7 +428,7 @@ void CtrlThread::run() {
                 simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
                 writeSim(simCmd);
                 printf("Tool rotated \n");
-                simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //left arm by default
+                simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
                 printf("Tool caught \n");
 
@@ -1072,10 +1089,10 @@ Bottle SimSCyl::grabObjectBottle(iCubArm arm) {
 SimModel::SimModel(double posx, double posy, double posz,
                    double rotx, double roty, double rotz,
                    ConstString mes, ConstString tex) {
-    cout << endl <<  "Creating model: "<< endl;
-    cout << "posx " << posx << ". posy " << posy << ". posz " << posz << endl;
-    cout << "rotx " << rotx << ". roty " << roty << ". rotz " << rotz << endl;
-    cout << "mes " << mes << ". tex " << tex << endl;
+    // cout << endl <<  "Creating model: "<< endl;
+    // cout << "posx " << posx << ". posy " << posy << ". posz " << posz << endl;
+    // cout << "rotx " << rotx << ". roty " << roty << ". rotz " << rotz << endl;
+    // cout << "mes " << mes << ". tex " << tex << endl;
 
     positionX = posx;
     positionY = posy;
@@ -1289,8 +1306,9 @@ SimWorld::SimWorld(const Bottle& threadTable,
     simTable->objSubIndex=0;
 
     cout << endl << "D.B. Models Initialization" << endl;
-    for ( int n=0 ; n<threadObject.size() ; n++ ) {
-    	cout << endl << "threadObject" << n << " = " << threadObject[n].toString() << endl;
+    cout << threadObject.size() << " models in threadObject" << endl;
+    for ( int n = 0 ; n < threadObject.size() ; n++ ) {
+        cout << endl << "threadObject " << n << " = " << threadObject[n].toString() << endl;
         if      (threadObject[n].get(1).asString() == "Box") {
             simObject[n] = new SimBox(threadTable.get(4).asDouble()-0.05,
                                       threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
@@ -1325,7 +1343,6 @@ SimWorld::SimWorld(const Bottle& threadTable,
                                       threadObject[n].get(3).asDouble());
         }
         else if (threadObject[n].get(1).asString() == "Model") {
-            cout << endl << "D.B. " << n << " init SimModel" << endl;
             simObject[n] = new SimModel(threadTable.get(4).asDouble()-0.05,
                                         threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
                                         threadTable.get(6).asDouble()-0.01,

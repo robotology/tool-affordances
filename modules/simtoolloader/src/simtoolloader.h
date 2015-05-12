@@ -44,8 +44,6 @@ YARP_DECLARE_DEVICES(icubmod)
 using namespace std;
 using namespace yarp::os;
 
-#define M_PI       3.14159265358979323846264338328      /* pi */
-
 enum iCubArm {LEFT, RIGHT};
 enum objType {BOX, SBOX, SPH, SSPH, CYL, SCYL, MODEL, SMODEL};
 

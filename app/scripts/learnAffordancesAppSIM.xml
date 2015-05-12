@@ -43,7 +43,7 @@
         <geometry>(Pos (x 604) (y 128.9))</geometry>
     </module>
     <module>
-        <name>simtoolloader</name>
+        <name>simtoolloader --from ICRA2015models.ini</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
