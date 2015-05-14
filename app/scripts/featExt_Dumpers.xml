@@ -6,13 +6,13 @@
     </authors>
     <module>
         <name>dataDumper</name>
-        <parameters>--name featExt --rxTime</parameters>
+        <parameters>--name feat2DExt --rxTime</parameters>
         <node>localhost</node>
     </module>
 
     <connection>
-        <from external="true">/featExt/feats:o</from>
-        <to external="true">/featExt</to>
+        <from external="true">/feat2DExt/feats:o</from>
+        <to external="true">/feat2DExt</to>
         <protocol>mcast</protocol>
         <geometry>(Pos ((x 514.5) (y 302)) ((x 366) (y 306)) ((x 698) (y 298))  )</geometry>
     </connection>    

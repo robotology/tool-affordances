@@ -454,7 +454,7 @@ void Contour::computeAngleSig(double refAngle, int win)
             double smoothAngle =  accum / (2*win+1); 
             angleSig->push_back(smoothAngle);
         }
-        printf("Done smoothing \n", win);
+        printf("Done smoothing \n");
 	}
     
 }

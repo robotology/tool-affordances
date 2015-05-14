@@ -15,7 +15,7 @@
         <geometry>(Pos (x 170) (y 6.9))</geometry>
     </module>
     <module>
-        <name>featExt</name>
+        <name>feat2DExt</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
@@ -156,7 +156,7 @@
     </connection>
     <connection>
         <from>/affManager/featExt:rpc</from>
-        <to>/featExt/rpc:i</to>
+        <to>/feat2DExt/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 810) (y 276.5)) ((x 335) (y 124)) ((x 1306) (y 429))  )</geometry>
     </connection>
@@ -188,7 +188,7 @@
     </connection>
     <connection>
         <from>/toolBlobber/imgBin:o</from>
-        <to>/featExt/img:i</to>
+        <to>/feat2DExt/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 987) (y 519)) ((x 688) (y 583)) ((x 1307) (y 455))  )</geometry>
     </connection>
@@ -211,13 +211,13 @@
         <geometry>(Pos ((x 714.5) (y 588.5)) ((x 688) (y 583)) ((x 762) (y 594))  )</geometry>
     </connection>
     <connection>
-        <from>/featExt/imgFeat:o</from>
+        <from>/feat2DExt/imgFeat:o</from>
         <to>/featIm/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1454.5) (y 479)) ((x 1452) (y 480)) ((x 1478) (y 478))  )</geometry>
     </connection>
     <connection>
-        <from>/featExt/feats:o</from>
+        <from>/feat2DExt/feats:o</from>
         <to external="true">/matlab/read</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 1402) (y 560)) ((x 1399) (y 559)) ((x 1426) (y 561))  )</geometry>

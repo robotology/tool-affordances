@@ -195,7 +195,7 @@ bool AffManager::configure(ResourceFinder &rf)
 	retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());			   //rpc server to query featExtractin Module
     retRPC = retRPC && rpcAffLearn.open(("/"+name+"/affLearn:rpc").c_str());		   //rpc server to query affLearn
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           //rpc server to query objectFinder
-    retRPC = retRPC && rpcToolBlobber.open(("/"+name+"/toolBlob:rpc").c_str());           //rpc server to query objectFinder
+    retRPC = retRPC && rpcToolBlobber.open(("/"+name+"/toolBlob:rpc").c_str());        //rpc server to query objectFinder
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
 		return false;

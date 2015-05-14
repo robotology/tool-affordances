@@ -17,7 +17,7 @@
 */
 
 /** 
-\defgroup featExt 2D geometric feature extraction module.
+\defgroup feat2DExt 2D geometric feature extraction module.
 
 Feature Extraction Module: Extracts a set of 75 geometrical and contour features from the biggest blob in the image.
  
@@ -36,10 +36,10 @@ By default is idle until a particular process order is received (snapshot or cli
 No inline parameters
   
 \section portsa_sec Ports Accessed
-Assumes an input image port (straming or not) connected to /featExt/img:i
+Assumes an input image port (straming or not) connected to /feat2DExt/img:i
 
 \section portsc_sec Ports Created 
-- \e /featExt/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+- \e /feat2DExt/rpc:i receives the information to execute the different possible tasks as a Bottle.
 It manages the following commands through respond interface:
 
     -# <b>go</b>: Enables feature extraction on streaming images. Once this option is activated, it won't accept further rpc commands. \n
@@ -60,11 +60,11 @@ It manages the following commands through respond interface:
 
     -# <b>help </b>: Produces help on rpc commands. \n
     
-- \e /featExt/img:i             Port receiving incoming images to be processed
-- \e /featExt/coords:i          Port to receive coordinates to specify blob
-- \e /featExt/imgProp:o         Port propagating the frame on which the feature extraction is peformed, with the selected blob marked on top
-- \e /featExt/imgFeat:o         Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
-- \e /featExt/feats:o			Port which outputs the vector containing all the extracted features
+- \e /feat2DExt/img:i             Port receiving incoming images to be processed
+- \e /feat2DExt/coords:i          Port to receive coordinates to specify blob
+- \e /feat2DExt/imgProp:o         Port propagating the frame on which the feature extraction is peformed, with the selected blob marked on top
+- \e /feat2DExt/imgFeat:o         Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
+- \e /feat2DExt/feats:o			Port which outputs the vector containing all the extracted features
  
 \section tested_os_sec Tested OS
 Windows, Linux
@@ -243,12 +243,12 @@ void FeatExt::loop()
 bool FeatExt::open()
 {
     bool ret=true;
-    ret = rpcCmd.open("/featExt/rpc:i");					// Port for receiving rpc commands
-	ret = ret && inImPort.open("/featExt/img:i");			// Port receiving incoming images to be processed
-    ret = ret && coordsInPort.open("/featExt/coords:i");	// Port to receive coordinates to specify blob on 'click'
-	ret = ret && imPropOutPort.open("/featExt/imgProp:o");  // Port propagating the frame on which the feature extraction is peformed
-	ret = ret && imFeatOutPort.open("/featExt/imgFeat:o");  // Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
-	ret = ret && featPort.open("/featExt/feats:o");			// Port which outputs the vector containing all the extracted features
+    ret = rpcCmd.open("/feat2DExt/rpc:i");					// Port for receiving rpc commands
+    ret = ret && inImPort.open("/feat2DExt/img:i");			// Port receiving incoming images to be processed
+    ret = ret && coordsInPort.open("/feat2DExt/coords:i");	// Port to receive coordinates to specify blob on 'click'
+    ret = ret && imPropOutPort.open("/feat2DExt/imgProp:o");  // Port propagating the frame on which the feature extraction is peformed
+    ret = ret && imFeatOutPort.open("/feat2DExt/imgFeat:o");  // Port outputting an image with a visual rpresentation of some of the features extracted, for assessment
+    ret = ret && featPort.open("/feat2DExt/feats:o");			// Port which outputs the vector containing all the extracted features
 
     if (!ret){
         printf("Problems opening ports\n");

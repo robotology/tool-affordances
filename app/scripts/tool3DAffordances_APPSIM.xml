@@ -1,0 +1,90 @@
+<application>
+    <name>tool3DAffordances_APPSIM</name>
+    <module>
+        <name>tool3DManager</name>
+        <parameters>--robot icubSim</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 185) (y 25.9))</geometry>
+    </module>
+    <module>
+        <name>toolFeatExt</name>
+        <parameters>--context tool3DManager</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1253) (y 490.9))</geometry>
+    </module>
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters>--from sim/config.ini</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 508) (y 404.9))</geometry>
+    </module>
+    <module>
+        <name>karmaMotor</name>
+        <parameters>--robot icubSim --movTime 0.4</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 508) (y 404.9))</geometry>
+    </module>
+    <module>
+        <name>karmaToolFinder</name>
+        <parameters>--robot icubSim</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 782) (y 443.9))</geometry>
+    </module>
+    <module>
+        <name>objectFinder</name>
+        <parameters>--from objectFinderSim.ini</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 604) (y 128.9))</geometry>
+    </module>
+    <module>
+        <name>simtoolloader --from 50tools.ini</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 525) (y 52.9))</geometry>
+    </module>
+    <module>
+        <name>templatePFTracker</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 854) (y 130.9))</geometry>
+    </module>
+    <module>
+        <name>tool3Dshow</name>
+        <parameters>--robot icubSim</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1018) (y 481.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--out /yarpview/out --x 0 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/imLeft</prefix>
+        <geometry>(Pos (x 99) (y 353.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 350</parameters>
+        <node>localhost</node>
+        <prefix>/trackIm</prefix>
+        <geometry>(Pos (x 1094) (y 131.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 700 --y 700</parameters>
+        <node>localhost</node>
+        <prefix>/toolFinder</prefix>
+        <geometry>(Pos (x 1018) (y 481.9))</geometry>
+    </module>
+
+
+
+</application>

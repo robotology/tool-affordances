@@ -49,7 +49,7 @@
         <protocol>mcast</protocol>
     </connection>
     <connection>
-        <from external="true">/featExt/feats:o</from>
+        <from external="true">/feat2DExt/feats:o</from>
         <to external="true">/toolFeats</to>
         <protocol>udp</protocol>
     </connection>

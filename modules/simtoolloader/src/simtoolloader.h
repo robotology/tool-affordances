@@ -70,9 +70,10 @@ public:
 
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true)  = 0;
     virtual Bottle   grabObjectBottle(iCubArm arm)                     = 0;
-    virtual Bottle rotateObjectBottle()                                = 0;
-    virtual Bottle moveObjectBottle()	                               = 0;
-    virtual Bottle deleteObject()                                      = 0; //XXX no implementation yet
+    virtual Bottle   rotateObjectBottle()                              = 0;
+    virtual Bottle   moveObjectBottle()	                               = 0;
+    virtual Bottle   deleteObject()                                    = 0; //XXX no implementation yet
+    virtual string   getObjName()                                      = 0;
 };
 
 class SimBox: public SimObject {
@@ -87,10 +88,11 @@ public:
            double red, double green, double blue,
            double sizx, double sizy, double sizz);
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
+    virtual Bottle   deleteObject();
+    virtual Bottle   rotateObjectBottle();
+    virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    string           getObjName();
 
 };
 
@@ -106,10 +108,11 @@ public:
             double red, double green, double blue,
             double sizx, double sizy, double sizz);
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
+    virtual Bottle   deleteObject();
+    virtual Bottle   rotateObjectBottle();
+    virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    string      getObjName();
 };
 
 class SimSph: public SimObject {
@@ -122,26 +125,11 @@ public:
            double red,  double green, double blue,
            double rad);
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
+    virtual Bottle   deleteObject();
+    virtual Bottle   rotateObjectBottle();
+    virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
-};
-
-class SimSSph: public SimObject {
-private:
-    double radius;
-
-public:
-    SimSSph(double posx, double posy,  double posz,
-            double rotx, double roty,  double rotz,
-            double red,  double green, double blue,
-            double rad);
-    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
-    virtual Bottle   grabObjectBottle(iCubArm arm);
+    string      getObjName();
 };
 
 class SimCyl: public SimObject {
@@ -155,27 +143,11 @@ public:
            double red,  double green, double blue,
            double rad,  double hei);
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
+    virtual Bottle   deleteObject();
+    virtual Bottle   rotateObjectBottle();
+    virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
-};
-
-class SimSCyl: public SimObject {
-private:
-    double radius;
-    double height;
-
-public:
-    SimSCyl(double posx, double posy,  double posz,
-            double rotx, double roty,  double rotz,
-            double red,  double green, double blue,
-            double rad,  double hei);
-    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
-    virtual Bottle   grabObjectBottle(iCubArm arm);
+    string           getObjName();
 };
 
 class SimModel: public SimObject {
@@ -188,27 +160,13 @@ public:
              double rotx, double roty, double rotz,
              ConstString mes, ConstString tex);
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
+    virtual Bottle   deleteObject();
+    virtual Bottle   rotateObjectBottle();
+    virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    string           getObjName();
 };
 
-class SimSModel: public SimObject {
-private:
-    ConstString mesh;
-    ConstString texture;
-
-public:
-    SimSModel(double posx, double posy, double posz,
-              double rotx, double roty, double rotz,
-              ConstString mes, ConstString tex);
-    virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = false);
-    virtual Bottle deleteObject();
-    virtual Bottle rotateObjectBottle();
-    virtual Bottle moveObjectBottle();
-    virtual Bottle   grabObjectBottle(iCubArm arm);
-};
 
 class SimWorld {
 protected:
@@ -253,19 +211,19 @@ public:
 };
 
 class SimToolLoaderModule: public RFModule {
-    string moduleName;
-    string hand;
+    string          moduleName;
+    string          hand;
 
-    string      simToolLoaderSimOutputPortName;
-    RpcClient   simToolLoaderSimOutputPort;
+    string          simToolLoaderSimOutputPortName;
+    RpcClient       simToolLoaderSimOutputPort;
 
-    string      simToolLoaderCmdInputPortName;
-    Port        simToolLoaderCmdInputPort;
+    string          simToolLoaderCmdInputPortName;
+    Port            simToolLoaderCmdInputPort;
 
-    int threadPeriod;
-    int numberObjs;
+    int             threadPeriod;
+    int             numberObjs;
 
-    CtrlThread *ctrlThread;
+    CtrlThread      *ctrlThread;
 
 public:
     double getPeriod();

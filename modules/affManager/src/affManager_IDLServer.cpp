@@ -511,7 +511,7 @@ bool affManager_IDLServer::start() {
   affManager_IDLServer_start helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::start()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::start()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -521,7 +521,7 @@ bool affManager_IDLServer::quit() {
   affManager_IDLServer_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::quit()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -531,7 +531,7 @@ bool affManager_IDLServer::reset() {
   affManager_IDLServer_reset helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::reset()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::reset()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -541,7 +541,7 @@ bool affManager_IDLServer::goHome() {
   affManager_IDLServer_goHome helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::goHome()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::goHome()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -551,7 +551,7 @@ bool affManager_IDLServer::goHomeNoHands() {
   affManager_IDLServer_goHomeNoHands helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::goHomeNoHands()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::goHomeNoHands()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -561,7 +561,7 @@ bool affManager_IDLServer::findToolDims() {
   affManager_IDLServer_findToolDims helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::findToolDims()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::findToolDims()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -571,7 +571,7 @@ bool affManager_IDLServer::lookAtTool() {
   affManager_IDLServer_lookAtTool helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::lookAtTool()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::lookAtTool()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -581,7 +581,7 @@ bool affManager_IDLServer::observeTool() {
   affManager_IDLServer_observeTool helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeTool()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::observeTool()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -591,7 +591,7 @@ bool affManager_IDLServer::trackObj() {
   affManager_IDLServer_trackObj helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trackObj()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::trackObj()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -601,7 +601,7 @@ bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg) {
   affManager_IDLServer_getTool helper;
   helper.init(tool,deg);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::getTool(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -611,7 +611,7 @@ bool affManager_IDLServer::doAction(const int32_t approach) {
   affManager_IDLServer_doAction helper;
   helper.init(approach);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::doAction(const int32_t approach)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::doAction(const int32_t approach)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -621,7 +621,7 @@ bool affManager_IDLServer::trainDraw() {
   affManager_IDLServer_trainDraw helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainDraw()");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::trainDraw()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -631,7 +631,7 @@ bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg) {
   affManager_IDLServer_trainObserve helper;
   helper.init(tool,deg);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::trainObserve(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -641,7 +641,7 @@ bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, c
   affManager_IDLServer_observeAndDo helper;
   helper.init(tool,deg,trials);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::observeAndDo(const int32_t tool, const int32_t deg, const int32_t trials)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -651,7 +651,7 @@ bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg) {
   affManager_IDLServer_predictDo helper;
   helper.init(tool,deg);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::predictDo(const int32_t tool, const int32_t deg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -661,7 +661,7 @@ bool affManager_IDLServer::testPredict(const int32_t tool) {
   affManager_IDLServer_testPredict helper;
   helper.init(tool);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool affManager_IDLServer::testPredict(const int32_t tool)");
+    yError("Missing server method '%s'?","bool affManager_IDLServer::testPredict(const int32_t tool)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;

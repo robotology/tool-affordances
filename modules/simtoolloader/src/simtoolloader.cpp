@@ -219,6 +219,7 @@ void CtrlThread::run() {
     int objIndex  = 0;
     int toolIndex = 0;
     int toolPose = 0;
+    double toolDisp = 0.0;
     double objPosX = -0.1;
     double objPosZ = 0.5;
     NetInt32 code;
@@ -337,8 +338,10 @@ void CtrlThread::run() {
                 
                 //receive the orientation of the tool
                 toolPose = controlCmd.get(3).asInt();
+                toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
+                toolDisp = controlCmd.get(4).asDouble(); // Longitudinal displacement along the tool grasp, in cm
 
-                cout << "Requested to create tool " << toolIndex << " with orientation " << toolPose << endl;
+                cout << "Requested to create tool " << toolIndex << " with orientation " << toolPose << "and extension" << toolDisp << endl;
 
                 /* Tool to hand transformation*/
                 // Transformation to express coordinate from the tool in the hand coordinate system.
@@ -366,7 +369,8 @@ void CtrlThread::run() {
                 Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.     
                 
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
-                T2H(2,3)= 0.03;             // This accounts for the traslation of 3 cm in the Z axis in the hand coord system. 
+                T2H(2,3) = 0.03;                    // This accounts for the traslation of 3 cm in the Z axis in the hand coord system.
+                T2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
                 printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", T2H.toString().c_str());
                 Vector T2Hrpy = dcm2rpy(T2H);  // from rot Matrix to roll pitch yaw
                 Vector T2HrpyDeg = T2Hrpy *(180.0/M_PI);
@@ -421,16 +425,18 @@ void CtrlThread::run() {
                 simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
                 simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
-                printf("Tool placed \n");
 
                 //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);                                 
                 simWorld.simObject[toolIndex-1]->setObjectRotation(T2WrpyDeg[0],T2WrpyDeg[1],T2WrpyDeg[2]);//(-65, -5, 110);
                 simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
                 writeSim(simCmd);
-                printf("Tool rotated \n");
                 simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
-                printf("Tool caught \n");
+
+                // Get and return the name of the loaded tool
+                string modelName = simWorld.simObject[toolIndex-1]->getObjName();
+                cout << endl << "Model " << modelName << " has been loaded." << endl;
+
 
                 //------------------------------------------------------------------
                 //Create one object:
@@ -450,14 +456,13 @@ void CtrlThread::run() {
                 controlCmd.clear();
                 controlCmd.addVocab(code);
                 controlCmd.addInt(toolIndex);
+                controlCmd.addString(modelName);
                 controlCmd.addInt(objIndex);
                 replyCmd(controlCmd);
 
                 break;
-
         }
     }
-
 }
 
 void CtrlThread::writeSim(Bottle cmd) {
@@ -471,6 +476,112 @@ void CtrlThread::replyCmd(Bottle cmd) {
     (*simToolLoaderCmdInputPort).reply(cmd);
 }
 
+/****************** World class ******************/
+SimWorld::SimWorld() {
+
+}
+
+SimWorld::SimWorld(const Bottle& threadTable,
+                   vector<Bottle>& threadObject) {
+
+    //SimWorld is a class keeping the descriptions of all the possible objects:
+    // -simObject is a vector which keeps instances of all the objects than can be created.
+    // 		- each index in simObject is populated by instances of a class of objects
+    //		- objSubIndex keeps track of the number of objects of each class that have been created
+
+    simObject.resize(threadObject.size());
+
+    objSubIndex.resize(9);
+    for ( int n=0 ; n<9 ; n++ ) {
+        objSubIndex[n]=0;
+    }
+    cout << endl << "D.A.SimSBox -Table - Constructor" << endl;
+    cout << endl << "threadTable" << " = " << threadTable.toString() << endl;
+    simTable = new SimSBox(threadTable.get(4).asDouble(),
+                           threadTable.get(5).asDouble(),
+                           threadTable.get(6).asDouble(),
+                           0, 0, 0,
+                           threadTable.get(7).asDouble(),
+                           threadTable.get(8).asDouble(),
+                           threadTable.get(9).asDouble(),
+                           threadTable.get(1).asDouble(),
+                           threadTable.get(2).asDouble(),
+                           threadTable.get(3).asDouble());
+    simTable->objSubIndex=0;
+
+    cout << endl << "D.B. Models Initialization" << endl;
+    cout << threadObject.size() << " models in threadObject" << endl;
+    for ( int n = 0 ; n < threadObject.size() ; n++ ) {
+        cout << endl << "threadObject " << n << " = " << threadObject[n].toString() << endl;
+        if      (threadObject[n].get(1).asString() == "Box") {
+            simObject[n] = new SimBox(threadTable.get(4).asDouble()-0.05,
+                                      threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
+                                      threadTable.get(6).asDouble()-0.01,
+                                      0, 0, 0,
+                                      threadObject[n].get(5).asDouble(),
+                                      threadObject[n].get(6).asDouble(),
+                                      threadObject[n].get(7).asDouble(),
+                                      threadObject[n].get(2).asDouble(),
+                                      threadObject[n].get(3).asDouble(),
+                                      threadObject[n].get(4).asDouble());
+        }
+        else if (threadObject[n].get(1).asString() == "Sph") {
+            simObject[n] = new SimSph(threadTable.get(4).asDouble()-0.05,
+                                      threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
+                                      threadTable.get(6).asDouble()-0.01,
+                                      0, 0, 0,
+                                      threadObject[n].get(3).asDouble(),
+                                      threadObject[n].get(4).asDouble(),
+                                      threadObject[n].get(5).asDouble(),
+                                      threadObject[n].get(2).asDouble());
+        }
+        else if (threadObject[n].get(1).asString() == "Cyl") {
+            simObject[n] = new SimCyl(threadTable.get(4).asDouble()-0.05,
+                                      threadTable.get(5).asDouble()+0.2,
+                                      threadTable.get(6).asDouble()-0.01,
+                                      0, 0, 0,
+                                      threadObject[n].get(4).asDouble(),
+                                      threadObject[n].get(5).asDouble(),
+                                      threadObject[n].get(6).asDouble(),
+                                      threadObject[n].get(2).asDouble(),
+                                      threadObject[n].get(3).asDouble());
+        }
+        else if (threadObject[n].get(1).asString() == "Model") {
+            //SimModel::SimModel(double posx, double posy, double posz, double rotx, double roty, double rotz, ConstString mes, ConstString tex)
+            simObject[n] = new SimModel(threadTable.get(4).asDouble()-0.05,                                     // posx
+                                        threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,  // posy
+                                        threadTable.get(6).asDouble()-0.01,                                     // posz
+                                        0, 0, 0,                                                                // rot x, y, z.
+                                        threadObject[n].get(2).asString(),                                      // mesh (.x) name
+                                        threadObject[n].get(3).asString());                                     // texture name
+        }
+        simObject[n]->objSubIndex=0;
+    }
+    cout << endl << "D.B. Model indices initialized" << endl;
+}
+
+Bottle SimWorld::deleteAll() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("del");
+    cmd.addString("all");
+    resetSimObjectIndex();
+    return cmd;
+}
+
+void SimWorld::resetSimObjectIndex() {
+    simTable->objSubIndex=0;
+    for ( int n=0 ; n<simObject.size() ; n++ ) {
+        simObject[n]->objSubIndex=0;
+    }
+    for ( int n=0 ; n<9 ; n++ ) {
+        objSubIndex[n]=0;
+    }
+}
+/*****************************************************************************/
+/****************************** Object Classes *******************************/
+/*****************************************************************************/
 void SimObject::setObjectPosition(double posx, double posy,  double posz) {
 
     positionX = posx;
@@ -492,6 +603,110 @@ void SimObject::setObjectColor(double red,  double green, double blue) {
     colorB = blue;
 }
 
+/****************************** Model Class *******************************/
+SimModel::SimModel(double posx, double posy, double posz,
+                   double rotx, double roty, double rotz,
+                   ConstString mes, ConstString tex) {
+    // cout << endl <<  "Creating model: "<< endl;
+    // cout << "posx " << posx << ". posy " << posy << ". posz " << posz << endl;
+    // cout << "rotx " << rotx << ". roty " << roty << ". rotz " << rotz << endl;
+    // cout << "mes " << mes << ". tex " << tex << endl;
+
+    positionX = posx;
+    positionY = posy;
+    positionZ = posz;
+
+    rotationX = rotx;
+    rotationY = roty;
+    rotationZ = rotz;
+
+    mesh    = mes;
+    texture = tex;
+}
+
+Bottle SimModel::makeObjectBottle(vector<int>& ind, bool collision) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("mk");
+    cmd.addString("model");
+    cmd.addString(mesh.c_str());
+    cmd.addString(texture.c_str());
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    //if (collision == false) {
+        cmd.addString("false");
+    //}
+
+    ind[MODEL]++;
+    objSubIndex=ind[MODEL];
+
+    return cmd;
+}
+
+Bottle SimModel::deleteObject() {
+    //not done yet, needs to delete every object and then recreate every one except the one to be deleted
+    Bottle cmd;
+
+    return cmd;
+}
+
+Bottle SimModel::rotateObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("rot");
+    cmd.addString("model");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(rotationX);
+    cmd.addDouble(rotationY);
+    cmd.addDouble(rotationZ);
+    return cmd;
+}
+
+Bottle SimModel::moveObjectBottle() {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("set");
+    cmd.addString("model");
+    cmd.addInt   (objSubIndex);
+    cmd.addDouble(positionX);
+    cmd.addDouble(positionY);
+    cmd.addDouble(positionZ);
+    return cmd;
+}
+
+
+Bottle SimModel::grabObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("model");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(1);
+    return cmd;
+}
+
+string SimModel::getObjName() {
+    return this->mesh;
+}
+
+//************************  Predefined objects ***************************//
+
+/****************************** Box Class *******************************/
 SimBox::SimBox(double posx, double posy,  double posz,
                double rotx, double roty,  double rotz,
                double red,  double green, double blue,
@@ -593,6 +808,11 @@ Bottle SimBox::deleteObject() {
     return cmd;
 }
 
+string SimBox::getObjName() {
+    return "Box";
+}
+
+/****************************** SBox Class *******************************/
 SimSBox::SimSBox(double posx, double posy,  double posz,
                  double rotx, double roty,  double rotz,
                  double red,  double green, double blue,
@@ -694,6 +914,11 @@ Bottle SimSBox::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
+string SimSBox::getObjName() {
+    return "SBox";
+}
+
+/****************************** Sph Class *******************************/
 SimSph::SimSph(double posx, double posy,  double posz,
                double rotx, double roty,  double rotz,
                double red,  double green, double blue,
@@ -791,103 +1016,11 @@ Bottle SimSph::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
-SimSSph::SimSSph(double posx, double posy,  double posz,
-                 double rotx, double roty,  double rotz,
-                 double red,  double green, double blue,
-                 double rad) {
 
-    positionX = posx;
-    positionY = posy;
-    positionZ = posz;
-
-    rotationX = rotx;
-    rotationY = roty;
-    rotationZ = rotz;
-
-    colorR = red;
-    colorG = green;
-    colorB = blue;
-
-    radius = rad;
+string SimSph::getObjName() {
+    return "Sph";
 }
-
-Bottle SimSSph::makeObjectBottle(vector<int>& ind, bool collision) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("mk");
-    cmd.addString("ssph");
-    cmd.addDouble(radius);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    cmd.addDouble(colorR);
-    cmd.addDouble(colorG);
-    cmd.addDouble(colorB);
-    if (collision == false) {
-        cmd.addString("false");
-    }
-
-    ind[SSPH]++;
-    objSubIndex=ind[SSPH];
-
-    return cmd;
-}
-
-Bottle SimSSph::deleteObject() {
-    //not done yet, needs to delete every object and then recreate every one except the one to be deleted
-    Bottle cmd;
-
-    return cmd;
-}
-
-Bottle SimSSph::rotateObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("rot");
-    cmd.addString("ssph");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(rotationX);
-    cmd.addDouble(rotationY);
-    cmd.addDouble(rotationZ);
-    return cmd;
-}
-
-Bottle SimSSph::moveObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("set");
-    cmd.addString("ssph");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    return cmd;
-}
-
-Bottle SimSSph::grabObjectBottle(iCubArm arm) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("grab");
-    cmd.addString("sshp");
-    cmd.addInt   (objSubIndex);
-    switch(arm) {
-        case RIGHT:
-            cmd.addString("right");
-            break;
-        case LEFT:
-            cmd.addString("left");
-            break;
-        default:
-            cmd.addString("right");
-    }
-    cmd.addInt(1);
-    return cmd;
-}
-
+/****************************** Cyl Class *******************************/
 SimCyl::SimCyl(double posx, double posy, double posz,
                double rotx, double roty, double rotz,
                double red, double green, double blue,
@@ -987,431 +1120,7 @@ Bottle SimCyl::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
-SimSCyl::SimSCyl(double posx, double posy,  double posz,
-                 double rotx, double roty,  double rotz,
-                 double red,  double green, double blue,
-                 double rad,  double hei) {
 
-    positionX = posx;
-    positionY = posy;
-    positionZ = posz;
-
-    rotationX = rotx;
-    rotationY = roty;
-    rotationZ = rotz;
-
-    colorR = red;
-    colorG = green;
-    colorB = blue;
-
-    radius = rad;
-    height = hei;
-}
-
-Bottle SimSCyl::makeObjectBottle(vector<int>& ind, bool collision) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("mk");
-    cmd.addString("scyl");
-    cmd.addDouble(radius);
-    cmd.addDouble(height);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    cmd.addDouble(colorR);
-    cmd.addDouble(colorG);
-    cmd.addDouble(colorB);
-    if (collision == false) {
-        cmd.addString("false");
-    }
-
-    ind[SCYL]++;
-    objSubIndex=ind[SCYL];
-
-    return cmd;
-}
-
-Bottle SimSCyl::deleteObject() {
-    //not done yet, needs to delete every object and then recreate every one except the one to be deleted
-    Bottle cmd;
-
-    return cmd;
-}
-
-Bottle SimSCyl::rotateObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("rot");
-    cmd.addString("scyl");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(rotationX);
-    cmd.addDouble(rotationY);
-    cmd.addDouble(rotationZ);
-    return cmd;
-}
-
-Bottle SimSCyl::moveObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("set");
-    cmd.addString("scyl");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    return cmd;
-}
-
-Bottle SimSCyl::grabObjectBottle(iCubArm arm) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("grab");
-    cmd.addString("scyl");
-    cmd.addInt   (objSubIndex);
-    switch(arm) {
-        case RIGHT:
-            cmd.addString("right");
-            break;
-        case LEFT:
-            cmd.addString("left");
-            break;
-        default:
-            cmd.addString("right");
-    }
-    cmd.addInt(1);
-    return cmd;
-}
-
-SimModel::SimModel(double posx, double posy, double posz,
-                   double rotx, double roty, double rotz,
-                   ConstString mes, ConstString tex) {
-    // cout << endl <<  "Creating model: "<< endl;
-    // cout << "posx " << posx << ". posy " << posy << ". posz " << posz << endl;
-    // cout << "rotx " << rotx << ". roty " << roty << ". rotz " << rotz << endl;
-    // cout << "mes " << mes << ". tex " << tex << endl;
-
-    positionX = posx;
-    positionY = posy;
-    positionZ = posz;
-
-    rotationX = rotx;
-    rotationY = roty;
-    rotationZ = rotz;
-
-    mesh    = mes;
-    texture = tex;
-}
-
-Bottle SimModel::makeObjectBottle(vector<int>& ind, bool collision) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("mk");
-    cmd.addString("model");
-    cmd.addString(mesh.c_str());
-    cmd.addString(texture.c_str());
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    //if (collision == false) {
-        cmd.addString("false");
-    //}
-
-    ind[MODEL]++;
-    objSubIndex=ind[MODEL];
-
-    return cmd;
-}
-
-Bottle SimModel::deleteObject() {
-    //not done yet, needs to delete every object and then recreate every one except the one to be deleted
-    Bottle cmd;
-
-    return cmd;
-}
-
-Bottle SimModel::rotateObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("rot");
-    cmd.addString("model");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(rotationX);
-    cmd.addDouble(rotationY);
-    cmd.addDouble(rotationZ);
-    return cmd;
-}
-
-Bottle SimModel::moveObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("set");
-    cmd.addString("model");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    return cmd;
-}
-
-
-Bottle SimModel::grabObjectBottle(iCubArm arm) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("grab");
-    cmd.addString("model");
-    cmd.addInt   (objSubIndex);
-    switch(arm) {
-        case RIGHT:
-            cmd.addString("right");
-            break;
-        case LEFT:
-            cmd.addString("left");
-            break;
-        default:
-            cmd.addString("right");
-    }
-    cmd.addInt(1);
-    return cmd;
-}
-
-SimSModel::SimSModel(double posx, double posy, double posz,
-                     double rotx, double roty, double rotz,
-                     ConstString mes, ConstString tex) {
-
-    positionX = posx;
-    positionY = posy;
-    positionZ = posz;
-
-    rotationX = rotx;
-    rotationY = roty;
-    rotationZ = rotz;
-
-    mesh    = mes;
-    texture = tex;
-}
-
-Bottle SimSModel::makeObjectBottle(vector<int>& ind, bool collision) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("mk");
-    cmd.addString("smodel");
-    cmd.addString(mesh.c_str());
-    cmd.addString(texture.c_str());
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    if (collision == false) {
-        cmd.addString("false");
-    }
-
-    ind[SMODEL]++;
-    objSubIndex=ind[SMODEL];
-
-    return cmd;
-}
-
-Bottle SimSModel::deleteObject() {
-    //not done yet, needs to delete every object and then recreate every one except the one to be deleted
-    Bottle cmd;
-
-    return cmd;
-}
-
-Bottle SimSModel::rotateObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("rot");
-    cmd.addString("smodel");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(rotationX);
-    cmd.addDouble(rotationY);
-    cmd.addDouble(rotationZ);
-    return cmd;
-}
-
-Bottle SimSModel::moveObjectBottle() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("set");
-    cmd.addString("smodel");
-    cmd.addInt   (objSubIndex);
-    cmd.addDouble(positionX);
-    cmd.addDouble(positionY);
-    cmd.addDouble(positionZ);
-    return cmd;
-}
-
-Bottle SimSModel::grabObjectBottle(iCubArm arm) {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("grab");
-    cmd.addString("smodel");
-    cmd.addInt   (objSubIndex);
-    switch(arm) {
-        case RIGHT:
-            cmd.addString("right");
-            break;
-        case LEFT:
-            cmd.addString("left");
-            break;
-        default:
-            cmd.addString("right");
-    }
-    cmd.addInt(1);
-    return cmd;
-}
-
-SimWorld::SimWorld() {
-
-}
-
-SimWorld::SimWorld(const Bottle& threadTable,
-                   vector<Bottle>& threadObject) {
-
-	//SimWorld is a class keeping the descriptions of all the possible objects:
-	// -simObject is a vector which keeps instances of all the objects than can be created.
-	// 		- each index in simObject is populated by instances of a class of objects
-	//		- objSubIndex keeps track of the number of objects of each class that have been created
-
-    simObject.resize(threadObject.size());
-
-    objSubIndex.resize(9);
-    for ( int n=0 ; n<9 ; n++ ) {
-        objSubIndex[n]=0;
-    }
-    cout << endl << "D.A.SimSBox -Table - Constructor" << endl;
-    cout << endl << "threadTable" << " = " << threadTable.toString() << endl;
-    simTable = new SimSBox(threadTable.get(4).asDouble(),
-                           threadTable.get(5).asDouble(),
-                           threadTable.get(6).asDouble(),
-                           0, 0, 0,
-                           threadTable.get(7).asDouble(),
-                           threadTable.get(8).asDouble(),
-                           threadTable.get(9).asDouble(),
-                           threadTable.get(1).asDouble(),
-                           threadTable.get(2).asDouble(),
-                           threadTable.get(3).asDouble());
-    simTable->objSubIndex=0;
-
-    cout << endl << "D.B. Models Initialization" << endl;
-    cout << threadObject.size() << " models in threadObject" << endl;
-    for ( int n = 0 ; n < threadObject.size() ; n++ ) {
-        cout << endl << "threadObject " << n << " = " << threadObject[n].toString() << endl;
-        if      (threadObject[n].get(1).asString() == "Box") {
-            simObject[n] = new SimBox(threadTable.get(4).asDouble()-0.05,
-                                      threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                      threadTable.get(6).asDouble()-0.01,
-                                      0, 0, 0,
-                                      threadObject[n].get(5).asDouble(),
-                                      threadObject[n].get(6).asDouble(),
-                                      threadObject[n].get(7).asDouble(),
-                                      threadObject[n].get(2).asDouble(),
-                                      threadObject[n].get(3).asDouble(),
-                                      threadObject[n].get(4).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "Sph") {
-            simObject[n] = new SimSph(threadTable.get(4).asDouble()-0.05,
-                                      threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                      threadTable.get(6).asDouble()-0.01,
-                                      0, 0, 0,
-                                      threadObject[n].get(3).asDouble(),
-                                      threadObject[n].get(4).asDouble(),
-                                      threadObject[n].get(5).asDouble(),
-                                      threadObject[n].get(2).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "Cyl") {
-            simObject[n] = new SimCyl(threadTable.get(4).asDouble()-0.05,
-                                      threadTable.get(5).asDouble()+0.2,
-                                      threadTable.get(6).asDouble()-0.01,
-                                      0, 0, 0,
-                                      threadObject[n].get(4).asDouble(),
-                                      threadObject[n].get(5).asDouble(),
-                                      threadObject[n].get(6).asDouble(),
-                                      threadObject[n].get(2).asDouble(),
-                                      threadObject[n].get(3).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "Model") {
-            simObject[n] = new SimModel(threadTable.get(4).asDouble()-0.05,
-                                        threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                        threadTable.get(6).asDouble()-0.01,
-                                        0, 0, 0,
-                                        threadObject[n].get(2).asString(),
-                                        threadObject[n].get(3).asString());
-        }
-/*        else if (threadObject[n].get(1).asString() == "SBox") {
-            simObject[n] = new SimSBox(threadTable.get(4).asDouble()-0.05,
-                                       threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                       threadTable.get(6).asDouble()-0.01,
-                                       0, 0, 0,
-                                       threadObject[n].get(5).asDouble(),
-                                       threadObject[n].get(6).asDouble(),
-                                       threadObject[n].get(7).asDouble(),
-                                       threadObject[n].get(2).asDouble(),
-                                       threadObject[n].get(3).asDouble(),
-                                       threadObject[n].get(4).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "SSph") {
-            simObject[n] = new SimSSph(threadTable.get(4).asDouble()-0.05,
-                                       threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                       threadTable.get(6).asDouble()-0.01,
-                                       0, 0, 0,
-                                       threadObject[n].get(3).asDouble(),
-                                       threadObject[n].get(4).asDouble(),
-                                       threadObject[n].get(5).asDouble(),
-                                       threadObject[n].get(2).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "SCyl") {
-            simObject[n] = new SimSCyl(threadTable.get(4).asDouble()-0.05,
-                                       threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                       threadTable.get(6).asDouble()-0.01,
-                                       0, 0, 0,
-                                       threadObject[n].get(4).asDouble(),
-                                       threadObject[n].get(5).asDouble(),
-                                       threadObject[n].get(6).asDouble(),
-                                       threadObject[n].get(2).asDouble(),
-                                       threadObject[n].get(3).asDouble());
-        }
-        else if (threadObject[n].get(1).asString() == "SModel") {
-            simObject[n] = new SimSModel(threadTable.get(4).asDouble()-0.05,
-                                         threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                         threadTable.get(6).asDouble()-0.01,
-                                         0, 0, 0,
-                                         threadObject[n].get(2).asString(),
-                                       threadObject[n].get(3).asString());
-        }*/
-        simObject[n]->objSubIndex=0;
-    }
-    cout << endl << "D.B. Model indices initialized" << endl;
-}
-
-Bottle SimWorld::deleteAll() {
-
-    Bottle cmd;
-    cmd.addString("world");
-    cmd.addString("del");
-    cmd.addString("all");
-    resetSimObjectIndex();
-    return cmd;
-}
-
-void SimWorld::resetSimObjectIndex() {
-    simTable->objSubIndex=0;
-    for ( int n=0 ; n<simObject.size() ; n++ ) {
-        simObject[n]->objSubIndex=0;
-    }
-    for ( int n=0 ; n<9 ; n++ ) {
-        objSubIndex[n]=0;
-    }
+string SimCyl::getObjName() {
+    return "Cyl";
 }

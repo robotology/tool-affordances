@@ -3,7 +3,7 @@
  
  <module>
     <!-- module's name should match its executable file's name. -->
-    <name>featExt</name>
+    <name>feat2DExt</name>
     <description> Extracts a set of 75 geometrical and contour features from the biggest blob in the image.</description>
         <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
     <version>1.0</version>
@@ -25,7 +25,7 @@
      <data>
         <input port_type="service">
             <type>rpc</type>
-            <port carrier="tcp">/featExt/rpc:i</port>
+            <port carrier="tcp">/feat2DExt/rpc:i</port>
             <description> Takes the following RPC commands from Human or stateMachine
                 -# <b>go</b>: Enables feature extraction on streaming images. Once this option is activated, it won't accept further rpc commands. 
                 -# <b>label</b>  <i>(string) label</i> (default = 'undef'): sets the label that will be given to subsequently extracted feature vectors to string 'label'.             
@@ -40,14 +40,14 @@
         </input>
         <input>
             <type>ImageOfPixelRgb</type>
-            <port carrier="udp">/featExt/img:i</port>
+            <port carrier="udp">/feat2DExt/img:i</port>
             <required>yes</required>
             <priority>no</priority>
             <description> Port receiving incoming images to be processed</description>
         </input>
         <input>
             <type>Bottle</type>
-            <port carrier="tcp">/featExt/coords:i</port>
+            <port carrier="tcp">/feat2DExt/coords:i</port>
             <required>no</required>
             <priority>no</priority>
             <description> Port to receive coordinates to specify blob</description>
@@ -56,17 +56,17 @@
         <!-- output data if available -->
         <output>
             <type>Vector(Vector(double))</type>
-            <port carrier="udp">/featExt/feats:o</port>
+            <port carrier="udp">/feat2DExt/feats:o</port>
             <description>Sends the vector containing all the extracted features. </description>
         </output>
         <output>
             <type>Image</type>
-            <port carrier="udp">/featExt/imgProp:o</port>
+            <port carrier="udp">/feat2DExt/imgProp:o</port>
             <description>Propagates the frame on which the feature extraction is performed, with the selected blob marked on top</description>
         </output>        
         <output>
             <type>Image</type>
-            <port carrier="udp">/featExt/imgFeat:o</port>
+            <port carrier="udp">/feat2DExt/imgFeat:o</port>
             <description>Sends an image with a visual rpresentation of some of the features extracted, for assessment</description>
         </output>
 

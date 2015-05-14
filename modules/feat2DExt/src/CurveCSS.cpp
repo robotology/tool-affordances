@@ -311,12 +311,12 @@ vector<int> ComputeCSSImageMaximas(const vector<double>& contourx_, const vector
 					}
 				}
 				char buf[128]; sprintf(buf, "evolution_%05d.png", i);
-				printf("crossSize: %d \n",crossings.size() );
+                //printf("crossSize: %d \n",crossings.size() );
 				imwrite(buf, contourimg);
 				imshow("evolution", contourimg);
 				waitKey(30);
 			} else {
-				printf("crossSize: %d \n",crossings.size() );
+                //printf("crossSize: %d \n",crossings.size() );
 				done = true;
 			}
 		}

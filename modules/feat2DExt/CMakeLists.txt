@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-set(PROJECTNAME featExt)
+set(PROJECTNAME feat2DExt)
 
 project(${PROJECTNAME})
 
