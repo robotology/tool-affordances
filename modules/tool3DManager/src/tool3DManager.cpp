@@ -154,7 +154,12 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
     tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
 
+    // Attach server port to read RPC commands via thrift
     attach(rpcCmd);
+
+    // XXX Attach client port to send RPC commands via thrift to toolFeatExt
+    // tool3DFeat_IDLServer toolFeatExtclient;
+    // toolFeatExtclient.yarp().attachAsClient(rpcFeatExt);
 
     // XXX old variables which may be useful
 	running = true;
@@ -381,9 +386,8 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdSim.addInt(1);                   // object -> Cube
     cmdSim.addInt(graspOr);             // orientation
     cmdSim.addInt(graspDisp);           // displacement
-
-    fprintf(stdout,"RPC to simulator %s\n",cmdSim.toString().c_str());
     rpcSimTL.write(cmdSim, replySim); // Call simtoolloader to create the tool
+    cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << ". Received reply: " << replySim.toString() << endl;
 
     // Get tool name from simtooloader response.
     // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
@@ -396,35 +400,120 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cout << "cloud model: " << cloudName << endl;
 
 
-    // Query toolFeatExt to load model
+    // Query toolFeatExt to extract features
     Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("loadModel");
     cmdTFE.addString(cloudName);
-    fprintf(stdout,"RPC to toolFeatExt %s\n",cmdTFE.toString().c_str());
-    rpcFeatExt.write(cmdSim, replySim);
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
 
-    // XXX Send tool name to tool3Dshow to get the pointcloud of the tool to check.
 
-    // Get the X and Y dimensions of the tool from its bounding box.
-    // XXX XXX the canoncial tool is oriente to -Y, while the load on the simulator it at 45 degree. So either tilt the canonicals 45 to get the bounding box
-    // , or do the actions with the tool to -Y
+    // Send tool name to tool3Dshow to get the pointcloud of the tool to check.
+    Bottle cmdT3S,replyT3S;                 // bottles for tool3Dshow
+    cmdT3S.clear();   replyT3S.clear();
+    cmdT3S.addString("showFileCloud");
+    cmdT3S.addString(cloudName);
+    rpcFeatExt.write(cmdT3S, replyT3S);
+    cout << "Sent RPC command tool3Dshow: " << cmdT3S.toString() << ". Received reply: " << replyT3S.toString() << endl;
 
-    // Send the XYZ dimensions of the tool to karmaMotor to attach end-effector
-    // Send the XYZ dimensions of the tool to karmaToolFinder to display end-effector
+    // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
+    cmdTFE.clear();   replyTFE.clear();
+    cmdTFE.addString("getToolTip");
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    Bottle* ttCoords = replyTFE.get(0).asList(); // XXX check where the point3D is returned, and if it can be read as a bottle
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
+    Point3Dcoords ttCoordsCanon;
+    ttCoordsCanon.x = ttCoords->get(0).asInt();
+    ttCoordsCanon.y = ttCoords->get(1).asInt();
+    ttCoordsCanon.z = ttCoords->get(2).asInt();
 
+    // Transform canonical coordinates to correspond with tilt, rotation and displacemnt of the tool.
+    Point3Dcoords ttCoordsTrans;
+    // Rotate first around Y axis to match tooltip to end-effector orientation
+    ttCoordsTrans.x = ttCoordsCanon.x*cos(graspOr*M_PI/180) - ttCoordsCanon.z*sin(graspOr*M_PI/180);
+    ttCoordsTrans.y = ttCoordsTrans.y;
+    ttCoordsTrans.z = ttCoordsCanon.z*sin(graspOr*M_PI/180) + ttCoordsCanon.x*cos(graspOr*M_PI/180);
+    // Now tilt 45 degrees arund Z to match the way in which the tool is held
+    ttCoordsTrans.x = ttCoordsTrans.x*cos(45*M_PI/180) - ttCoordsTrans.y*sin(45*M_PI/180);
+    ttCoordsTrans.y = ttCoordsTrans.x*sin(45*M_PI/180) + ttCoordsTrans.y*cos(45*M_PI/180);
+    ttCoordsTrans.z = ttCoordsTrans.z;
+    // Finally add translation along -Y axis to match handle displacement
+    tooltipCoords.x = ttCoordsTrans.x;
+    tooltipCoords.y = ttCoordsTrans.y - graspDisp/100.0;
+    tooltipCoords.z = ttCoordsTrans.z;
+
+    // Send the coordinates to Karmafinder to display it and get the tip pixel
+    Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
+    cmdKF.clear();replyKF.clear();
+    cmdKF.addString("show");
+    cmdKF.addDouble(tooltipCoords.x);
+    cmdKF.addDouble(tooltipCoords.y);
+    cmdKF.addDouble(tooltipCoords.z);
+    fprintf(stdout,"RCP to KarmaFinder%s\n",cmdKF.toString().c_str());
+    rpcKarmaFinder.write(cmdKF, replyKF);
+    fprintf(stdout,"Reply from KarmaFinder%s\n", replyKF.toString().c_str());
+
+    // Attach the new tooltip to the "body schema"
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("attach");
+    cmdKM.addString(hand);
+    cmdKF.addDouble(tooltipCoords.x);
+    cmdKF.addDouble(tooltipCoords.y);
+    cmdKF.addDouble(tooltipCoords.z);
+    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+    fprintf(stdout,"Tool attached \n ");
+
+    return;
+}
+
+void Tool3DManager::graspTool()
+{
+    // Send commands to ARE to get the tool, close the hand and go to central position
+    fprintf(stdout,"Reach me a tool please.\n");
+    Bottle cmdAre, replyAre;
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("tato");
+    cmdAre.addString(hand);
+    cmdAre.addString("no_gaze");
+    fprintf(stdout,"RPC to ARE: %s:\n", cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre,replyAre);
+    fprintf(stdout,"Reply from ARE %s:\n", replyAre.toString().c_str());
+
+    // Send commands to ARE to get the tool, close the hand and go to central position
+    Time::delay(3);
+    // Close hand on tool grasp
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("clto");
+    cmdAre.addString(hand);
+    cmdAre.addString("no_gaze");
+    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre, replyAre);
+    fprintf(stdout,"Reply from ARE: %s:\n", replyAre.toString().c_str());
+    Time::delay(0.5);
+
+    // Go home and observe scenario.
+    goHomeExe(false);
+
+    return;
 }
 
 
-//+++++++++++++++++++ MAIN ++++++++++++++++++++++++++++++++
-/**********************************************************/
+//++++++++++++++++++++++++++++++ MAIN ++++++++++++++++++++++++++++++++//
+/**********************************************************************/
 int main(int argc, char *argv[])
 {
     Network yarp;
     if (!yarp.checkNetwork())
         return -1;
 
-	YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setVerbose(true);

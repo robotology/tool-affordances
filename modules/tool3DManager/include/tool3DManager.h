@@ -50,13 +50,17 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/pids.h>
 
-//for the thrift interface
-//#include <affManager_IDLServer.h>
+//for the thrift server interface
+#include <tool3DManager_IDLServer.h>
 
-YARP_DECLARE_DEVICES(icubmod)
+// for thrift connection with toolFeatExt XXX
+// #include <tool3DFeat_IDLServer.h>
+// #include <Point3D.h>
+
+//YARP_DECLARE_DEVICES(icubmod)
 
 /**********************************************************/
-class Tool3DManager : public yarp::os::RFModule //, public tool3DManager_IDLServer
+class Tool3DManager : public yarp::os::RFModule, public tool3DManager_IDLServer
 {
 protected:
 
@@ -115,6 +119,9 @@ protected:
 
     double                      effectAlpha;            // Angle in which the object has been moved by the action
     double                      effectDist;             // Distance that the object has been moved by the action
+
+    struct                      Point3Dcoords { float x, y, z;};
+    Point3Dcoords               tooltipCoords;
 	
 	
     /* Protected Methods */
@@ -134,8 +141,6 @@ public:
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
 
-
-         
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);
     bool						interruptModule();
