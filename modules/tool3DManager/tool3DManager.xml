@@ -46,8 +46,13 @@
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/tool3DManager/simTL:rpc</port>
+            <port>/tool3DManager/simToolLoader:rpc</port>
             <description> Send commands to simtoolloader</description>
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/tool3DManager/simulator:rpc</port>
+            <description> Send commands to icub simulator</description>
         </output>
         <output port_type="service">
             <type>rpc</type>

@@ -73,7 +73,8 @@ protected:
 
     yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
 
-    yarp::os::RpcClient         rpcSimTL;           //rpc for the simulator tool loader
+    yarp::os::RpcClient         rpcSimToolLoader;           //rpc for the simulator tool loader
+    yarp::os::RpcClient         rpcSimulator;           //rpc for the simulator tool loader
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
     yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
@@ -92,17 +93,7 @@ protected:
     //SegmentationPoint           segmentPoint;       //class to request segmentation from activeSegmentation module
     //PointedLocation             pointedLoc;         //port class to receive pointed locations
 
-    yarp::dev::PolyDriver					clientCart;
-    yarp::dev::ICartesianControl			*icart;
-    int                                     cartCntxt;
 
-    yarp::dev::PolyDriver					clientTorso;
-    yarp::dev::IPositionControl				*iTorso;
-
-    yarp::dev::PolyDriver                   clientGaze;
-    yarp::dev::IGazeControl                 *igaze;
-    int                                     gazeCntxt;
-    	
 	// Flags
 	bool						running;
     bool                        actionDone;
@@ -125,9 +116,11 @@ protected:
 	
     /* Protected Methods */
     void                        goHomeExe(bool hands = false);
-    void                        loadToolSim(int toolI = 0, int graspOr = 0, double graspDisp = 0);
-    void                        graspTool(); // XXX
-
+    void                        loadToolSim(int toolI = 0, int graspOr = 0, double graspDisp = 0.0);
+    void                        graspTool();
+    bool                        getObjLoc(yarp::sig::Vector &coords3D);
+    bool                        getObjRot(yarp::sig::Vector &rot3D);
+    bool                        slideExe(double theta = 0.0, double radius = 0.0);
 
 
 public:
@@ -139,6 +132,8 @@ public:
 	bool						quit();
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
+    bool                        slide(double theta, double radius);
+    //bool                        locObj();
 
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

@@ -42,6 +42,16 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_slide : public yarp::os::Portable {
+public:
+  double thetha;
+  double radius;
+  bool _return;
+  void init(const double thetha, const double radius);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool tool3DManager_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -134,6 +144,31 @@ void tool3DManager_IDLServer_getTool::init(const int32_t tool, const int32_t deg
   this->disp = disp;
 }
 
+bool tool3DManager_IDLServer_slide::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("slide",1,1)) return false;
+  if (!writer.writeDouble(thetha)) return false;
+  if (!writer.writeDouble(radius)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_slide::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_slide::init(const double thetha, const double radius) {
+  _return = false;
+  this->thetha = thetha;
+  this->radius = radius;
+}
+
 tool3DManager_IDLServer::tool3DManager_IDLServer() {
   yarp().setOwner(*this);
 }
@@ -173,6 +208,16 @@ bool tool3DManager_IDLServer::getTool(const int32_t tool, const int32_t deg, con
   helper.init(tool,deg,disp);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::getTool(const int32_t tool, const int32_t deg, const double disp)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::slide(const double thetha, const double radius) {
+  bool _return = false;
+  tool3DManager_IDLServer_slide helper;
+  helper.init(thetha,radius);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::slide(const double thetha, const double radius)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -247,6 +292,25 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "slide") {
+      double thetha;
+      double radius;
+      if (!reader.readDouble(thetha)) {
+        thetha = 0;
+      }
+      if (!reader.readDouble(radius)) {
+        radius = 0;
+      }
+      bool _return;
+      _return = slide(thetha,radius);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -285,6 +349,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("quit");
     helpString.push_back("goHome");
     helpString.push_back("getTool");
+    helpString.push_back("slide");
     helpString.push_back("help");
   }
   else {
@@ -307,8 +372,15 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("bool getTool(const int32_t tool = 0, const int32_t deg = 0, const double disp = 0) ");
       helpString.push_back("Performs the sequence to get the tool: \n ");
       helpString.push_back("- On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and displacement on the -Y hand axis <i>disp</i>. Uses magnet to hold it to hand. ");
+      helpString.push_back("- Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder. ");
       helpString.push_back("- On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given ");
       helpString.push_back("@return true/false on success/failure of looking at that position ");
+    }
+    if (functionName=="slide") {
+      helpString.push_back("bool slide(const double thetha = 0, const double radius = 0) ");
+      helpString.push_back("Performs a slide action from orientation theta and distance radius to the detected center of the object. \n ");
+      helpString.push_back("The trial consist on locating the object and executing the slide action ");
+      helpString.push_back("@return true/false on success/failure to do Action ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

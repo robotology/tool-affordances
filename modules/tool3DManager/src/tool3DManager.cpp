@@ -185,7 +185,8 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     //rpc
     bool retRPC = true; 
     retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   //rpc client to interact with the affManager
-    retRPC = retRPC && rpcSimTL.open(("/"+name+"/simTL:rpc").c_str());				   //rpc client to interact with the simulator
+    retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); //rpc client to interact with simtooloader module
+    retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         //rpc client to interact with simulator
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
     retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
@@ -198,44 +199,6 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 		return false;
 	}
 
-    /*
-	// Cartesian Controller Interface for arm
-	Property optCart;
-	optCart.put("device","cartesiancontrollerclient");
-    optCart.put("remote","/"+robot+"/cartesianController/"+hand+"_arm");
-    optCart.put("local","/"+name+"/cartesian_client/"+hand+"_arm");
-	if (!clientCart.open(optCart))
-		return false;    
-    clientCart.view(icart);	// open the view
-    clientCart.view(iTorso);	// open the view
-    icart->storeContext(&cartCntxt);
-
-    // Cartesian Controller Interface for torso
-	Property optPosTorso;
-	optPosTorso.put("device","remote_controlboard");
-	optPosTorso.put("remote","/"+robot+"/torso");
-	optPosTorso.put("local","/"+name+"/torsoControl/torso");
-	if (!clientTorso.open(optPosTorso))
-		return false;
-	clientTorso.view(iTorso);	// open the view
-
-    // Gaze Controller Interface
-    Property optGaze("(device gazecontrollerclient)");
-    optGaze.put("remote","/iKinGazeCtrl");
-    optGaze.put("local","/"+name+"/gaze_client");
-
-    if (!clientGaze.open(optGaze))
-        return false;
-    clientGaze.view(igaze);
-
-    igaze->storeContext(&gazeCntxt);        // store the original the context
-
-    igaze->setNeckTrajTime(0.8);
-    igaze->setEyesTrajTime(0.4);
-    igaze->setTrackingMode(false);
-    igaze->blockEyes(0.0);
-
-    */
     printf("Manager configured correctly \n");
 
 	return true;
@@ -258,7 +221,8 @@ bool Tool3DManager::interruptModule()
     matlabPort.interrupt();
 
     rpcCmd.interrupt();
-    rpcSimTL.interrupt();
+    rpcSimToolLoader.interrupt();
+    rpcSimulator.interrupt();
     rpcMotorAre.interrupt();
     rpcKarmaMotor.interrupt();
     rpcKarmaFinder.interrupt();
@@ -277,19 +241,14 @@ bool Tool3DManager::close()
     matlabPort.close();
 
     rpcCmd.close();
-    rpcSimTL.close();
+    rpcSimToolLoader.close();
+    rpcSimulator.close();
     rpcMotorAre.close();
     rpcKarmaMotor.close();
     rpcKarmaFinder.close();
 
     rpcFeatExt.close();
     rpcObjFinder.close();
-
-    clientGaze.close();
-    clientCart.close();
-    clientTorso.close();
-    igaze->restoreContext(gazeCntxt);       // ... and then retrieve the stored context_0
-    icart->restoreContext(cartCntxt);
 
 	running = false;
 
@@ -334,8 +293,11 @@ bool Tool3DManager::getTool(int toolI, int graspOr, double graspDisp){
     }else{
         graspTool();
     }
-
     return true;
+}
+
+bool Tool3DManager::slide(double theta, double radius){
+    slideExe(theta,radius);
 }
 
 
@@ -373,13 +335,34 @@ void Tool3DManager::goHomeExe(bool hands)
 /**********************************************************/
 void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
 {
+    // Remove any previous tool attached to the robot
+    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("remove");
+    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+
+    // Moving hand to center to receive tool on correct position - implemented by faking a push action to the center
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");            // Set a position in the center in front of the robot
+    cmdKM.addDouble(-0.25);
+    cmdKM.addDouble(0.15);
+    cmdKM.addDouble(0.05);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
+    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+
     // Query simtoolloader to create the virtual tool and object
     cout << "Loading tool" << toolI << " in the simulator " << endl;
     Bottle cmdSim,replySim;       // bottles for Simulator
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("del");
-    fprintf(stdout,"RPC to Simulator %s\n",cmdSim.toString().c_str());
-    rpcSimTL.write(cmdSim, replySim); // Call simtoolloader to clean the world
+    fprintf(stdout,"RPC to simtoolloader %s\n",cmdSim.toString().c_str());
+    rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to clean the world
 
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("tool");
@@ -387,7 +370,7 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdSim.addInt(1);                   // object -> Cube
     cmdSim.addInt(graspOr);             // orientation
     cmdSim.addInt(graspDisp);           // displacement
-    rpcSimTL.write(cmdSim, replySim); // Call simtoolloader to create the tool
+    rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
     cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << ". Received reply: " << replySim.toString() << endl;
 
     // Get tool name from simtooloader response.
@@ -456,7 +439,6 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     fprintf(stdout,"Reply from KarmaFinder %s\n", replyKF.toString().c_str());
 
     // Attach the new tooltip to the "body schema"
-    Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("attach");
@@ -503,6 +485,110 @@ void Tool3DManager::graspTool()
     goHomeExe(false);
 
     return;
+}
+
+bool Tool3DManager::getObjLoc(Vector &coords3D)
+{
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        Bottle cmdSim,replySim;
+        //fprintf(stdout,"Get 3D coords of tracked object:\n");
+        cmdSim.clear();        replySim.clear();
+        cmdSim.addString("world");
+        cmdSim.addString("get");
+        cmdSim.addString("box");
+        cmdSim.addInt(1);
+        printf("RPC to simulator: %s \n", cmdSim.toString().c_str());
+        rpcObjFinder.write(cmdSim, replySim);
+        printf("Reply from simulator: %s \n", replySim.toString().c_str());
+
+        if (replySim.size() >1){
+            coords3D(0) = replySim.get(0).asDouble();
+            coords3D(1) = replySim.get(1).asDouble();
+            coords3D(2) = replySim.get(2).asDouble();
+            printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
+            return true;
+        }
+        cout << "No 3D point received" << endl;
+        return false;
+
+    }else{
+        // Get the 2D coordinates of the object from objectFinder
+        coords3D.resize(3);
+
+        Bottle cmdFinder,replyFinder;
+        //fprintf(stdout,"Get 3D coords of tracked object:\n");
+        cmdFinder.clear();        replyFinder.clear();
+        cmdFinder.addString("getPointTrack");
+        cmdFinder.addDouble(tableHeight);
+        printf("RPC to objFinder: %s \n", cmdFinder.toString().c_str());
+        rpcObjFinder.write(cmdFinder, replyFinder);
+        printf("Reply from objFinder: %s \n", replyFinder.toString().c_str());
+
+        if (replyFinder.size() >1){
+            coords3D(0) = replyFinder.get(1).asList()->get(0).asDouble();
+            coords3D(1) = replyFinder.get(1).asList()->get(1).asDouble();
+            coords3D(2) = replyFinder.get(1).asList()->get(2).asDouble();
+            printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
+            return true;
+        }
+        cout << "No 3D point received" << endl;
+        return false;
+    }
+}
+
+bool Tool3DManager::getObjRot(Vector &rot3D)
+{
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        Bottle cmdSim,replySim;
+        //fprintf(stdout,"Get 3D coords of tracked object:\n");
+        cmdSim.clear();        replySim.clear();
+        cmdSim.addString("world");
+        cmdSim.addString("rot");
+        cmdSim.addString("box");
+        cmdSim.addInt(1);
+        printf("RPC to simulator: %s \n", cmdSim.toString().c_str());
+        rpcObjFinder.write(cmdSim, replySim);
+        printf("Reply from simulator: %s \n", replySim.toString().c_str());
+
+        if (replySim.size() >1){
+            rot3D(0) = replySim.get(0).asDouble();
+            rot3D(1) = replySim.get(1).asDouble();
+            rot3D(2) = replySim.get(2).asDouble();
+            printf("Rotation in 3D retrieved: %g, %g %g\n", rot3D(0), rot3D(1), rot3D(2));
+            return true;
+        }
+        cout << "No 3D point received" << endl;
+        return false;
+
+    }else{
+        cout << "XXX rotation detection not yet implemented for the real robot." << endl;
+        return false;
+    }
+}
+
+
+bool Tool3DManager::slideExe(double theta, double radius)
+{
+    target3DcoordsIni.clear();		// Clear to make space for new coordinates
+    target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
+
+    // Locate object and perform slide action with given theta and aradius parameters
+    if (getObjLoc(target3DcoordsIni)){
+        Bottle cmdKM,replyKM;       // bottles for Karma Motor
+        cmdKM.clear();replyKM.clear();
+        cmdKM.addString("push");            // Set a position in the center in front of the robot
+        cmdKM.addDouble(target3DcoordsIni[0]);
+        cmdKM.addDouble(target3DcoordsIni[1]);
+        cmdKM.addDouble(target3DcoordsIni[2]);
+        cmdKM.addDouble(theta);
+        cmdKM.addDouble(radius);
+        fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+        rpcKarmaMotor.write(cmdKM, replyKM);
+        fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+        return true;
+    }
+    return false;
+
 }
 
 
