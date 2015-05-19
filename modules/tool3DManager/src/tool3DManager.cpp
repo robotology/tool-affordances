@@ -149,7 +149,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
     name = rf.check("name",Value("tool3DManager")).asString().c_str();
     camera = rf.check("camera",Value("left")).asString().c_str();
-    name = rf.check("hand",Value("right")).asString().c_str();
+    hand = rf.check("hand",Value("right")).asString().c_str();
     robot = rf.check("robot",Value("icub")).asString().c_str();
 
     tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
@@ -190,7 +190,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
     retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
 
-    retRPC = retRPC && rpcToolShow.open(("/"+name+"/tool3Dshow:rpc").c_str());		   //rpc server to query toolExplorer Module
+    //retRPC = retRPC && rpcToolShow.open(("/"+name+"/tool3Dshow:rpc").c_str());		   //rpc server to query toolExplorer Module
     retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             //rpc server to query tool Feat Extraction module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           //rpc server to query objectFinder
 	if (!retRPC){
@@ -374,6 +374,7 @@ void Tool3DManager::goHomeExe(bool hands)
 void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
 {
     // Query simtoolloader to create the virtual tool and object
+    cout << "Loading tool" << toolI << " in the simulator " << endl;
     Bottle cmdSim,replySim;       // bottles for Simulator
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("del");
@@ -391,16 +392,16 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
 
     // Get tool name from simtooloader response.
     // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
-    string meshName = replySim.get(3).asString();
-    cout << "Tool model " << meshName << " has been loaded in the simulator." << endl;
+    cout << "Retrieving tool name." << endl;
+    string meshName = replySim.get(2).asString();
     string::size_type idx;
     idx = meshName.rfind('.');
     string cloudName = meshName.substr(0,idx);
     cloudName = "sim/"+ cloudName;
     cout << "cloud model: " << cloudName << endl;
 
-
     // Query toolFeatExt to extract features
+    cout << "Retrieving tool name." << endl;
     Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("loadModel");
@@ -408,51 +409,51 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     rpcFeatExt.write(cmdTFE, replyTFE);
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
 
-
-    // Send tool name to tool3Dshow to get the pointcloud of the tool to check.
-    Bottle cmdT3S,replyT3S;                 // bottles for tool3Dshow
-    cmdT3S.clear();   replyT3S.clear();
-    cmdT3S.addString("showFileCloud");
-    cmdT3S.addString(cloudName);
-    rpcFeatExt.write(cmdT3S, replyT3S);
-    cout << "Sent RPC command tool3Dshow: " << cmdT3S.toString() << ". Received reply: " << replyT3S.toString() << endl;
-
     // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
+    cout << "Getting canonicaltooltip coordinates." << endl;
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("getToolTip");
-    rpcFeatExt.write(cmdTFE, replyTFE);
-    Bottle* ttCoords = replyTFE.get(0).asList(); // XXX check where the point3D is returned, and if it can be read as a bottle
+    rpcFeatExt.write(cmdTFE, replyTFE);    
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
-    Point3Dcoords ttCoordsCanon;
-    ttCoordsCanon.x = ttCoords->get(0).asInt();
-    ttCoordsCanon.y = ttCoords->get(1).asInt();
-    ttCoordsCanon.z = ttCoords->get(2).asInt();
+
+    double ttxCanon, ttyCanon, ttzCanon;    // Receive coordinates of tooltip of tool in canonical position
+    ttxCanon = replyTFE.get(0).asDouble();
+    ttyCanon = replyTFE.get(1).asDouble();
+    ttzCanon = replyTFE.get(2).asDouble();
+    cout << "Tooltip of canonical model: x= "<< ttxCanon << ", y = " << ttyCanon << ", z = " << ttzCanon <<endl;
 
     // Transform canonical coordinates to correspond with tilt, rotation and displacemnt of the tool.
-    Point3Dcoords ttCoordsTrans;
+    double ttxRot =0.0, ttyRot=0.0, ttzRot=0.0;    // Receive coordinates of tooltip of tool in canonical position
     // Rotate first around Y axis to match tooltip to end-effector orientation
-    ttCoordsTrans.x = ttCoordsCanon.x*cos(graspOr*M_PI/180) - ttCoordsCanon.z*sin(graspOr*M_PI/180);
-    ttCoordsTrans.y = ttCoordsTrans.y;
-    ttCoordsTrans.z = ttCoordsCanon.z*sin(graspOr*M_PI/180) + ttCoordsCanon.x*cos(graspOr*M_PI/180);
+    ttxRot = ttxCanon*cos(graspOr*M_PI/180.0) - ttzCanon*sin(graspOr*M_PI/180.0);
+    ttyRot = ttyCanon;
+    ttzRot = ttxCanon*sin(graspOr*M_PI/180.0) + ttzCanon*cos(graspOr*M_PI/180.0);
+    cout << "Tooltip of tool rotated " << graspOr << " degrees: x= "<< ttxRot << ", y = " << ttyRot << ", z = " << ttzRot << endl;
+
     // Now tilt 45 degrees arund Z to match the way in which the tool is held
-    ttCoordsTrans.x = ttCoordsTrans.x*cos(45*M_PI/180) - ttCoordsTrans.y*sin(45*M_PI/180);
-    ttCoordsTrans.y = ttCoordsTrans.x*sin(45*M_PI/180) + ttCoordsTrans.y*cos(45*M_PI/180);
-    ttCoordsTrans.z = ttCoordsTrans.z;
+    double ttxTilt =0.0, ttyTilt=0.0, ttzTilt=0.0;    // Receive coordinates of tooltip of tool in canonical position
+    ttxTilt = ttxRot*cos(45.0*M_PI/180.0) - ttyRot*sin(45.0*M_PI/180.0);
+    ttyTilt = ttxRot*sin(45.0*M_PI/180.0) + ttyRot*cos(45.0*M_PI/180.0);
+    ttzTilt = ttzRot;
+    cout << "Tooltip of tool rotated " << graspOr << " degrees and tilted 45 degrees: x= "<< ttxTilt << ", y = " << ttyTilt << ", z = " << ttzTilt << endl;
+
     // Finally add translation along -Y axis to match handle displacement
-    tooltipCoords.x = ttCoordsTrans.x;
-    tooltipCoords.y = ttCoordsTrans.y - graspDisp/100.0;
-    tooltipCoords.z = ttCoordsTrans.z;
+    tooltipX = ttxTilt;
+    tooltipY = ttyTilt - graspDisp/100.0;
+    tooltipZ = ttzTilt;
+
+    cout << "Tooltip of tool rotated, tilted and displaced: x= "<< tooltipX << ", y = " << tooltipY << ", z = " << tooltipZ << endl;
 
     // Send the coordinates to Karmafinder to display it and get the tip pixel
     Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
     cmdKF.clear();replyKF.clear();
     cmdKF.addString("show");
-    cmdKF.addDouble(tooltipCoords.x);
-    cmdKF.addDouble(tooltipCoords.y);
-    cmdKF.addDouble(tooltipCoords.z);
-    fprintf(stdout,"RCP to KarmaFinder%s\n",cmdKF.toString().c_str());
+    cmdKF.addDouble(tooltipX);
+    cmdKF.addDouble(tooltipY);
+    cmdKF.addDouble(tooltipZ);
+    fprintf(stdout,"RCP to KarmaFinder %s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);
-    fprintf(stdout,"Reply from KarmaFinder%s\n", replyKF.toString().c_str());
+    fprintf(stdout,"Reply from KarmaFinder %s\n", replyKF.toString().c_str());
 
     // Attach the new tooltip to the "body schema"
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
@@ -460,9 +461,9 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdKM.addString("tool");
     cmdKM.addString("attach");
     cmdKM.addString(hand);
-    cmdKF.addDouble(tooltipCoords.x);
-    cmdKF.addDouble(tooltipCoords.y);
-    cmdKF.addDouble(tooltipCoords.z);
+    cmdKM.addDouble(tooltipX);
+    cmdKM.addDouble(tooltipY);
+    cmdKM.addDouble(tooltipZ);
     fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());

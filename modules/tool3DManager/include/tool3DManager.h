@@ -79,7 +79,7 @@ protected:
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
 
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
-    yarp::os::RpcClient         rpcToolShow;        //rpc connecting to pointcloud 3D visualizer
+    //yarp::os::RpcClient         rpcToolShow;        //rpc connecting to pointcloud 3D visualizer
     yarp::os::RpcClient         rpcFeatExt;	        //rpc connection to toolFeatExt to extract features from cloud
 
     yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  // port to receive user data.
@@ -120,9 +120,8 @@ protected:
     double                      effectAlpha;            // Angle in which the object has been moved by the action
     double                      effectDist;             // Distance that the object has been moved by the action
 
-    struct                      Point3Dcoords { float x, y, z;};
-    Point3Dcoords               tooltipCoords;
-	
+    double                      tooltipX, tooltipY, tooltipZ;
+
 	
     /* Protected Methods */
     void                        goHomeExe(bool hands = false);

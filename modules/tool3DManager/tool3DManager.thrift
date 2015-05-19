@@ -24,7 +24,7 @@ service tool3DManager_IDLServer
      * Adopt home position
      * @return true/false on success/failure
      */
-    bool goHome();
+    bool goHome(1:bool hands = false);
     
     /**
      * Performs the sequence to get the tool: \n

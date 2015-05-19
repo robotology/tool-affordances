@@ -31,73 +31,49 @@
 
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
-        <!-- input data if available -->
-        <!--
+        <!-- input data if available -->        
         <input port_type="service">
             <type>rpc</type>
-            <port carrier="tcp">/affManager/rpc:i</port>
-            <description>takes RPC commands from Human or stateMachine</description>
-        </input>
-        <input>
-            <type>Bottle</type>
-            <port>/affManager/matlab:i</port>
-            <description> Receives the affordance vector prediction from matlab to select te max effect and perfomr an action.</description>
-        </input>
-        <input>
-            <type>Bottle</type>
-            <port>/affManager/user:i</port>
-            <description> Port for user input. Can be used for user selection of the tooltip, tool dimensions or other data.</description>
+            <port carrier="tcp">/tool3DManager/rpc:i</port>
+            <description>takes RPC commands from Human, stateMachine or other modules</description>
         </input>
         
-        -->
         <!-- output data if available -->
-        <!--
         <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/are:rpc</port>
+            <port>/tool3DManager/are:rpc</port>
             <description> Send commands to the Actions Rendering Engine module</description>
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/sim:rpc</port>
-            <description> Send commands to the Simulator</description>
+            <port>/tool3DManager/simTL:rpc</port>
+            <description> Send commands to simtoolloader</description>
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/karmaMotor:rpc</port>
+            <port>/tool3DManager/karmaMotor:rpc</port>
             <description> Send commands to the Karma motor for tool use related actions</description>
         </output>
          <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/karmaFinder:rpc</port>
+            <port>/tool3DManager/karmaFinder:rpc</port>
             <description> Send commands to the finder part of the KARMA application in order to display and locate the tooltip.</description>
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/featExt:rpc</port>
-            <description>Send commands to the Feature Extraction Module</description>
+            <port>/tool3DManager/featExt:rpc</port>
+            <description>Send commands to the tool 3D Feature Extraction Module</description>
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/affManager/affLearn:rpc</port>
-            <description> Send commands to the affordance Learning Module</description>
-        </output>
-        <output port_type="service">
-            <type>rpc</type>
-            <port>/affManager/objFind:rpc</port>
+            <port>/tool3DManager/objFind:rpc</port>
             <description> Send commands to the objectFinder Module</description>
-        </output>
-        <output port_type="service">
-            <type>rpc</type>
-            <port>/affManager/toolBlob:rpc</port>
-            <description> Send commands to the toolBlobber Module</description>
         </output>
         <output>
             <type>Bottle</type>
-            <port>/affManager/data:o</port>
+            <port>/tool3DManager/data:o</port>
             <description> Outputs affordance data for recording (action parameters, effect, etc)</description>
         </output>
-        -->
     </data>
     
     <services>
