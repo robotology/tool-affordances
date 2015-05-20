@@ -43,6 +43,12 @@ service tool3DManager_IDLServer
      */
     bool slide(1:double thetha = 0.0, 2:double radius = 0.0);
 
+    /**
+     * Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n
+     * @return true/false on success/failure to compute Effect
+     */
+    bool compEff();
+
 
 }
 

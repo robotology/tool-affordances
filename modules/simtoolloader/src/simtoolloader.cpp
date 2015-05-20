@@ -221,7 +221,7 @@ void CtrlThread::run() {
     int toolPose = 0;
     double toolDisp = 0.0;
     double objPosX = -0.1;
-    double objPosZ = 0.5;
+    double objPosZ = 0.4;
     NetInt32 code;
 
 
@@ -320,6 +320,7 @@ void CtrlThread::run() {
 
                 cout << "Create the tool in the hand, the objects on the table." <<endl;
 
+
                 //Clear the World:
                 simCmd = simWorld.deleteAll();
                 writeSim(simCmd);
@@ -332,6 +333,12 @@ void CtrlThread::run() {
                 //------------------------------------------------------------------
                 //Create one tool in the hand:
                 toolIndex = controlCmd.get(1).asInt();
+                int numTools = simWorld.simObject.size();
+                if (toolIndex > numTools){
+                    cout << "No tool with the given index. Max tool Index is :" << numTools<< endl;
+                    break;
+                }
+
                 if ( toolIndex==0 ) {
                     toolIndex = rand() % simWorld.simObject.size() + 1;
                 }

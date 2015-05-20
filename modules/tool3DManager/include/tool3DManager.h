@@ -96,32 +96,34 @@ protected:
 
 	// Flags
 	bool						running;
+    /*
     bool                        actionDone;
     bool						objCoords3DLoc;
 	bool						trackingObj;
 	bool 						tipOnView;
-    
-	yarp::sig::Vector			toolTipPix;		// Keeps the tool position in 2D for looking at it
-	yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D
-    yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D
+    */
 
-    yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
-    std::string                 toolPoseName;
+    //yarp::sig::Vector			toolTipPix;             // Keeps the tool position in 2D for looking at it
+    yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D before the action
+    yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D after the action
+    yarp::sig::Vector			target3DrotIni;         // Keeps the target rotation in 3D before the action
+    yarp::sig::Vector			target3DrotAfter;		// Keeps the target rotation in 3D after the action
+    yarp::sig::Vector			effectVec;              // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
 
-    double                      effectAlpha;            // Angle in which the object has been moved by the action
-    double                      effectDist;             // Distance that the object has been moved by the action
+    //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
+    //std::string               toolPoseName;
 
-    double                      tooltipX, tooltipY, tooltipZ;
+    double                      tooltipX, tooltipY, tooltipZ;   // Coordinates of the tooltip in 3D.
 
 	
     /* Protected Methods */
     void                        goHomeExe(bool hands = false);
-    void                        loadToolSim(int toolI = 0, int graspOr = 0, double graspDisp = 0.0);
-    void                        graspTool();
+    bool                        loadToolSim(int toolI = 0, int graspOr = 0, double graspDisp = 0.0);
+    bool                        graspTool();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
     bool                        getObjRot(yarp::sig::Vector &rot3D);
     bool                        slideExe(double theta = 0.0, double radius = 0.0);
-
+    bool                        computeEffect();
 
 public:
 
@@ -133,7 +135,7 @@ public:
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
     bool                        slide(double theta, double radius);
-    //bool                        locObj();
+    bool                        compEff();
 
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

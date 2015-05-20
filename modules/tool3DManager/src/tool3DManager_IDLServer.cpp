@@ -52,6 +52,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_compEff : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool tool3DManager_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -169,6 +177,27 @@ void tool3DManager_IDLServer_slide::init(const double thetha, const double radiu
   this->radius = radius;
 }
 
+bool tool3DManager_IDLServer_compEff::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("compEff",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_compEff::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_compEff::init() {
+  _return = false;
+}
+
 tool3DManager_IDLServer::tool3DManager_IDLServer() {
   yarp().setOwner(*this);
 }
@@ -218,6 +247,16 @@ bool tool3DManager_IDLServer::slide(const double thetha, const double radius) {
   helper.init(thetha,radius);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::slide(const double thetha, const double radius)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::compEff() {
+  bool _return = false;
+  tool3DManager_IDLServer_compEff helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::compEff()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -311,6 +350,17 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "compEff") {
+      bool _return;
+      _return = compEff();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -350,6 +400,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("goHome");
     helpString.push_back("getTool");
     helpString.push_back("slide");
+    helpString.push_back("compEff");
     helpString.push_back("help");
   }
   else {
@@ -381,6 +432,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("Performs a slide action from orientation theta and distance radius to the detected center of the object. \n ");
       helpString.push_back("The trial consist on locating the object and executing the slide action ");
       helpString.push_back("@return true/false on success/failure to do Action ");
+    }
+    if (functionName=="compEff") {
+      helpString.push_back("bool compEff() ");
+      helpString.push_back("Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n ");
+      helpString.push_back("@return true/false on success/failure to compute Effect ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

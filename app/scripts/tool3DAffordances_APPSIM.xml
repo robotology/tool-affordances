@@ -115,14 +115,14 @@
         <geometry>(Pos ((x 331) (y 287)) ((x 286) (y 176)) ((x 397) (y 398))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/icubSim/cam/left</from>
-        <to>/imLeft/yarpview/img:i</to>
-        <protocol>udp</protocol>
+        <from>/tool3DManager/simulator:rpc</from>
+        <to  external="true">/icubSim/world</to>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 303) (y 483)) ((x 206) (y 469)) ((x 421) (y 497))  )</geometry>
     </connection>
     <connection>
-        <from>/tool3DManager/simulator:rpc</from>
-        <to  external="true">/icubSim/world</to>
+        <from external="true">/icubSim/cam/left</from>
+        <to>/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 303) (y 483)) ((x 206) (y 469)) ((x 421) (y 497))  )</geometry>
     </connection>
@@ -135,7 +135,7 @@
     <connection>
         <from>/toolFeatExt/mesh:o</from>
         <to>/tool3Dshow/mesh:i</to>
-        <protocol></protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>
     <connection>

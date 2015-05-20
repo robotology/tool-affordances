@@ -156,23 +156,30 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
     // Attach server port to read RPC commands via thrift
     attach(rpcCmd);
+    running = true;
 
     // XXX Attach client port to send RPC commands via thrift to toolFeatExt
     // tool3DFeat_IDLServer toolFeatExtclient;
     // toolFeatExtclient.yarp().attachAsClient(rpcFeatExt);
 
     // XXX old variables which may be useful
-	running = true;
+    /*
+
     actionDone = false;
     objCoords3DLoc = false;
     trackingObj = false;
-    tipOnView = false;
-
+    tipOnView = false;    
     toolDim.resize(3, 0.0);
     toolTipPix.resize(2,0.0);
-    target3DcoordsIni.resize(3, 0.0);		// Keeps the target position in 3D before the action
-    target3DcoordsAfter.resize(3, 0.0);	    // Keeps the target position in 3D after the action
     toolPoseName = "undef";
+    */
+
+    // Initialize effect measuring vectors
+    target3DcoordsIni.resize(3, 0.0);
+    target3DcoordsAfter.resize(3, 0.0);
+    target3DrotIni.resize(3, 0.0);
+    target3DrotAfter.resize(3, 0.0);
+    effectVec.resize(3, 0.0);
 
 	//ports
 	bool ret = true;  
@@ -288,17 +295,23 @@ bool Tool3DManager::goHome(bool hands){
 }
 
 bool Tool3DManager::getTool(int toolI, int graspOr, double graspDisp){
+    bool ok;
     if (strcmp(robot.c_str(),"icubSim")==0){
-        loadToolSim(toolI,graspOr,graspDisp);
+        ok = loadToolSim(toolI,graspOr,graspDisp);
     }else{
-        graspTool();
+        ok = graspTool();
     }
-    return true;
+    return ok;
 }
 
 bool Tool3DManager::slide(double theta, double radius){
-    slideExe(theta,radius);
+    return slideExe(theta,radius);
 }
+
+bool Tool3DManager::compEff(){
+    return computeEffect();
+}
+
 
 
 /**********************************************************
@@ -308,6 +321,7 @@ bool Tool3DManager::slide(double theta, double radius){
 /**********************************************************/
 void Tool3DManager::goHomeExe(bool hands)
 {
+    cout << endl << "Going home, hands: " << hands <<endl;
     Bottle cmdAre, replyAre;
     cmdAre.clear();
     replyAre.clear();
@@ -319,32 +333,36 @@ void Tool3DManager::goHomeExe(bool hands)
         cmdAre.addString("head");
         cmdAre.addString("arms");
     }
-    fprintf(stdout,"RPC to ARE %s\n",cmdAre.toString().c_str());
+    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"Reply ARE %s:\n",replyAre.toString().c_str());
+    fprintf(stdout,"Reply ARE: %s:\n",replyAre.toString().c_str());
 
+    /*
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("idle");
     rpcMotorAre.write(cmdAre,replyAre);
     fprintf(stdout,"Reply from ARE: %s:\n",replyAre.toString().c_str());
+    */
 
     return;
 }
 
 /**********************************************************/
-void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
+bool Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
 {
+    cout << endl<<"Loading tool " << toolI <<", or: "<< graspOr << ", displacement: " << graspDisp <<endl;
     // Remove any previous tool attached to the robot
     Bottle cmdKM,replyKM;       // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("remove");
-    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+    fprintf(stdout,"Reply from KarmaMotor: %s:\n",replyKM.toString().c_str());
 
     // Moving hand to center to receive tool on correct position - implemented by faking a push action to the center
+    cout << "Moving arm to a central position" << endl;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
     cmdKM.addDouble(-0.25);
@@ -352,16 +370,16 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdKM.addDouble(0.05);
     cmdKM.addDouble(0.0);       // No angle
     cmdKM.addDouble(0.0);       // No radius
-    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    //fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+    //fprintf(stdout,"Reply from KarmaMotor: %s:\n",replyKM.toString().c_str());
 
     // Query simtoolloader to create the virtual tool and object
-    cout << "Loading tool" << toolI << " in the simulator " << endl;
+    cout << "Loading tool " << toolI << " in the simulator " << endl;
     Bottle cmdSim,replySim;       // bottles for Simulator
     cmdSim.clear();   replySim.clear();
     cmdSim.addString("del");
-    fprintf(stdout,"RPC to simtoolloader %s\n",cmdSim.toString().c_str());
+    fprintf(stdout,"RPC to simtoolloader: %s\n",cmdSim.toString().c_str());
     rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to clean the world
 
     cmdSim.clear();   replySim.clear();
@@ -371,7 +389,12 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdSim.addInt(graspOr);             // orientation
     cmdSim.addInt(graspDisp);           // displacement
     rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
-    cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << ". Received reply: " << replySim.toString() << endl;
+    cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
+    if (replySim.size() <1){
+        cout << "simtoolloader cloudlnt load tool." << endl;
+        return false;
+    }
+    cout << "Received reply: " << replySim.toString() << endl;
 
     // Get tool name from simtooloader response.
     // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
@@ -384,20 +407,30 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cout << "cloud model: " << cloudName << endl;
 
     // Query toolFeatExt to extract features
-    cout << "Retrieving tool name." << endl;
+    cout << "Loading pointcloud to extract tooltip." << endl;
     Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("loadModel");
     cmdTFE.addString(cloudName);
     rpcFeatExt.write(cmdTFE, replyTFE);
-    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't load the tool." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
 
     // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
-    cout << "Getting canonicaltooltip coordinates." << endl;
+    cout << "Getting canonical tooltip coordinates." << endl;
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("getToolTip");
     rpcFeatExt.write(cmdTFE, replyTFE);    
-    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << ". Received reply: " << replyTFE.toString() << endl;
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't compute the tooltip." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
 
     double ttxCanon, ttyCanon, ttzCanon;    // Receive coordinates of tooltip of tool in canonical position
     ttxCanon = replyTFE.get(0).asDouble();
@@ -425,9 +458,10 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     tooltipY = ttyTilt - graspDisp/100.0;
     tooltipZ = ttzTilt;
 
-    cout << "Tooltip of tool rotated, tilted and displaced: x= "<< tooltipX << ", y = " << tooltipY << ", z = " << tooltipZ << endl;
+    cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipX << ", y = " << tooltipY << ", z = " << tooltipZ << endl;
 
     // Send the coordinates to Karmafinder to display it and get the tip pixel
+    cout << endl << "Attaching tooltip." << endl;
     Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
     cmdKF.clear();replyKF.clear();
     cmdKF.addString("show");
@@ -449,12 +483,13 @@ void Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
-    fprintf(stdout,"Tool attached \n ");
 
-    return;
+    fprintf(stdout,"Tool loaded and tooltip attached \n ");
+
+    return true;
 }
 
-void Tool3DManager::graspTool()
+bool Tool3DManager::graspTool()
 {
     // Send commands to ARE to get the tool, close the hand and go to central position
     fprintf(stdout,"Reach me a tool please.\n");
@@ -464,9 +499,9 @@ void Tool3DManager::graspTool()
     cmdAre.addString("tato");
     cmdAre.addString(hand);
     cmdAre.addString("no_gaze");
-    fprintf(stdout,"RPC to ARE: %s:\n", cmdAre.toString().c_str());
+    fprintf(stdout,"RPC to ARE: %s\n", cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"Reply from ARE %s:\n", replyAre.toString().c_str());
+    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
 
     // Send commands to ARE to get the tool, close the hand and go to central position
     Time::delay(3);
@@ -478,34 +513,43 @@ void Tool3DManager::graspTool()
     cmdAre.addString("no_gaze");
     fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"Reply from ARE: %s:\n", replyAre.toString().c_str());
+    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
     Time::delay(0.5);
 
     // Go home and observe scenario.
     goHomeExe(false);
 
-    return;
+    return true;
 }
 
 bool Tool3DManager::getObjLoc(Vector &coords3D)
 {
     if (strcmp(robot.c_str(),"icubSim")==0){
         Bottle cmdSim,replySim;
-        //fprintf(stdout,"Get 3D coords of tracked object:\n");
+        cout << endl <<"Geting 3D coords of object." <<endl;
         cmdSim.clear();        replySim.clear();
         cmdSim.addString("world");
         cmdSim.addString("get");
         cmdSim.addString("box");
         cmdSim.addInt(1);
         printf("RPC to simulator: %s \n", cmdSim.toString().c_str());
-        rpcObjFinder.write(cmdSim, replySim);
+        rpcSimulator.write(cmdSim, replySim);
         printf("Reply from simulator: %s \n", replySim.toString().c_str());
 
         if (replySim.size() >1){
-            coords3D(0) = replySim.get(0).asDouble();
-            coords3D(1) = replySim.get(1).asDouble();
-            coords3D(2) = replySim.get(2).asDouble();
-            printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
+            Vector coords3Dworld(3,0.0);
+            // REad coordinates returned by simualtor
+            coords3Dworld(0) = replySim.get(0).asDouble();
+            coords3Dworld(1) = replySim.get(1).asDouble();
+            coords3Dworld(2) = replySim.get(2).asDouble();
+            printf("Point in 3D in world coordinates retrieved: %g, %g %g\n", coords3Dworld(0), coords3Dworld(1), coords3Dworld(2));
+
+            // Transform object coordinates from World to robot!!!
+            coords3D(0) = -(coords3Dworld(2) + 0.026);        // Xr = -Zw + 0.026 m
+            coords3D(1) = -coords3Dworld(0);                // Yr = -Xw
+            coords3D(2) = coords3Dworld(1) - 0.5976;        // Zr = Yw - 0.5976 m
+            printf("Point in 3D in robot coordinates: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
+
             return true;
         }
         cout << "No 3D point received" << endl;
@@ -547,7 +591,7 @@ bool Tool3DManager::getObjRot(Vector &rot3D)
         cmdSim.addString("box");
         cmdSim.addInt(1);
         printf("RPC to simulator: %s \n", cmdSim.toString().c_str());
-        rpcObjFinder.write(cmdSim, replySim);
+        rpcSimulator.write(cmdSim, replySim);
         printf("Reply from simulator: %s \n", replySim.toString().c_str());
 
         if (replySim.size() >1){
@@ -569,28 +613,88 @@ bool Tool3DManager::getObjRot(Vector &rot3D)
 
 bool Tool3DManager::slideExe(double theta, double radius)
 {
+    cout << endl<< "Performing slide action from angle " << theta <<" and radius "<< radius  << endl;
     target3DcoordsIni.clear();		// Clear to make space for new coordinates
     target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
+    target3DrotIni.clear();         // Clear to make space for new rotation values
+    target3DrotIni.resize(3);
 
     // Locate object and perform slide action with given theta and aradius parameters
-    if (getObjLoc(target3DcoordsIni)){
-        Bottle cmdKM,replyKM;       // bottles for Karma Motor
-        cmdKM.clear();replyKM.clear();
-        cmdKM.addString("push");            // Set a position in the center in front of the robot
-        cmdKM.addDouble(target3DcoordsIni[0]);
-        cmdKM.addDouble(target3DcoordsIni[1]);
-        cmdKM.addDouble(target3DcoordsIni[2]);
-        cmdKM.addDouble(theta);
-        cmdKM.addDouble(radius);
-        fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
-        rpcKarmaMotor.write(cmdKM, replyKM);
-        fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
-        return true;
+    if (!getObjLoc(target3DcoordsIni))
+    {
+        cout << " Object not located, cant perform action"<< endl;
+        return false;
     }
-    return false;
+    getObjRot(target3DrotIni);               // Get the initial rotation of the object
 
+    cout << "Approaching to push object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[2] << ", "<< target3DcoordsIni[2] << "). " <<endl;
+    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");                 // Set a position in the center in front of the robot
+    cmdKM.addDouble(target3DcoordsIni[0]);
+    cmdKM.addDouble(target3DcoordsIni[1]);
+    cmdKM.addDouble(target3DcoordsIni[2] + 0.03);   // Approach the center of the object, not its lower part.
+    cmdKM.addDouble(theta);
+    cmdKM.addDouble(radius);
+    fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+
+
+    goHomeExe();
+    goHomeExe();
+    // XXX Put action parameters on a port so they can be read
+
+    return true;
 }
 
+bool Tool3DManager::computeEffect()
+{
+    cout << endl << "Computing effect from action."  << endl;
+    effectVec.clear();		// Clear to make space for new coordinates
+    effectVec.resize(3);    // Resize to 3D coordinates
+
+    // Get the actual coordinates
+    target3DcoordsAfter.clear();		// Clear to make space for new coordinates
+    target3DcoordsAfter.resize(3);      // Resize to 3D coordinates
+    target3DrotAfter.clear();         // Clear to make space for new rotation values
+    target3DrotAfter.resize(3);
+    if(!getObjLoc(target3DcoordsAfter))     // Get the location of the object after the action
+    {
+        cout << " Object not located, cant observe effect"<< endl;
+        return false;
+    }
+    cout << "Coords after action: (" << target3DcoordsAfter[0] << ", " << target3DcoordsAfter[2] << ", "<< target3DcoordsAfter[2] << "). " <<endl;
+    if(!getObjRot(target3DrotAfter))        // Get the rotation of the object after the action
+    {
+        cout << " Object rotation not available, cant compute effect"<< endl;
+        return false;
+    }
+    cout << "Rotation after action: (" << target3DrotAfter[0] << ", " << target3DrotAfter[2] << ", "<< target3DrotAfter[2] << "). " <<endl;
+
+    //To compute the displacement, we assume that the object hasnt move in the z axis (that is, has remained on the table)
+    Vector displ = target3DcoordsAfter - target3DcoordsIni;
+    double dx = displ[0];
+    double dy = displ[1];
+
+    double displDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
+    double displAngle = atan2 (dy,dx) * 180 / M_PI;
+
+    //To compute the rotation, we assume that the object has only rotated around axis Y (that is, has not been tipped)
+    Vector rot = target3DrotAfter - target3DrotIni;
+    double effectRot = rot[1];  // Rotation difference around Y axis
+
+    // Put values into the effect Vector
+    effectVec[0] = displDist;
+    effectVec[1] = displAngle;
+    effectVec[2] = effectRot;
+
+    cout << "Object displaced " << displDist << " meters on " << displAngle << " direction, and rotated " << effectRot << " degrees."<< endl;
+
+    // XXX put values on a port so they can be read
+
+    return true;
+}
 
 //++++++++++++++++++++++++++++++ MAIN ++++++++++++++++++++++++++++++++//
 /**********************************************************************/

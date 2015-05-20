@@ -46,6 +46,11 @@ public:
    * @return true/false on success/failure to do Action
    */
   virtual bool slide(const double thetha = 0, const double radius = 0);
+  /**
+   * Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n
+   * @return true/false on success/failure to compute Effect
+   */
+  virtual bool compEff();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
