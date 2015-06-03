@@ -308,6 +308,10 @@ bool Tool3DManager::slide(double theta, double radius){
     return slideExe(theta,radius);
 }
 
+bool Tool3DManager::pull(double theta, double radius){
+    return pullExe(theta,radius);
+}
+
 bool Tool3DManager::compEff(){
     return computeEffect();
 }
@@ -630,7 +634,7 @@ bool Tool3DManager::slideExe(double theta, double radius)
     cout << "Approaching to push object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[2] << ", "<< target3DcoordsIni[2] << "). " <<endl;
     Bottle cmdKM,replyKM;                    // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");                 // Set a position in the center in front of the robot
+    cmdKM.addString("slide");                 // Set a position in the center in front of the robot
     cmdKM.addDouble(target3DcoordsIni[0]);
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2] + 0.03);   // Approach the center of the object, not its lower part.
@@ -647,6 +651,44 @@ bool Tool3DManager::slideExe(double theta, double radius)
 
     return true;
 }
+
+bool Tool3DManager::pullExe(double theta, double radius)
+{
+    cout << endl<< "Performing slide action from angle " << theta <<" and radius "<< radius  << endl;
+    target3DcoordsIni.clear();		// Clear to make space for new coordinates
+    target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
+    target3DrotIni.clear();         // Clear to make space for new rotation values
+    target3DrotIni.resize(3);
+
+    // Locate object and perform slide action with given theta and aradius parameters
+    if (!getObjLoc(target3DcoordsIni))
+    {
+        cout << " Object not located, cant perform action"<< endl;
+        return false;
+    }
+    getObjRot(target3DrotIni);               // Get the initial rotation of the object
+
+    cout << "Approaching to push object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
+    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("pull");                 // Set a position in the center in front of the robot
+    cmdKM.addDouble(target3DcoordsIni[0] - 0.03);   // Approach the end effector slightly behind the object to grab it properly
+    cmdKM.addDouble(target3DcoordsIni[1]);
+    cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
+    cmdKM.addDouble(theta);
+    cmdKM.addDouble(radius);
+    fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+
+
+    goHomeExe();
+    goHomeExe();
+    // XXX Put action parameters on a port so they can be read
+
+    return true;
+}
+
 
 bool Tool3DManager::computeEffect()
 {

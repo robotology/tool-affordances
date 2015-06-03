@@ -430,7 +430,7 @@ void CtrlThread::run() {
                 
                 /* create rotate and grab the tool */
                 simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
-                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex, false);
                 writeSim(simCmd);
 
                 //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);                                 
@@ -642,9 +642,9 @@ Bottle SimModel::makeObjectBottle(vector<int>& ind, bool collision) {
     cmd.addDouble(positionX);
     cmd.addDouble(positionY);
     cmd.addDouble(positionZ);
-    //if (collision == false) {
+    if (collision == false) {
         cmd.addString("false");
-    //}
+    }
 
     ind[MODEL]++;
     objSubIndex=ind[MODEL];

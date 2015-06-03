@@ -123,6 +123,7 @@ protected:
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
     bool                        getObjRot(yarp::sig::Vector &rot3D);
     bool                        slideExe(double theta = 0.0, double radius = 0.0);
+    bool                        pullExe(double theta = 0.0, double radius = 0.0);
     bool                        computeEffect();
 
 public:
@@ -135,6 +136,7 @@ public:
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
     bool                        slide(double theta, double radius);
+    bool                        pull(double theta, double radius);
     bool                        compEff();
 
     // RF modules overrides

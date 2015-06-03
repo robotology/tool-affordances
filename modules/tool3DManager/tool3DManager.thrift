@@ -37,11 +37,19 @@ service tool3DManager_IDLServer
 
 
     /**
-     * Performs a slide action from orientation theta and distance radius to the detected center of the object. \n
+     * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
      * The trial consist on locating the object and executing the slide action
      * @return true/false on success/failure to do Action
      */
     bool slide(1:double thetha = 0.0, 2:double radius = 0.0);
+
+    /**
+     * Performs a pull action from the object to the direction indicated by theta and radius. \n
+     * The trial consist on locating the object and executing the slide action
+     * @return true/false on success/failure to do Action
+     */
+    bool pull(1:double thetha = 0.0, 2:double radius = 0.0);
+
 
     /**
      * Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n

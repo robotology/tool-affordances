@@ -52,6 +52,16 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_pull : public yarp::os::Portable {
+public:
+  double thetha;
+  double radius;
+  bool _return;
+  void init(const double thetha, const double radius);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_compEff : public yarp::os::Portable {
 public:
   bool _return;
@@ -177,6 +187,31 @@ void tool3DManager_IDLServer_slide::init(const double thetha, const double radiu
   this->radius = radius;
 }
 
+bool tool3DManager_IDLServer_pull::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("pull",1,1)) return false;
+  if (!writer.writeDouble(thetha)) return false;
+  if (!writer.writeDouble(radius)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_pull::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_pull::init(const double thetha, const double radius) {
+  _return = false;
+  this->thetha = thetha;
+  this->radius = radius;
+}
+
 bool tool3DManager_IDLServer_compEff::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -247,6 +282,16 @@ bool tool3DManager_IDLServer::slide(const double thetha, const double radius) {
   helper.init(thetha,radius);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::slide(const double thetha, const double radius)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::pull(const double thetha, const double radius) {
+  bool _return = false;
+  tool3DManager_IDLServer_pull helper;
+  helper.init(thetha,radius);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::pull(const double thetha, const double radius)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -350,6 +395,25 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "pull") {
+      double thetha;
+      double radius;
+      if (!reader.readDouble(thetha)) {
+        thetha = 0;
+      }
+      if (!reader.readDouble(radius)) {
+        radius = 0;
+      }
+      bool _return;
+      _return = pull(thetha,radius);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "compEff") {
       bool _return;
       _return = compEff();
@@ -400,6 +464,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("goHome");
     helpString.push_back("getTool");
     helpString.push_back("slide");
+    helpString.push_back("pull");
     helpString.push_back("compEff");
     helpString.push_back("help");
   }
@@ -429,7 +494,13 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     }
     if (functionName=="slide") {
       helpString.push_back("bool slide(const double thetha = 0, const double radius = 0) ");
-      helpString.push_back("Performs a slide action from orientation theta and distance radius to the detected center of the object. \n ");
+      helpString.push_back("Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n ");
+      helpString.push_back("The trial consist on locating the object and executing the slide action ");
+      helpString.push_back("@return true/false on success/failure to do Action ");
+    }
+    if (functionName=="pull") {
+      helpString.push_back("bool pull(const double thetha = 0, const double radius = 0) ");
+      helpString.push_back("Performs a pull action from the object to the direction indicated by theta and radius. \n ");
       helpString.push_back("The trial consist on locating the object and executing the slide action ");
       helpString.push_back("@return true/false on success/failure to do Action ");
     }
