@@ -113,17 +113,20 @@ protected:
     //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
     //std::string               toolPoseName;
 
-    double                      tooltipX, tooltipY, tooltipZ;   // Coordinates of the tooltip in 3D.
+    struct                      Point3D {double x;double y; double z;};
+    Point3D                     tooltip;    // Coordinates of the tooltip in 3D.
+
 
 	
     /* Protected Methods */
-    void                        goHomeExe(bool hands = false);
-    bool                        loadToolSim(int toolI = 0, int graspOr = 0, double graspDisp = 0.0);
+    void                        goHomeExe(const bool hands = false);
+    bool                        loadToolSim(const int toolI = 0, const int graspOr = 0, const double graspDisp = 0.0);
+    void                        transformToolTip(const Point3D ttCanon, const int graspOr, const double graspDisp, Point3D &tooltipTrans);
     bool                        graspTool();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
     bool                        getObjRot(yarp::sig::Vector &rot3D);
-    bool                        slideExe(double theta = 0.0, double radius = 0.0);
-    bool                        pullExe(double theta = 0.0, double radius = 0.0);
+    bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
+    bool                        pullExe(const double theta = 0.0, const double radius = 0.0);
     bool                        computeEffect();
 
 public:

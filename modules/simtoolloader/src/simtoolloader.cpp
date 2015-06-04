@@ -430,7 +430,7 @@ void CtrlThread::run() {
                 
                 /* create rotate and grab the tool */
                 simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
-                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex, false);
+                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
 
                 //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);                                 

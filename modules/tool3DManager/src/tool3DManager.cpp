@@ -323,7 +323,7 @@ bool Tool3DManager::compEff(){
 /**********************************************************/
 
 /**********************************************************/
-void Tool3DManager::goHomeExe(bool hands)
+void Tool3DManager::goHomeExe(const bool hands)
 {
     cout << endl << "Going home, hands: " << hands <<endl;
     Bottle cmdAre, replyAre;
@@ -353,7 +353,7 @@ void Tool3DManager::goHomeExe(bool hands)
 }
 
 /**********************************************************/
-bool Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
+bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const  double graspDisp)
 {
     cout << endl<<"Loading tool " << toolI <<", or: "<< graspOr << ", displacement: " << graspDisp <<endl;
     // Remove any previous tool attached to the robot
@@ -436,42 +436,28 @@ bool Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     }
     cout << " Received reply: " << replyTFE.toString() << endl;
 
-    double ttxCanon, ttyCanon, ttzCanon;    // Receive coordinates of tooltip of tool in canonical position
-    ttxCanon = replyTFE.get(0).asDouble();
-    ttyCanon = replyTFE.get(1).asDouble();
-    ttzCanon = replyTFE.get(2).asDouble();
-    cout << "Tooltip of canonical model: x= "<< ttxCanon << ", y = " << ttyCanon << ", z = " << ttzCanon <<endl;
+    Point3D ttCanon,ttTrans;
+    ttCanon.x = replyTFE.get(0).asDouble();
+    ttCanon.y = replyTFE.get(1).asDouble();
+    ttCanon.z = replyTFE.get(2).asDouble();
+    cout << "Tooltip of canonical model: x= "<< ttCanon.x << ", y = " << ttCanon.y << ", z = " << ttCanon.z <<endl;
 
-    // Transform canonical coordinates to correspond with tilt, rotation and displacemnt of the tool.
-    double ttxRot =0.0, ttyRot=0.0, ttzRot=0.0;    // Receive coordinates of tooltip of tool in canonical position
-    // Rotate first around Y axis to match tooltip to end-effector orientation
-    ttxRot = ttxCanon*cos(graspOr*M_PI/180.0) - ttzCanon*sin(graspOr*M_PI/180.0);
-    ttyRot = ttyCanon;
-    ttzRot = ttxCanon*sin(graspOr*M_PI/180.0) + ttzCanon*cos(graspOr*M_PI/180.0);
-    cout << "Tooltip of tool rotated " << graspOr << " degrees: x= "<< ttxRot << ", y = " << ttyRot << ", z = " << ttzRot << endl;
+    transformToolTip(ttCanon, graspOr, graspDisp, ttTrans);
 
-    // Now tilt 45 degrees arund Z to match the way in which the tool is held
-    double ttxTilt =0.0, ttyTilt=0.0, ttzTilt=0.0;    // Receive coordinates of tooltip of tool in canonical position
-    ttxTilt = ttxRot*cos(45.0*M_PI/180.0) - ttyRot*sin(45.0*M_PI/180.0);
-    ttyTilt = ttxRot*sin(45.0*M_PI/180.0) + ttyRot*cos(45.0*M_PI/180.0);
-    ttzTilt = ttzRot;
-    cout << "Tooltip of tool rotated " << graspOr << " degrees and tilted 45 degrees: x= "<< ttxTilt << ", y = " << ttyTilt << ", z = " << ttzTilt << endl;
+    tooltip.x = ttTrans.x;
+    tooltip.y = ttTrans.y;
+    tooltip.z = ttTrans.z;
+    cout << "Tooltip of tool in positon: x= "<< ttTrans.x << ", y = " << ttTrans.y << ", z = " << ttTrans.z <<endl;
 
-    // Finally add translation along -Y axis to match handle displacement
-    tooltipX = ttxTilt;
-    tooltipY = ttyTilt - graspDisp/100.0;
-    tooltipZ = ttzTilt;
-
-    cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipX << ", y = " << tooltipY << ", z = " << tooltipZ << endl;
 
     // Send the coordinates to Karmafinder to display it and get the tip pixel
     cout << endl << "Attaching tooltip." << endl;
     Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
     cmdKF.clear();replyKF.clear();
     cmdKF.addString("show");
-    cmdKF.addDouble(tooltipX);
-    cmdKF.addDouble(tooltipY);
-    cmdKF.addDouble(tooltipZ);
+    cmdKF.addDouble(tooltip.x);
+    cmdKF.addDouble(tooltip.y);
+    cmdKF.addDouble(tooltip.z);
     fprintf(stdout,"RCP to KarmaFinder %s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);
     fprintf(stdout,"Reply from KarmaFinder %s\n", replyKF.toString().c_str());
@@ -481,16 +467,57 @@ bool Tool3DManager::loadToolSim(int toolI, int graspOr, double graspDisp)
     cmdKM.addString("tool");
     cmdKM.addString("attach");
     cmdKM.addString(hand);
-    cmdKM.addDouble(tooltipX);
-    cmdKM.addDouble(tooltipY);
-    cmdKM.addDouble(tooltipZ);
+    cmdKM.addDouble(tooltip.x);
+    cmdKM.addDouble(tooltip.y);
+    cmdKM.addDouble(tooltip.z);
     fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
 
     fprintf(stdout,"Tool loaded and tooltip attached \n ");
 
+    // Send command to rotate the pointcloud so that features are extracted from rotated model
+    cout << "Rotating PointCloud for coherent feature extraction." << endl;
+    cmdTFE.clear();   replyTFE.clear();
+    cmdTFE.addString("setCanonicalPose");
+    cmdTFE.addInt(graspOr);
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't rotate the pointcloud." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
+
     return true;
+}
+
+void Tool3DManager::transformToolTip(const Point3D ttCanon, const int graspOr, const double graspDisp, Point3D& tooltipTrans)
+{
+    // Transform canonical coordinates to correspond with tilt, rotation and displacemnt of the tool.
+    Point3D ttRot = {0.0, 0.0, 0.0};
+    //ttRot.x = 0.0, ttRot.y = 0.0, ttRot.z = 0.0;    // Receive coordinates of tooltip of tool in canonical position
+    // Rotate first around Y axis to match tooltip to end-effector orientation
+    ttRot.x = ttCanon.x*cos(graspOr*M_PI/180.0) - ttCanon.z*sin(graspOr*M_PI/180.0);
+    ttRot.y = ttCanon.y;
+    ttRot.z = ttCanon.x*sin(graspOr*M_PI/180.0) + ttCanon.z*cos(graspOr*M_PI/180.0);
+    cout << "Tooltip of tool rotated " << graspOr << " degrees: x= "<< ttRot.x << ", y = " << ttRot.y << ", z = " << ttRot.z << endl;
+
+    // Now tilt 45 degrees arund Z to match the way in which the tool is held
+    Point3D ttTilt = {0.0, 0.0, 0.0};
+    // ttTilt.x =0.0, ttTilt.y=0.0, ttTilt.z=0.0;    // Receive coordinates of tooltip of tool in canonical position
+    ttTilt.x = ttRot.x*cos(45.0*M_PI/180.0) - ttRot.y*sin(45.0*M_PI/180.0);
+    ttTilt.y = ttRot.x*sin(45.0*M_PI/180.0) + ttRot.y*cos(45.0*M_PI/180.0);
+    ttTilt.z = ttRot.z;
+    cout << "Tooltip of tool rotated " << graspOr << " degrees and tilted 45 degrees: x= "<< ttTilt.x << ", y = " << ttTilt.y << ", z = " << ttTilt.z << endl;
+
+    // Finally add translation along -Y axis to match handle displacement
+    tooltipTrans.x = ttTilt.x;
+    tooltipTrans.y = ttTilt.y - graspDisp/100.0;;
+    tooltipTrans.z = ttTilt.z;
+    cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipTrans.x << ", y = " << tooltipTrans.y << ", z = " << tooltipTrans.z << endl;
+
+    return;
 }
 
 bool Tool3DManager::graspTool()
@@ -615,7 +642,7 @@ bool Tool3DManager::getObjRot(Vector &rot3D)
 }
 
 
-bool Tool3DManager::slideExe(double theta, double radius)
+bool Tool3DManager::slideExe(const double theta, const double radius)
 {
     cout << endl<< "Performing slide action from angle " << theta <<" and radius "<< radius  << endl;
     target3DcoordsIni.clear();		// Clear to make space for new coordinates
@@ -652,7 +679,7 @@ bool Tool3DManager::slideExe(double theta, double radius)
     return true;
 }
 
-bool Tool3DManager::pullExe(double theta, double radius)
+bool Tool3DManager::pullExe(const double theta, const double radius)
 {
     cout << endl<< "Performing slide action from angle " << theta <<" and radius "<< radius  << endl;
     target3DcoordsIni.clear();		// Clear to make space for new coordinates
