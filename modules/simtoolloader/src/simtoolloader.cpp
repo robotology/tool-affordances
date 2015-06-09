@@ -203,6 +203,10 @@ bool CtrlThread::threadInit() {
 		return false;    
     clientCart.view(icart);	// open the view	
 
+
+    objIndex  = 0;
+    toolIndex = 0;
+
     cout << endl << "thread initialized" << endl;
     return true;
 }
@@ -216,8 +220,8 @@ void CtrlThread::run() {
 
     Bottle controlCmd;
     Bottle simCmd;
-    int objIndex  = 0;
-    int toolIndex = 0;
+    //int objIndex  = 0;
+    //int toolIndex = 0;
     int toolPose = 0;
     double toolDisp = 0.0;
     double objPosX = -0.1;
@@ -232,6 +236,7 @@ void CtrlThread::run() {
 
         switch(code) {
             case VOCAB3('d','e','l'):
+            {
                 cout << "Clear world" <<endl;
 
                 //Clear the World:
@@ -242,47 +247,11 @@ void CtrlThread::run() {
                 controlCmd.clear();
                 controlCmd.addVocab(code);
                 replyCmd(controlCmd);
-
-                break;
-
-            case VOCAB4('m','o','v','e'):
-
-			    cout << "Move object to original position on table." <<endl;
-            	objIndex = controlCmd.get(1).asInt();
-				//---------------------------------------------------------------
-				//Create one object:
-				//simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
-
-			    if (simWorld.simObject[objIndex-1]->objSubIndex != 0)
-			    {
-					simWorld.simObject[objIndex-1]->setObjectPosition(
-												threadTable.get(4).asDouble()+objPosX,
-												threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-												objPosZ);
-					simCmd = simWorld.simObject[objIndex-1]->moveObjectBottle();
-					writeSim(simCmd);
-
-	                simWorld.simObject[objIndex-1]->setObjectRotation(0, 0, 0);
-	                simCmd = simWorld.simObject[objIndex-1]->rotateObjectBottle();
-	                writeSim(simCmd);
-
-					//reply to the control manager the tool ID
-					controlCmd.clear();
-					controlCmd.addVocab(code);
-					controlCmd.addInt(objIndex);
-					replyCmd(controlCmd);
-			    }else {
-			    	cout << "No object of type " << objIndex << " is present, so it can't be moved." <<endl;
-			    	controlCmd.clear();
-					controlCmd.addString("nack");
-					controlCmd.addInt(objIndex);
-					replyCmd(controlCmd);
-			    }
-
-
-            	break;
+            }
+            break;
 
             case VOCAB3('o','b','j'):
+            {
                 cout << "Create table and object (on the table)." <<endl;
 
                 //Clear the World:
@@ -313,11 +282,50 @@ void CtrlThread::run() {
                 controlCmd.addVocab(code);
                 controlCmd.addInt(objIndex);
                 replyCmd(controlCmd);
+            }
+            break;
 
-                break;
+
+            case VOCAB4('m','o','v','e'):
+            {
+                cout << "Move object to original position on table." <<endl;
+                objIndex = controlCmd.get(1).asInt();
+                //---------------------------------------------------------------
+                //Create one object:
+                //simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+
+                if (simWorld.simObject[objIndex-1]->objSubIndex != 0)
+                {
+                    simWorld.simObject[objIndex-1]->setObjectPosition(
+                                                threadTable.get(4).asDouble()+objPosX,
+                                                threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
+                                                objPosZ);
+                    simCmd = simWorld.simObject[objIndex-1]->moveObjectBottle();
+                    writeSim(simCmd);
+
+                    simWorld.simObject[objIndex-1]->setObjectRotation(0, 0, 0);
+                    simCmd = simWorld.simObject[objIndex-1]->rotateObjectBottle();
+                    writeSim(simCmd);
+
+                    //reply to the control manager the tool ID
+                    controlCmd.clear();
+                    controlCmd.addVocab(code);
+                    controlCmd.addInt(objIndex);
+                    replyCmd(controlCmd);
+                }else {
+                    cout << "No object of type " << objIndex << " is present, so it can't be moved." <<endl;
+                    controlCmd.clear();
+                    controlCmd.addString("nack");
+                    controlCmd.addInt(objIndex);
+                    replyCmd(controlCmd);
+                }
+
+            }
+            break;
+
 
             case VOCAB4('t','o','o','l'):
-
+            {
                 cout << "Create the tool in the hand, the objects on the table." <<endl;
 
 
@@ -342,7 +350,7 @@ void CtrlThread::run() {
                 if ( toolIndex==0 ) {
                     toolIndex = rand() % simWorld.simObject.size() + 1;
                 }
-                
+
                 //receive the orientation of the tool
                 toolPose = controlCmd.get(3).asInt();
                 toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
@@ -352,16 +360,16 @@ void CtrlThread::run() {
 
                 /* Tool to hand transformation*/
                 // Transformation to express coordinate from the tool in the hand coordinate system.
-                Vector rot1(4), rot2(4), rot3(4);   
+                Vector rot1(4), rot2(4), rot3(4);
                 // Orientation in all 3 axis in axis-angle notation
                 //--- this works on positions around the rest position (0 10 0 90 -10)
-                rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling 
+                rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
                 rot2[0] = 0.0; rot2[1] = 0.0; rot2[2] = 1.0; rot2[3] = 45*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
                 rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180; //rotate around the tool axis (Z) to select the tool orientation.
-                
+
                 //--- this works on positions around upper position (-40 100 50 70 -10)
-                //rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling 
-                //rot2[0] = 0.0; rot2[1] = 1.0; rot2[2] = 0.0; rot2[3] = 45*M_PI/180;         
+                //rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
+                //rot2[0] = 0.0; rot2[1] = 1.0; rot2[2] = 0.0; rot2[3] = 45*M_PI/180;
                 //rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180;
 
                 printf("Tool oriented %i deg wrt hand:\n", toolPose);
@@ -369,12 +377,12 @@ void CtrlThread::run() {
                 Matrix Rrot1 = axis2dcm(rot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
                 Matrix Rrot2 = axis2dcm(rot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
                 Matrix Rrot3 = axis2dcm(rot3);                //printf("Rotation in Z in hand coords:\n %s \n", Rrot3.toString().c_str());
-                
+
                 // rotate first around Y axis to orient tool along the hand's X axis
                 // then around the X axis to tilt the tool 45deg wrt the hand
-                // finally around the tool axis (Z) axis to tool-pose (orientation) of the tool effector                
-                Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.     
-                
+                // finally around the tool axis (Z) axis to tool-pose (orientation) of the tool effector
+                Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.
+
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
                 T2H(2,3) = 0.03;                    // This accounts for the traslation of 3 cm in the Z axis in the hand coord system.
                 T2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
@@ -388,7 +396,7 @@ void CtrlThread::run() {
                 // Transformation to express coordinates from the hand coordinate system in the robot coordinate system.
                 printf("getting Pose form icart... \n");
                 Vector posRobot, H2Raa, H2Rrpy, H2RrpyDeg;
-                icart->getPose(posRobot, H2Raa);      // Get hand to robot rotation matrix from iCart.    
+                icart->getPose(posRobot, H2Raa);      // Get hand to robot rotation matrix from iCart.
 
                 Matrix H2R=axis2dcm(H2Raa);   // from axis/angle to rotation matrix notation
                 H2Rrpy = dcm2rpy(H2R);  // from rot Matrix to roll pitch yaw
@@ -403,7 +411,7 @@ void CtrlThread::run() {
 
                 /* Robot to World transformation */
                 // Transformation to express coordinate from the robot coordinate system in the world coordinate system.
-                Matrix R2W(4,4);            
+                Matrix R2W(4,4);
                 // pose x-axis   y-axis         z-axis            translation
                 R2W(0,0)= 0.0;  R2W(0,1)= -1.0; R2W(0,2)= 0.0;    R2W(0,3)= 0.0;        // x-coordinate in root frame
                 R2W(1,0)= 0.0;  R2W(1,1)= 0.0;  R2W(1,2)= 1.0;    R2W(1,3)= 0.5976;     // y-coordinate    "
@@ -417,23 +425,23 @@ void CtrlThread::run() {
 
                 Matrix T2W = R2W*T2R;                 // trasnform rotated tool orientation to World frame
                 printf("Tool to World transformation matrix (T2W = R2W*T2R): \n %s \n", T2W.toString().c_str());
-                
+
                 /* Decomposition of transformation matrix into rotation and translation */
                 yarp::sig::Vector posWorld(3);      //Change coordinate frame from robot to world.
-                posWorld[0]= T2W(0,3); 
-                posWorld[1]= T2W(1,3); 
-                posWorld[2]= T2W(2,3);                     
+                posWorld[0]= T2W(0,3);
+                posWorld[1]= T2W(1,3);
+                posWorld[2]= T2W(2,3);
 
                 Vector T2Wrpy  =  dcm2rpy(T2W);  // from rot Matrix to roll pitch yaw
                 Vector T2WrpyDeg = T2Wrpy *(180.0/M_PI);
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",T2WrpyDeg.toString().c_str());
-                
+
                 /* create rotate and grab the tool */
                 simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
                 simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
 
-                //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);                                 
+                //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);
                 simWorld.simObject[toolIndex-1]->setObjectRotation(T2WrpyDeg[0],T2WrpyDeg[1],T2WrpyDeg[2]);//(-65, -5, 110);
                 simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
                 writeSim(simCmd);
@@ -466,8 +474,140 @@ void CtrlThread::run() {
                 controlCmd.addString(modelName);
                 controlCmd.addInt(objIndex);
                 replyCmd(controlCmd);
+            }
+            break;
 
-                break;
+            case VOCAB3('r','o','t'):
+            {
+                cout << "Rotate the tool in the hand." <<endl;
+
+                //receive the orientation of the tool
+                toolPose = controlCmd.get(1).asInt();
+                toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
+                toolDisp = controlCmd.get(2).asDouble(); // Longitudinal displacement along the tool grasp, in cm
+
+                cout << "Requested to rotate tool " << toolIndex << " with orientation " << toolPose << " and extension " << toolDisp << endl;
+
+
+                // Tool to hand transformation
+                // Transformation to express coordinate from the tool in the hand coordinate system.
+                Vector newRot1(4), newRot2(4), newRot3(4);
+                // Orientation in all 3 axis in axis-angle notation
+                //--- this works on positions around the rest position (0 10 0 90 -10)
+                newRot1[0] = 0.0; newRot1[1] = 1.0; newRot1[2] = 0.0; newRot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
+                newRot2[0] = 0.0; newRot2[1] = 0.0; newRot2[2] = 1.0; newRot2[3] = 45*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
+                newRot3[0] = 1.0; newRot3[1] = 0.0; newRot3[2] = 0.0; newRot3[3] = M_PI/2 + toolPose*M_PI/180; //rotate around the tool axis (Z) to select the tool orientation.
+
+                //--- this works on positions around upper position (-40 100 50 70 -10)
+                //newRot1[0] = 0.0; newRot1[1] = 1.0; newRot1[2] = 0.0; newRot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
+                //newRot2[0] = 0.0; newRot2[1] = 1.0; newRot2[2] = 0.0; newRot2[3] = 45*M_PI/180;
+                //newRot3[0] = 1.0; newRot3[1] = 0.0; newRot3[2] = 0.0; newRot3[3] = M_PI/2 + toolPose*M_PI/180;
+
+                printf("Tool oriented %i deg wrt hand:\n", toolPose);
+
+                Matrix newRrot1 = axis2dcm(newRot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
+                Matrix newRrot2 = axis2dcm(newRot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
+                Matrix newRrot3 = axis2dcm(newRot3);                //printf("Rotation in Z in hand coords:\n %s \n", Rrot3.toString().c_str());
+
+                // rotate first around Y axis to orient tool along the hand's X axis
+                // then around the X axis to tilt the tool 45deg wrt the hand
+                // finally around the tool axis (Z) axis to tool-pose (orientation) of the tool effector
+                Matrix newT2H = newRrot3 * newRrot2 * newRrot1; // Mutiply from right to left.
+
+                //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
+                newT2H(2,3) = 0.03;                    // This accounts for the traslation of 3 cm in the Z axis in the hand coord system.
+                newT2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
+                printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", newT2H.toString().c_str());
+                Vector newT2Hrpy = dcm2rpy(newT2H);  // from rot Matrix to roll pitch yaw
+                Vector newT2HrpyDeg = newT2Hrpy *(180.0/M_PI);
+                printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",newT2HrpyDeg.toString().c_str());
+
+
+                // Hand to Robot transformation
+                // Transformation to express coordinates from the hand coordinate system in the robot coordinate system.
+                printf("getting Pose form icart... \n");
+                Vector newPosRobot, newH2Raa, newH2Rrpy, newH2RrpyDeg;
+                icart->getPose(newPosRobot, newH2Raa);      // Get hand to robot rotation matrix from iCart.
+
+                Matrix newH2R=axis2dcm(newH2Raa);   // from axis/angle to rotation matrix notation
+                newH2Rrpy = dcm2rpy(newH2R);  // from rot Matrix to roll pitch yaw
+                newH2RrpyDeg = newH2Rrpy *(180.0/M_PI);
+                printf("Orientation of hand in robot coords, in degrees:\n %s \n",newH2RrpyDeg.toString().c_str());
+                // Include translation
+                newH2R(0,3)= newPosRobot[0];
+                newH2R(1,3)= newPosRobot[1];
+                newH2R(2,3)= newPosRobot[2];
+                printf("Hand to robot transformatoin matrix (H2R):\n %s \n", newH2R.toString().c_str());
+
+
+                // Robot to World transformation
+                // Transformation to express coordinate from the robot coordinate system in the world coordinate system.
+                Matrix newR2W(4,4);
+                // pose x-axis   y-axis         z-axis            translation
+                newR2W(0,0)= 0.0;  newR2W(0,1)= -1.0; newR2W(0,2)= 0.0;    newR2W(0,3)= 0.0;        // x-coordinate in root frame
+                newR2W(1,0)= 0.0;  newR2W(1,1)= 0.0;  newR2W(1,2)= 1.0;    newR2W(1,3)= 0.5976;     // y-coordinate    "
+                newR2W(2,0)=-1.0;  newR2W(2,1)= 0.0;  newR2W(2,2)= 0.0;    newR2W(2,3)= -0.026;     // z-coordinate    "
+                newR2W(3,0)= 0.0;  newR2W(3,1)= 0.0;  newR2W(3,2)= 0.0;    newR2W(3,3)= 1.0;        // Translation
+                printf("Robot to World Transf matrix is:\n %s \n", newR2W.toString().c_str());
+
+                // Transformation concatenation
+                Matrix newT2R = newH2R*newT2H;
+                printf("Tool to Robot transformation matrix (T2R= H2R*T2H):\n %s \n",newT2R.toString().c_str());
+
+                Matrix newT2W = newR2W*newT2R;                 // trasnform rotated tool orientation to World frame
+                printf("Tool to World transformation matrix (T2W = R2W*T2R): \n %s \n", newT2W.toString().c_str());
+
+                // Decomposition of transformation matrix into rotation and translation
+                yarp::sig::Vector newPosWorld(3);      //Change coordinate frame from robot to world.
+                newPosWorld[0]= newT2W(0,3);
+                newPosWorld[1]= newT2W(1,3);
+                newPosWorld[2]= newT2W(2,3);
+
+                Vector newT2Wrpy  =  dcm2rpy(newT2W);  // from rot Matrix to roll pitch yaw
+                Vector newT2WrpyDeg = newT2Wrpy *(180.0/M_PI);
+                printf("Orientation of tool in world coords, in degrees:\n %s \n",newT2WrpyDeg.toString().c_str());
+
+                // create rotate and grab the tool
+                //simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
+                //simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+                //writeSim(simCmd);
+
+                //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);
+                simWorld.simObject[toolIndex-1]->setObjectRotation(newT2WrpyDeg[0],newT2WrpyDeg[1],newT2WrpyDeg[2]);//(-65, -5, 110);
+                simCmd = simWorld.simObject[toolIndex-1]->releaseObjectBottle(RIGHT);        //right arm by default
+                writeSim(simCmd);
+                simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
+                writeSim(simCmd);
+                simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
+                writeSim(simCmd);
+
+                //reply to the control manager the tool and object IDs
+                controlCmd.clear();
+                controlCmd.addVocab(code);
+                controlCmd.addInt(toolIndex);
+                controlCmd.addInt(toolPose+90); // +90 to cancel the 90 substracted before.
+                controlCmd.addDouble(toolDisp);
+                replyCmd(controlCmd);
+
+            }
+            break;
+
+
+            case VOCAB4('h','e','l','p'):
+            {
+                printf("Help request received. \n ");
+                controlCmd.clear();
+                controlCmd.addVocab(code);
+                controlCmd.addString("Available commands are:");
+                controlCmd.addString("help");
+                controlCmd.addString("delete - delete all object in sim worlds");
+                controlCmd.addString("obj (int) - creates an object on the table (1 = cube).");
+                controlCmd.addString("move objIdex(int) - moves object índex to original position on table  (1 = cube).");
+                controlCmd.addString("tool toolIndex(int) objIndex(int) orient(int) pos(int) - creates tool 'toolIndex' at the robots hand with orientation 'orient' and displacement 'pos', and object 'objIndex' on the table.");
+                controlCmd.addString("rot orient(int) pos(int) - moved the tool in hand to displacement 'pos' (in cm) and rotation 'orient'. ");
+                replyCmd(controlCmd);
+            }
+            break;
         }
     }
 }
@@ -707,6 +847,28 @@ Bottle SimModel::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
+Bottle SimModel::releaseObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("model");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(0);
+    return cmd;
+}
+
+
 string SimModel::getObjName() {
     return this->mesh;
 }
@@ -805,6 +967,27 @@ Bottle SimBox::grabObjectBottle(iCubArm arm) {
             cmd.addString("right");
     }
     cmd.addInt(1);
+    return cmd;
+}
+
+Bottle SimBox::releaseObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("box");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(0);
     return cmd;
 }
 
@@ -921,6 +1104,27 @@ Bottle SimSBox::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
+Bottle SimSBox::releaseObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("sbox");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(0);
+    return cmd;
+}
+
 string SimSBox::getObjName() {
     return "SBox";
 }
@@ -1023,6 +1227,26 @@ Bottle SimSph::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
+Bottle SimSph::releaseObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("sph");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(0);
+    return cmd;
+}
 
 string SimSph::getObjName() {
     return "Sph";
@@ -1127,6 +1351,26 @@ Bottle SimCyl::grabObjectBottle(iCubArm arm) {
     return cmd;
 }
 
+Bottle SimCyl::releaseObjectBottle(iCubArm arm) {
+
+    Bottle cmd;
+    cmd.addString("world");
+    cmd.addString("grab");
+    cmd.addString("cyl");
+    cmd.addInt   (objSubIndex);
+    switch(arm) {
+        case RIGHT:
+            cmd.addString("right");
+            break;
+        case LEFT:
+            cmd.addString("left");
+            break;
+        default:
+            cmd.addString("right");
+    }
+    cmd.addInt(0);
+    return cmd;
+}
 
 string SimCyl::getObjName() {
     return "Cyl";

@@ -35,6 +35,11 @@ service tool3DManager_IDLServer
      */
     bool getTool(1:i32 tool = 0, 2:i32 deg = 0, 3:double disp = 0);
 
+    /**
+     * Queries toolFeatExt module to extract the feaures of the loaded module \n
+     * @return true/false on success/failure to extract features
+     */
+    bool getToolFeats();
 
     /**
      * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
@@ -56,6 +61,27 @@ service tool3DManager_IDLServer
      * @return true/false on success/failure to compute Effect
      */
     bool compEff();
+
+    /**
+     * Runs N actions with the given tool on the given pose and computes the effect. \n
+     * @return true/false on success/failure to perform all actions
+     */
+    bool runToolPose(1: i32 toolI, 2: i32 graspOr = 0, 3: double graspDisp = 0.0, 4: i32 numAct = 8);
+
+
+    /**
+     * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
+     * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
+     * @return true/false on success/failure to perfomr all actions on all toolPoses
+     */
+    bool runToolTrial(1: i32 toolI);
+
+    /**
+     * Runs full trials for all tool with indices between toolini and toolEnd. \n
+     * @return true/false on success/failure to perform all actions
+     */
+    bool runExp(1: i32 toolIni = 1, 2: i32 toolEnd = 50);
+
 
 
 }

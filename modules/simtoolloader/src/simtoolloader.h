@@ -70,6 +70,7 @@ public:
 
     virtual Bottle   makeObjectBottle(vector<int>& ind, bool collision = true)  = 0;
     virtual Bottle   grabObjectBottle(iCubArm arm)                     = 0;
+    virtual Bottle   releaseObjectBottle(iCubArm arm)                  = 0;
     virtual Bottle   rotateObjectBottle()                              = 0;
     virtual Bottle   moveObjectBottle()	                               = 0;
     virtual Bottle   deleteObject()                                    = 0; //XXX no implementation yet
@@ -92,6 +93,7 @@ public:
     virtual Bottle   rotateObjectBottle();
     virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    virtual Bottle   releaseObjectBottle(iCubArm arm);
     string           getObjName();
 
 };
@@ -112,6 +114,7 @@ public:
     virtual Bottle   rotateObjectBottle();
     virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    virtual Bottle   releaseObjectBottle(iCubArm arm);
     string      getObjName();
 };
 
@@ -129,6 +132,7 @@ public:
     virtual Bottle   rotateObjectBottle();
     virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    virtual Bottle   releaseObjectBottle(iCubArm arm);
     string      getObjName();
 };
 
@@ -147,6 +151,7 @@ public:
     virtual Bottle   rotateObjectBottle();
     virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    virtual Bottle   releaseObjectBottle(iCubArm arm);
     string           getObjName();
 };
 
@@ -164,6 +169,7 @@ public:
     virtual Bottle   rotateObjectBottle();
     virtual Bottle   moveObjectBottle();
     virtual Bottle   grabObjectBottle(iCubArm arm);
+    virtual Bottle   releaseObjectBottle(iCubArm arm);
     string           getObjName();
 };
 
@@ -192,6 +198,8 @@ protected:
     vector<Bottle> threadObject;
     string threadHand;
     SimWorld simWorld;
+    int objIndex;
+    int toolIndex;
 
     yarp::dev::PolyDriver					clientCart;
 	yarp::dev::ICartesianControl			*icart;

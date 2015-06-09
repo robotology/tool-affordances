@@ -41,6 +41,11 @@ public:
    */
   virtual bool getTool(const int32_t tool = 0, const int32_t deg = 0, const double disp = 0);
   /**
+   * Queries toolFeatExt module to extract the feaures of the loaded module \n
+   * @return true/false on success/failure to extract features
+   */
+  virtual bool getToolFeats();
+  /**
    * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
    * The trial consist on locating the object and executing the slide action
    * @return true/false on success/failure to do Action
@@ -57,6 +62,22 @@ public:
    * @return true/false on success/failure to compute Effect
    */
   virtual bool compEff();
+  /**
+   * Runs N actions with the given tool on the given pose and computes the effect. \n
+   * @return true/false on success/failure to perform all actions
+   */
+  virtual bool runToolPose(const int32_t toolI, const int32_t graspOr = 0, const double graspDisp = 0, const int32_t numAct = 8);
+  /**
+   * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
+   * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
+   * @return true/false on success/failure to perfomr all actions on all toolPoses
+   */
+  virtual bool runToolTrial(const int32_t toolI);
+  /**
+   * Runs full trials for all tool with indices between toolini and toolEnd. \n
+   * @return true/false on success/failure to perform all actions
+   */
+  virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 50);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

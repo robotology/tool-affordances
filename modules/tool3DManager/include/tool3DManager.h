@@ -78,22 +78,18 @@ protected:
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
     yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
+    yarp::os::RpcClient         rpcFeatExt;	        //rpc connection to toolFeatExt to extract features from cloud
 
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
     //yarp::os::RpcClient         rpcToolShow;        //rpc connecting to pointcloud 3D visualizer
-    yarp::os::RpcClient         rpcFeatExt;	        //rpc connection to toolFeatExt to extract features from cloud
 
-    yarp::os::BufferedPort<yarp::os::Bottle >  userDataPort;  // port to receive user data.
-    yarp::os::Port                             outDataPort;   // port to send out data
+
+    yarp::os::Port                             effDataPort;   // port to send out data of computed effect
+    yarp::os::Port                             actDataPort;   // port to send out data of action parameters
+    yarp::os::Port                             graspDataPort; // port to send out data of grasp parameters
     yarp::os::BufferedPort<yarp::os::Bottle >  matlabPort;    // port to receive predictions from MATLAB
 
     /* class variables */
-
-    //ParticleFilter              particleFilter;     //class to receive positions from the templateTracker module
-    //SegmentationPoint           segmentPoint;       //class to request segmentation from activeSegmentation module
-    //PointedLocation             pointedLoc;         //port class to receive pointed locations
-
-
 	// Flags
 	bool						running;
     /*
@@ -109,6 +105,8 @@ protected:
     yarp::sig::Vector			target3DrotIni;         // Keeps the target rotation in 3D before the action
     yarp::sig::Vector			target3DrotAfter;		// Keeps the target rotation in 3D after the action
     yarp::sig::Vector			effectVec;              // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
+    yarp::sig::Vector			graspVec;               // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
+    yarp::sig::Vector			actVec;                 // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
 
     //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
     //std::string               toolPoseName;
@@ -121,6 +119,7 @@ protected:
     /* Protected Methods */
     void                        goHomeExe(const bool hands = false);
     bool                        loadToolSim(const int toolI = 0, const int graspOr = 0, const double graspDisp = 0.0);
+    bool                        extractFeats();
     void                        transformToolTip(const Point3D ttCanon, const int graspOr, const double graspDisp, Point3D &tooltipTrans);
     bool                        graspTool();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
@@ -138,9 +137,16 @@ public:
 	bool						quit();
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
+    bool                        getToolFeats();
     bool                        slide(double theta, double radius);
     bool                        pull(double theta, double radius);
     bool                        compEff();
+
+    // Experiment functions
+    bool                        runToolPose(int toolI, int graspOr = 0, double graspDisp = 0, int numAct = 8);
+    bool                        runToolTrial(int toolI);
+    bool                        runExp(int toolIni, int toolEnd);
+
 
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);
