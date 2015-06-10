@@ -486,7 +486,7 @@ void CtrlThread::run() {
                 toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
                 toolDisp = controlCmd.get(2).asDouble(); // Longitudinal displacement along the tool grasp, in cm
 
-                cout << "Requested to rotate tool " << toolIndex << " with orientation " << toolPose << " and extension " << toolDisp << endl;
+                cout << "Requested to regrasp tool " << toolIndex << " with orientation " << toolPose << " and extension " << toolDisp << endl;
 
 
                 // Tool to hand transformation
@@ -567,17 +567,23 @@ void CtrlThread::run() {
                 Vector newT2WrpyDeg = newT2Wrpy *(180.0/M_PI);
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",newT2WrpyDeg.toString().c_str());
 
-                // create rotate and grab the tool
-                //simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
-                //simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
-                //writeSim(simCmd);
+                // Set new position and orientation
+                simWorld.simObject[toolIndex-1]->setObjectRotation(newT2WrpyDeg[0],newT2WrpyDeg[1],newT2WrpyDeg[2]);// new regrasp position
+                simWorld.simObject[toolIndex-1]->setObjectPosition(newPosWorld[0],newPosWorld[1],newPosWorld[2]);   // new regrasp orientation
 
-                //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);
-                simWorld.simObject[toolIndex-1]->setObjectRotation(newT2WrpyDeg[0],newT2WrpyDeg[1],newT2WrpyDeg[2]);//(-65, -5, 110);
+                // Release grasp-magnet to allow regrasping
                 simCmd = simWorld.simObject[toolIndex-1]->releaseObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
+
+                // send new position command
+                simCmd = simWorld.simObject[toolIndex-1]->moveObjectBottle();
+                writeSim(simCmd);
+
+                // send new orientation command
                 simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
                 writeSim(simCmd);
+
+                // Reactivate grasp-magnet to fix tool in place.
                 simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
 

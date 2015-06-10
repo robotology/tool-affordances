@@ -72,7 +72,7 @@ public:
    * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
    * @return true/false on success/failure to perfomr all actions on all toolPoses
    */
-  virtual bool runToolTrial(const int32_t toolI);
+  virtual bool runToolTrial(const int32_t toolI, const int32_t numAct = 8);
   /**
    * Runs full trials for all tool with indices between toolini and toolEnd. \n
    * @return true/false on success/failure to perform all actions

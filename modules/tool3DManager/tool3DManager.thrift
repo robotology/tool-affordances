@@ -74,7 +74,7 @@ service tool3DManager_IDLServer
      * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
      * @return true/false on success/failure to perfomr all actions on all toolPoses
      */
-    bool runToolTrial(1: i32 toolI);
+    bool runToolTrial(1: i32 toolI, 2: i32 numAct = 8);
 
     /**
      * Runs full trials for all tool with indices between toolini and toolEnd. \n

@@ -112,7 +112,9 @@ protected:
     //std::string               toolPoseName;
 
     struct                      Point3D {double x;double y; double z;};
-    Point3D                     tooltip;    // Coordinates of the tooltip in 3D.
+
+    Point3D                     toolTipCanon, tooltip;            // Coordinates of the tooltip in 3D.
+    int                         toolLoadedIdx;      // Index of the tool loaded, in order to decide whether to reload or reGrasp
 
 
 	
@@ -127,6 +129,7 @@ protected:
     bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
     bool                        pullExe(const double theta = 0.0, const double radius = 0.0);
     bool                        computeEffect();
+    bool                        sendAffData();
 
 public:
 
@@ -144,7 +147,7 @@ public:
 
     // Experiment functions
     bool                        runToolPose(int toolI, int graspOr = 0, double graspDisp = 0, int numAct = 8);
-    bool                        runToolTrial(int toolI);
+    bool                        runToolTrial(int toolI, int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
 
 

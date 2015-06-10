@@ -157,6 +157,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     // Attach server port to read RPC commands via thrift
     attach(rpcCmd);
     running = true;
+    toolLoadedIdx = 0;
 
     // XXX Attach client port to send RPC commands via thrift to toolFeatExt
     // tool3DFeat_IDLServer toolFeatExtclient;
@@ -227,6 +228,7 @@ bool Tool3DManager::interruptModule()
 {
     effDataPort.interrupt();
     actDataPort.interrupt();
+    graspDataPort.interrupt();
     matlabPort.interrupt();
 
     rpcCmd.interrupt();
@@ -247,6 +249,7 @@ bool Tool3DManager::close()
 {
     effDataPort.close();
     actDataPort.close();
+    graspDataPort.close();
     matlabPort.close();
 
     rpcCmd.close();
@@ -328,9 +331,9 @@ bool Tool3DManager::runToolPose(int toolI, int graspOr, double graspDisp, int nu
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
 
-    loadToolSim(toolI, graspOr, graspDisp );
+    loadToolSim(toolI, graspOr, graspDisp);  // re-grasp the tool with the given grasp parameters
 
-    for (int i=1 ; i<numAct ; i++){
+    for (int i=1 ; i<=numAct ; i++){
         pullExe(theta,0.15);
         computeEffect();
         theta += thetaDiv;
@@ -339,18 +342,18 @@ bool Tool3DManager::runToolPose(int toolI, int graspOr, double graspDisp, int nu
 }
 
 // Functions to run experiment:
-bool Tool3DManager::runToolTrial(int toolI){
+bool Tool3DManager::runToolTrial(int toolI, int numAct){
 
     // XXX For each tool, run all combinations of
     // x 3 Grasps: left front right
     // x 3 disps (-2, 0, +2) cm
     // x 8 thetas (every 45 degrees.
-    int divs  = 2;
 
-    for ( int ori = -90; ori < 100; ori = ori + 90){        // This is a loop for {-90, 0, 90}
-        for (int disp=-2 ; disp<3 ; disp += 2){         // This is a loop for {-2,0,2}
-
-            return runToolPose(toolI, ori, disp, divs);
+    for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
+        for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
+            cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
+            cout << "Running trial with tool: " << toolI << " grasped at orientation "<< ori << ", and displacement "<< disp <<"."<< endl;
+            runToolPose(toolI, ori, disp, numAct);
         }
     }
     return true;
@@ -360,7 +363,8 @@ bool Tool3DManager::runToolTrial(int toolI){
 bool Tool3DManager::runExp(int toolIni, int toolEnd){
     for (int toolI=toolIni ; toolI<= toolEnd ; toolI++)
     {
-        runToolTrial(toolI);
+        if (toolI != 8)             // XXX For some strange reason, loading tool 8 chrashes the simulator
+            runToolTrial(toolI);
     }
     return true;
 }
@@ -403,18 +407,24 @@ void Tool3DManager::goHomeExe(const bool hands)
 
 /**********************************************************/
 bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double graspDisp)
-{
-    cout << endl<<"Loading tool " << toolI <<", or: "<< graspOr << ", displacement: " << graspDisp <<endl;
-    // Remove any previous tool attached to the robot
-    Bottle cmdKM,replyKM;       // bottles for Karma Motor
+{    
+    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
+    cout << "Tool present: " << toolLoadedIdx <<"."<< endl;
+
+    Bottle cmdKM,replyKM;               // bottles for Karma Motor
+    Bottle cmdSim,replySim;             // bottles for Simulator
+    Bottle cmdTFE,replyTFE;             // bottles for toolFeatExt
+    Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
+
+    // Remove any end effector extension that might be.
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("remove");
     fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"Reply from KarmaMotor: %s:\n",replyKM.toString().c_str());
+    fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
-    // Moving hand to center to receive tool on correct position - implemented by faking a push action to the center
+    // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
     cout << "Moving arm to a central position" << endl;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
@@ -427,90 +437,115 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     rpcKarmaMotor.write(cmdKM, replyKM);
     //fprintf(stdout,"Reply from KarmaMotor: %s:\n",replyKM.toString().c_str());
 
-    // Query simtoolloader to create the virtual tool and object
-    cout << "Loading tool " << toolI << " in the simulator " << endl;
-    Bottle cmdSim,replySim;       // bottles for Simulator
-    cmdSim.clear();   replySim.clear();
-    cmdSim.addString("del");
-    fprintf(stdout,"RPC to simtoolloader: %s\n",cmdSim.toString().c_str());
-    rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to clean the world
+    if (toolI != toolLoadedIdx)
+    {
+        cout << endl<<"Loading tool " << toolI <<", or: "<< graspOr << ", displacement: " << graspDisp <<endl;
+        toolLoadedIdx = toolI;
 
-    cmdSim.clear();   replySim.clear();
-    cmdSim.addString("tool");
-    cmdSim.addInt(toolI);               // tool
-    cmdSim.addInt(1);                   // object -> Cube
-    cmdSim.addInt(graspOr);             // orientation
-    cmdSim.addInt(graspDisp);           // displacement
-    rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
-    cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
+        // Call simtoolloader to clean the world
+        cmdSim.clear();   replySim.clear();
+        cmdSim.addString("del");
+        fprintf(stdout,"RPC to simtoolloader: %s\n",cmdSim.toString().c_str());
+        rpcSimToolLoader.write(cmdSim, replySim);
 
-    if (replySim.size() <1){
-        cout << "simtoolloader cloudlnt load tool." << endl;
-        return false;
+        // Call simtoolloader to create the tool
+        cmdSim.clear();   replySim.clear();
+        cmdSim.addString("tool");
+        cmdSim.addInt(toolI);               // tool
+        cmdSim.addInt(1);                   // object -> Cube
+        cmdSim.addInt(graspOr);             // orientation
+        cmdSim.addInt(graspDisp);           // displacement
+        rpcSimToolLoader.write(cmdSim, replySim);
+        cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
+
+        // check succesful tool creation
+        if (replySim.size() <1){
+            cout << "simtoolloader cloudln't load tool." << endl;
+            return false;
+        }
+        cout << "Received reply: " << replySim.toString() << endl;
+
+        // Get tool name from simtooloader response.
+        // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
+        cout << "Retrieving tool name." << endl;
+        string meshName = replySim.get(2).asString();
+        string::size_type idx;
+        idx = meshName.rfind('.');
+        string cloudName = meshName.substr(0,idx);
+        cloudName = "sim/"+ cloudName;
+        cout << "cloud model: " << cloudName << endl;
+
+        // Query toolFeatExt to load model to load 3D Pointcloud.
+        cout << "Loading pointcloud to extract tooltip." << endl;
+
+        cmdTFE.clear();   replyTFE.clear();
+        cmdTFE.addString("loadModel");
+        cmdTFE.addString(cloudName);
+        rpcFeatExt.write(cmdTFE, replyTFE);
+        cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+        if (replyTFE.size() <1){
+            cout << "ToolFeatExt coudln't load the tool." << endl;
+            return false;
+        }
+        cout << " Received reply: " << replyTFE.toString() << endl;
+
+        // Extract Canonical tool features.
+        if (!extractFeats()){
+            cout << "ToolFeatExt coudln't extract the features." << endl;
+            return false;
+        }
+        cout << " Canonical 3D features extracted" << endl;
+
+        // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
+        cout << "Getting canonical tooltip coordinates." << endl;
+        cmdTFE.clear();   replyTFE.clear();
+        cmdTFE.addString("getToolTip");
+        rpcFeatExt.write(cmdTFE, replyTFE);
+        cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+        if (replyTFE.size() <1){
+            cout << "ToolFeatExt coudln't compute the tooltip." << endl;
+            return false;
+        }
+        cout << " Received reply: " << replyTFE.toString() << endl;
+
+        toolTipCanon.x = replyTFE.get(0).asDouble();
+        toolTipCanon.y = replyTFE.get(1).asDouble();
+        toolTipCanon.z = replyTFE.get(2).asDouble();
+        cout << "Tooltip of canonical model: x= "<< toolTipCanon.x << ", y = " << toolTipCanon.y << ", z = " << toolTipCanon.z <<endl;
+
+    } else {        // Need just to reGrasp tool
+
+        // Query simtoolloader to rotate the virtual tool
+        cout << endl<< "Regrasping tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp <<endl;
+
+        // Call simtoolloader to create the tool
+        cmdSim.clear();   replySim.clear();
+        cmdSim.addString("rot");
+        cmdSim.addInt(graspOr);             // orientation
+        cmdSim.addInt(graspDisp);           // displacement
+        rpcSimToolLoader.write(cmdSim, replySim);
+        cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
+
+        // check succesful tool reGrasping
+        if (replySim.size() <1){
+            cout << "simtoolloader cloudln't load tool." << endl;
+            return false;
+        }
+        cout << "Received reply: " << replySim.toString() << endl;
     }
-    cout << "Received reply: " << replySim.toString() << endl;
 
-    // Get tool name from simtooloader response.
-    // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
-    cout << "Retrieving tool name." << endl;
-    string meshName = replySim.get(2).asString();
-    string::size_type idx;
-    idx = meshName.rfind('.');
-    string cloudName = meshName.substr(0,idx);
-    cloudName = "sim/"+ cloudName;
-    cout << "cloud model: " << cloudName << endl;
-
-    // Query toolFeatExt to load model
-    cout << "Loading pointcloud to extract tooltip." << endl;
-    Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
-    cmdTFE.clear();   replyTFE.clear();
-    cmdTFE.addString("loadModel");
-    cmdTFE.addString(cloudName);
-    rpcFeatExt.write(cmdTFE, replyTFE);
-    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
-    if (replyTFE.size() <1){
-        cout << "ToolFeatExt coudln't load the tool." << endl;
-        return false;
-    }
-    cout << " Received reply: " << replyTFE.toString() << endl;
-
-
-    bool featsOK = extractFeats();
-    if (!featsOK){
-        cout << "ToolFeatExt coudln't extract the features." << endl;
-        return false;
-    }
-    cout << " Canonical 3D features extracted" << endl;
-
-    // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
-    cout << "Getting canonical tooltip coordinates." << endl;
-    cmdTFE.clear();   replyTFE.clear();
-    cmdTFE.addString("getToolTip");
-    rpcFeatExt.write(cmdTFE, replyTFE);    
-    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
-    if (replyTFE.size() <1){
-        cout << "ToolFeatExt coudln't compute the tooltip." << endl;
-        return false;
-    }
-    cout << " Received reply: " << replyTFE.toString() << endl;
-
-    Point3D ttCanon,ttTrans;
-    ttCanon.x = replyTFE.get(0).asDouble();
-    ttCanon.y = replyTFE.get(1).asDouble();
-    ttCanon.z = replyTFE.get(2).asDouble();
-    cout << "Tooltip of canonical model: x= "<< ttCanon.x << ", y = " << ttCanon.y << ", z = " << ttCanon.z <<endl;
-
-    transformToolTip(ttCanon, graspOr, graspDisp, ttTrans);
+    // Tasnform the tooltip from the canonical to the current grasp
+    Point3D ttTrans;            // Point 3D srtuct for tooltips.
+    transformToolTip(toolTipCanon, graspOr, graspDisp, ttTrans);
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
     tooltip.z = ttTrans.z;
     cout << "Tooltip of tool in positon: x= "<< ttTrans.x << ", y = " << ttTrans.y << ", z = " << ttTrans.z <<endl;
 
+    cout << endl << "Attaching tooltip." << endl;
 
     // Send the coordinates to Karmafinder to display it and get the tip pixel
-    cout << endl << "Attaching tooltip." << endl;
-    Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
     cmdKF.clear();replyKF.clear();
     cmdKF.addString("show");
     cmdKF.addDouble(tooltip.x);
@@ -530,7 +565,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     cmdKM.addDouble(tooltip.z);
     fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"Reply from KarmaMotor %s:\n",replyKM.toString().c_str());
+    fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
     fprintf(stdout,"Tool loaded and tooltip attached \n ");
 
@@ -539,6 +574,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("setCanonicalPose");
     cmdTFE.addInt(graspOr);
+    cmdTFE.addInt(graspDisp);
     rpcFeatExt.write(cmdTFE, replyTFE);
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
     if (replyTFE.size() <1){
@@ -547,8 +583,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     }
     cout << " Received reply: " << replyTFE.toString() << endl;
 
-    featsOK = extractFeats();
-    if (!featsOK){
+    if (!extractFeats()){
         cout << "ToolFeatExt coudln't extract the features." << endl;
         return false;
     }
@@ -560,7 +595,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     // Put action parameters on a port so they can be read
     graspVec[0] = (double)graspOr;
     graspVec[1] = graspDisp;
-    graspDataPort.write(graspVec);
+    //graspDataPort.write(graspVec);
 
     return true;
 }
@@ -606,7 +641,7 @@ void Tool3DManager::transformToolTip(const Point3D ttCanon, const int graspOr, c
     // Finally add translation along -Y axis to match handle displacement
     tooltipTrans.x = ttTilt.x;
     tooltipTrans.y = ttTilt.y - graspDisp/100.0;;
-    tooltipTrans.z = ttTilt.z;
+    tooltipTrans.z = ttTilt.z + 0.03;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
     cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipTrans.x << ", y = " << tooltipTrans.y << ", z = " << tooltipTrans.z << endl;
 
     return;
@@ -775,7 +810,7 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
     // Put action parameters on a port so they can be read
     actVec[0] = theta;
     actVec[1] = radius;
-    actDataPort.write(actVec);
+    //actDataPort.write(actVec);
 
     goHomeExe();
     goHomeExe();
@@ -817,10 +852,10 @@ bool Tool3DManager::pullExe(const double theta, const double radius)
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
-    // Put action parameters on a port so they can be read
+    // Put action parameters on the vector so that they can be sent
     actVec[0] = theta;
     actVec[1] = radius;
-    actDataPort.write(actVec);
+    //actDataPort.write(actVec);
 
     goHomeExe();
     goHomeExe();
@@ -874,7 +909,7 @@ bool Tool3DManager::computeEffect()
     cout << "Object displaced " << displDist << " meters on " << displAngle << " direction, and rotated " << effectRot << " degrees."<< endl;
 
     // put values on a port so they can be read
-    effDataPort.write(effectVec);
+    //effDataPort.write(effectVec);
 
     // Put the cube back in place to restart round:
     Bottle cmdSim,replySim;       // bottles for Simulator
@@ -884,6 +919,22 @@ bool Tool3DManager::computeEffect()
     rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
     cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
     cout << " Received reply: " << replySim.toString() << endl;
+    Time::delay(0.3); // give time for the cube to reach its position before jumping to next step
+
+    // Send all data so it can be read and saved.
+    sendAffData();
+
+    return true;
+}
+
+bool Tool3DManager::sendAffData()
+{
+    // Send (action - grasp - effect) parameters together so that they are synced
+
+    // put values on a port so they can be read
+    actDataPort.write(actVec);
+    graspDataPort.write(graspVec);
+    effDataPort.write(effectVec);
 
     return true;
 }
