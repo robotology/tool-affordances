@@ -90,6 +90,17 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_runToolOr : public yarp::os::Portable {
+public:
+  int32_t toolI;
+  int32_t graspOr;
+  int32_t numAct;
+  bool _return;
+  void init(const int32_t toolI, const int32_t graspOr, const int32_t numAct);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_runToolTrial : public yarp::os::Portable {
 public:
   int32_t toolI;
@@ -323,6 +334,33 @@ void tool3DManager_IDLServer_runToolPose::init(const int32_t toolI, const int32_
   this->numAct = numAct;
 }
 
+bool tool3DManager_IDLServer_runToolOr::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("runToolOr",1,1)) return false;
+  if (!writer.writeI32(toolI)) return false;
+  if (!writer.writeI32(graspOr)) return false;
+  if (!writer.writeI32(numAct)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_runToolOr::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_runToolOr::init(const int32_t toolI, const int32_t graspOr, const int32_t numAct) {
+  _return = false;
+  this->toolI = toolI;
+  this->graspOr = graspOr;
+  this->numAct = numAct;
+}
+
 bool tool3DManager_IDLServer_runToolTrial::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -462,6 +500,16 @@ bool tool3DManager_IDLServer::runToolPose(const int32_t toolI, const int32_t gra
   helper.init(toolI,graspOr,graspDisp,numAct);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolPose(const int32_t toolI, const int32_t graspOr, const double graspDisp, const int32_t numAct)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::runToolOr(const int32_t toolI, const int32_t graspOr, const int32_t numAct) {
+  bool _return = false;
+  tool3DManager_IDLServer_runToolOr helper;
+  helper.init(toolI,graspOr,numAct);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolOr(const int32_t toolI, const int32_t graspOr, const int32_t numAct)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -644,6 +692,30 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "runToolOr") {
+      int32_t toolI;
+      int32_t graspOr;
+      int32_t numAct;
+      if (!reader.readI32(toolI)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(graspOr)) {
+        graspOr = 0;
+      }
+      if (!reader.readI32(numAct)) {
+        numAct = 8;
+      }
+      bool _return;
+      _return = runToolOr(toolI,graspOr,numAct);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "runToolTrial") {
       int32_t toolI;
       int32_t numAct;
@@ -726,6 +798,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("pull");
     helpString.push_back("compEff");
     helpString.push_back("runToolPose");
+    helpString.push_back("runToolOr");
     helpString.push_back("runToolTrial");
     helpString.push_back("runExp");
     helpString.push_back("help");
@@ -778,7 +851,12 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     }
     if (functionName=="runToolPose") {
       helpString.push_back("bool runToolPose(const int32_t toolI, const int32_t graspOr = 0, const double graspDisp = 0, const int32_t numAct = 8) ");
-      helpString.push_back("Runs N actions with the given tool on the given pose and computes the effect. \n ");
+      helpString.push_back("Runs numAct actions with the given tool on the given pose and computes the effect. \n ");
+      helpString.push_back("@return true/false on success/failure to perform all actions ");
+    }
+    if (functionName=="runToolOr") {
+      helpString.push_back("bool runToolOr(const int32_t toolI, const int32_t graspOr = 0, const int32_t numAct = 8) ");
+      helpString.push_back("Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n ");
       helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
     if (functionName=="runToolTrial") {

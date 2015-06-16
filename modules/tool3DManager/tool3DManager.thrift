@@ -63,11 +63,16 @@ service tool3DManager_IDLServer
     bool compEff();
 
     /**
-     * Runs N actions with the given tool on the given pose and computes the effect. \n
+     * Runs numAct actions with the given tool on the given pose and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
     bool runToolPose(1: i32 toolI, 2: i32 graspOr = 0, 3: double graspDisp = 0.0, 4: i32 numAct = 8);
 
+    /**
+     * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
+     * @return true/false on success/failure to perform all actions
+     */
+    bool runToolOr(1: i32 toolI, 2: i32 graspOr = 0, 3: i32 numAct = 8);
 
     /**
      * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations

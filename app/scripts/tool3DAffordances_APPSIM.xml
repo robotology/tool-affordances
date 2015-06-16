@@ -8,18 +8,18 @@
         <geometry>(Pos (x 97) (y 58.9))</geometry>
     </module>
     <module>
-        <name>toolFeatExt</name>
-        <parameters>--context tool3DManager</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 397) (y 367.9))</geometry>
-    </module>
-    <module>
         <name>tool3Dshow</name>
         <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 685) (y 477.9))</geometry>
+    </module>
+    <module>
+        <name>toolFeatExt</name>
+        <parameters>--context tool3DManager</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 397) (y 367.9))</geometry>
     </module>
     <module>
         <name>actionsRenderingEngine</name>
@@ -50,7 +50,7 @@
         <geometry>(Pos (x 397) (y 95.9))</geometry>
     </module>
     <module>
-        <name>yarpview</name>
+        <name>yarpview-gtk</name>
         <parameters>--x 700 --y 700</parameters>
         <node>localhost</node>
         <prefix>/toolFinder</prefix>

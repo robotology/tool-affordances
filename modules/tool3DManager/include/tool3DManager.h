@@ -104,9 +104,10 @@ protected:
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D after the action
     yarp::sig::Vector			target3DrotIni;         // Keeps the target rotation in 3D before the action
     yarp::sig::Vector			target3DrotAfter;		// Keeps the target rotation in 3D after the action
+
     yarp::sig::Vector			effectVec;              // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
-    yarp::sig::Vector			graspVec;               // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
-    yarp::sig::Vector			actVec;                 // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
+    yarp::sig::Vector			graspVec;               // Measurements of the grasp parameters (toolI - grasp Orientation - grasp Displacement)
+    yarp::sig::Vector			actVec;                 // Measurements of the action parameters (action angle, distance of pull)
 
     //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
     //std::string               toolPoseName;
@@ -147,6 +148,7 @@ public:
 
     // Experiment functions
     bool                        runToolPose(int toolI, int graspOr = 0, double graspDisp = 0, int numAct = 8);
+    bool                        runToolOr(int toolI, int graspOr = 0, int numAct = 8);
     bool                        runToolTrial(int toolI, int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
 

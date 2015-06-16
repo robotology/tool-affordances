@@ -341,10 +341,22 @@ bool Tool3DManager::runToolPose(int toolI, int graspOr, double graspDisp, int nu
     return true;
 }
 
+bool Tool3DManager::runToolOr(int toolI, int graspOr, int numAct){
+
+    // For each tool with an orientation, run all displacements (-2, 0, +2) cm
+    for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
+        cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
+        cout << "Running trial with tool: " << toolI << " grasped at orientation "<< graspOr << ", and displacement "<< disp <<"."<< endl;
+        runToolPose(toolI, graspOr, disp, numAct);
+    }
+
+    return true;
+}
+
 // Functions to run experiment:
 bool Tool3DManager::runToolTrial(int toolI, int numAct){
 
-    // XXX For each tool, run all combinations of
+    // For each tool, run all combinations of
     // x 3 Grasps: left front right
     // x 3 disps (-2, 0, +2) cm
     // x 8 thetas (every 45 degrees.
@@ -590,11 +602,12 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     cout << " Oriented 3D features extracted" << endl;
 
     graspVec.clear();		// Clear to make space for new coordinates
-    graspVec.resize(2);     // Resize to save orientation - displacement coordinates coordinates
+    graspVec.resize(3);     // Resize to save orientation - displacement coordinates coordinates
 
     // Put action parameters on a port so they can be read
-    graspVec[0] = (double)graspOr;
-    graspVec[1] = graspDisp;
+    graspVec[0] = toolI;
+    graspVec[1] = (double)graspOr;
+    graspVec[2] = graspDisp;
     //graspDataPort.write(graspVec);
 
     return true;
@@ -625,9 +638,11 @@ void Tool3DManager::transformToolTip(const Point3D ttCanon, const int graspOr, c
     Point3D ttRot = {0.0, 0.0, 0.0};
     //ttRot.x = 0.0, ttRot.y = 0.0, ttRot.z = 0.0;    // Receive coordinates of tooltip of tool in canonical position
     // Rotate first around Y axis to match tooltip to end-effector orientation
-    ttRot.x = ttCanon.x*cos(graspOr*M_PI/180.0) - ttCanon.z*sin(graspOr*M_PI/180.0);
+    double sinOr = sin(graspOr*M_PI/180.0);
+    double cosOr = cos(graspOr*M_PI/180.0);
+    ttRot.x = ttCanon.x*cosOr - ttCanon.z*sinOr;
     ttRot.y = ttCanon.y;
-    ttRot.z = ttCanon.x*sin(graspOr*M_PI/180.0) + ttCanon.z*cos(graspOr*M_PI/180.0);
+    ttRot.z = ttCanon.x*sinOr + ttCanon.z*cosOr;
     cout << "Tooltip of tool rotated " << graspOr << " degrees: x= "<< ttRot.x << ", y = " << ttRot.y << ", z = " << ttRot.z << endl;
 
     // Now tilt 45 degrees arund Z to match the way in which the tool is held
@@ -641,7 +656,7 @@ void Tool3DManager::transformToolTip(const Point3D ttCanon, const int graspOr, c
     // Finally add translation along -Y axis to match handle displacement
     tooltipTrans.x = ttTilt.x;
     tooltipTrans.y = ttTilt.y - graspDisp/100.0;;
-    tooltipTrans.z = ttTilt.z + 0.03;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
+    tooltipTrans.z = ttTilt.z + 0.03 - 0.03*sinOr;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
     cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipTrans.x << ", y = " << tooltipTrans.y << ", z = " << tooltipTrans.z << endl;
 
     return;

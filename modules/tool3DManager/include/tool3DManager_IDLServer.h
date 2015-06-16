@@ -63,10 +63,15 @@ public:
    */
   virtual bool compEff();
   /**
-   * Runs N actions with the given tool on the given pose and computes the effect. \n
+   * Runs numAct actions with the given tool on the given pose and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
   virtual bool runToolPose(const int32_t toolI, const int32_t graspOr = 0, const double graspDisp = 0, const int32_t numAct = 8);
+  /**
+   * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
+   * @return true/false on success/failure to perform all actions
+   */
+  virtual bool runToolOr(const int32_t toolI, const int32_t graspOr = 0, const int32_t numAct = 8);
   /**
    * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
    * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
