@@ -49,18 +49,30 @@ service tool3DManager_IDLServer
     bool slide(1:double thetha = 0.0, 2:double radius = 0.0);
 
     /**
-     * Performs a pull action from the object to the direction indicated by theta and radius. \n
+     * Performs a drag action from the object to the direction indicated by theta and radius. \n
      * The trial consist on locating the object and executing the slide action
      * @return true/false on success/failure to do Action
      */
-    bool pull(1:double thetha = 0.0, 2:double radius = 0.0);
+    bool drag(1:double thetha = 0.0, 2:double radius = 0.0);
 
+    /**
+     * (Re)Initializes object tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
+     * @return true/false on success/failure to set the template and (re)start tracking
+     */
+    bool trackObj();
 
     /**
      * Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n
      * @return true/false on success/failure to compute Effect
      */
     bool compEff();
+
+    /**
+     * Runs numAct actions for numPoses times, each time with a random tool in a random pose
+     * @return true/false on success/failure to perform all actions
+     */
+    bool runRandPoses(1: i32 numPoses, 2: i32 numAct = 8);
+
 
     /**
      * Runs numAct actions with the given tool on the given pose and computes the effect. \n

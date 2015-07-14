@@ -36,8 +36,8 @@ int main(int argc, char *argv[]) {
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("simtoolloader");
-    rf.setDefaultConfigFile("simtoolloader.ini");
+    rf.setDefaultContext("AffordancesProject");
+    rf.setDefaultConfigFile("realTools.ini");
     rf.configure(argc, argv);
     module.runModule(rf);
 

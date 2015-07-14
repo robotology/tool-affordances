@@ -65,11 +65,12 @@ class Tool3DManager : public yarp::os::RFModule, public tool3DManager_IDLServer
 protected:
 
 	/* module parameters */
-	std::string                 name;               //name of the module
-	std::string                 hand;               //hand
-	std::string                 camera;             //camera
-	std::string                 robot;				//robot
-    double                      tableHeight;        // height of the table with respect to the robot frame
+    std::string                     name;               //name of the module
+    std::string                     hand;               //hand
+    std::string                     camera;             //camera
+    std::string                     robot;				//robot
+    double                          tableHeight;        // height of the table with respect to the robot frame
+    std::vector<yarp::os::Bottle>   models;             // Vector to contain all models considered in the experiment.
 
     yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
 
@@ -94,8 +95,7 @@ protected:
 	bool						running;
     /*
     bool                        actionDone;
-    bool						objCoords3DLoc;
-	bool						trackingObj;
+    bool						objCoords3DLoc;	
 	bool 						tipOnView;
     */
 
@@ -107,7 +107,7 @@ protected:
 
     yarp::sig::Vector			effectVec;              // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
     yarp::sig::Vector			graspVec;               // Measurements of the grasp parameters (toolI - grasp Orientation - grasp Displacement)
-    yarp::sig::Vector			actVec;                 // Measurements of the action parameters (action angle, distance of pull)
+    yarp::sig::Vector			actVec;                 // Measurements of the action parameters (action angle, distance of drag)
 
     //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
     //std::string               toolPoseName;
@@ -116,21 +116,29 @@ protected:
 
     Point3D                     toolTipCanon, tooltip;            // Coordinates of the tooltip in 3D.
     int                         toolLoadedIdx;      // Index of the tool loaded, in order to decide whether to reload or reGrasp
-
+    bool						trackingObj;
 
 	
-    /* Protected Methods */
+    /* Protected Methods */    
     void                        goHomeExe(const bool hands = false);
+
+    // Tool loading and feature extraction
     bool                        loadToolSim(const int toolI = 0, const int graspOr = 0, const double graspDisp = 0.0);
+    bool                        loadToolReal(const int toolI, const int graspOr, const double graspDisp);
     bool                        extractFeats();
     void                        transformToolTip(const Point3D ttCanon, const int graspOr, const double graspDisp, Point3D &tooltipTrans);
-    bool                        graspTool();
+
+    // Object Localization and effect computation
+    bool                        trackObjExe();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
     bool                        getObjRot(yarp::sig::Vector &rot3D);
-    bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
-    bool                        pullExe(const double theta = 0.0, const double radius = 0.0);
     bool                        computeEffect();
     bool                        sendAffData();
+
+    // Action
+    bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
+    bool                        dragExe(const double theta = 0.0, const double radius = 0.0);
+
 
 public:
 
@@ -143,10 +151,12 @@ public:
     bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
     bool                        getToolFeats();
     bool                        slide(double theta, double radius);
-    bool                        pull(double theta, double radius);
+    bool                        drag(double theta, double radius);
     bool                        compEff();
+    bool                        trackObj();
 
     // Experiment functions
+    bool                        runRandPoses(int numPoses = 50,int numAct = 8);
     bool                        runToolPose(int toolI, int graspOr = 0, double graspDisp = 0, int numAct = 8);
     bool                        runToolOr(int toolI, int graspOr = 0, int numAct = 8);
     bool                        runToolTrial(int toolI, int numAct = 8);

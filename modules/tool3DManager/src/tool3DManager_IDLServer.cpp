@@ -60,7 +60,7 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class tool3DManager_IDLServer_pull : public yarp::os::Portable {
+class tool3DManager_IDLServer_drag : public yarp::os::Portable {
 public:
   double thetha;
   double radius;
@@ -70,10 +70,28 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_trackObj : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_compEff : public yarp::os::Portable {
 public:
   bool _return;
   void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class tool3DManager_IDLServer_runRandPoses : public yarp::os::Portable {
+public:
+  int32_t numPoses;
+  int32_t numAct;
+  bool _return;
+  void init(const int32_t numPoses, const int32_t numAct);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -259,16 +277,16 @@ void tool3DManager_IDLServer_slide::init(const double thetha, const double radiu
   this->radius = radius;
 }
 
-bool tool3DManager_IDLServer_pull::write(yarp::os::ConnectionWriter& connection) {
+bool tool3DManager_IDLServer_drag::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
-  if (!writer.writeTag("pull",1,1)) return false;
+  if (!writer.writeTag("drag",1,1)) return false;
   if (!writer.writeDouble(thetha)) return false;
   if (!writer.writeDouble(radius)) return false;
   return true;
 }
 
-bool tool3DManager_IDLServer_pull::read(yarp::os::ConnectionReader& connection) {
+bool tool3DManager_IDLServer_drag::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -278,10 +296,31 @@ bool tool3DManager_IDLServer_pull::read(yarp::os::ConnectionReader& connection) 
   return true;
 }
 
-void tool3DManager_IDLServer_pull::init(const double thetha, const double radius) {
+void tool3DManager_IDLServer_drag::init(const double thetha, const double radius) {
   _return = false;
   this->thetha = thetha;
   this->radius = radius;
+}
+
+bool tool3DManager_IDLServer_trackObj::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("trackObj",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_trackObj::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_trackObj::init() {
+  _return = false;
 }
 
 bool tool3DManager_IDLServer_compEff::write(yarp::os::ConnectionWriter& connection) {
@@ -303,6 +342,31 @@ bool tool3DManager_IDLServer_compEff::read(yarp::os::ConnectionReader& connectio
 
 void tool3DManager_IDLServer_compEff::init() {
   _return = false;
+}
+
+bool tool3DManager_IDLServer_runRandPoses::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("runRandPoses",1,1)) return false;
+  if (!writer.writeI32(numPoses)) return false;
+  if (!writer.writeI32(numAct)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_runRandPoses::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_runRandPoses::init(const int32_t numPoses, const int32_t numAct) {
+  _return = false;
+  this->numPoses = numPoses;
+  this->numAct = numAct;
 }
 
 bool tool3DManager_IDLServer_runToolPose::write(yarp::os::ConnectionWriter& connection) {
@@ -474,12 +538,22 @@ bool tool3DManager_IDLServer::slide(const double thetha, const double radius) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::pull(const double thetha, const double radius) {
+bool tool3DManager_IDLServer::drag(const double thetha, const double radius) {
   bool _return = false;
-  tool3DManager_IDLServer_pull helper;
+  tool3DManager_IDLServer_drag helper;
   helper.init(thetha,radius);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::pull(const double thetha, const double radius)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::drag(const double thetha, const double radius)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::trackObj() {
+  bool _return = false;
+  tool3DManager_IDLServer_trackObj helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::trackObj()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -490,6 +564,16 @@ bool tool3DManager_IDLServer::compEff() {
   helper.init();
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::compEff()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::runRandPoses(const int32_t numPoses, const int32_t numAct) {
+  bool _return = false;
+  tool3DManager_IDLServer_runRandPoses helper;
+  helper.init(numPoses,numAct);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runRandPoses(const int32_t numPoses, const int32_t numAct)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -634,7 +718,7 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "pull") {
+    if (tag == "drag") {
       double thetha;
       double radius;
       if (!reader.readDouble(thetha)) {
@@ -644,7 +728,18 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
         radius = 0;
       }
       bool _return;
-      _return = pull(thetha,radius);
+      _return = drag(thetha,radius);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "trackObj") {
+      bool _return;
+      _return = trackObj();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -656,6 +751,26 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "compEff") {
       bool _return;
       _return = compEff();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "runRandPoses") {
+      int32_t numPoses;
+      int32_t numAct;
+      if (!reader.readI32(numPoses)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(numAct)) {
+        numAct = 8;
+      }
+      bool _return;
+      _return = runRandPoses(numPoses,numAct);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -795,8 +910,10 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("getTool");
     helpString.push_back("getToolFeats");
     helpString.push_back("slide");
-    helpString.push_back("pull");
+    helpString.push_back("drag");
+    helpString.push_back("trackObj");
     helpString.push_back("compEff");
+    helpString.push_back("runRandPoses");
     helpString.push_back("runToolPose");
     helpString.push_back("runToolOr");
     helpString.push_back("runToolTrial");
@@ -838,16 +955,26 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("The trial consist on locating the object and executing the slide action ");
       helpString.push_back("@return true/false on success/failure to do Action ");
     }
-    if (functionName=="pull") {
-      helpString.push_back("bool pull(const double thetha = 0, const double radius = 0) ");
-      helpString.push_back("Performs a pull action from the object to the direction indicated by theta and radius. \n ");
+    if (functionName=="drag") {
+      helpString.push_back("bool drag(const double thetha = 0, const double radius = 0) ");
+      helpString.push_back("Performs a drag action from the object to the direction indicated by theta and radius. \n ");
       helpString.push_back("The trial consist on locating the object and executing the slide action ");
       helpString.push_back("@return true/false on success/failure to do Action ");
+    }
+    if (functionName=="trackObj") {
+      helpString.push_back("bool trackObj() ");
+      helpString.push_back("(Re)Initializes object tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n ");
+      helpString.push_back("@return true/false on success/failure to set the template and (re)start tracking ");
     }
     if (functionName=="compEff") {
       helpString.push_back("bool compEff() ");
       helpString.push_back("Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n ");
       helpString.push_back("@return true/false on success/failure to compute Effect ");
+    }
+    if (functionName=="runRandPoses") {
+      helpString.push_back("bool runRandPoses(const int32_t numPoses, const int32_t numAct = 8) ");
+      helpString.push_back("Runs numAct actions for numPoses times, each time with a random tool in a random pose ");
+      helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
     if (functionName=="runToolPose") {
       helpString.push_back("bool runToolPose(const int32_t toolI, const int32_t graspOr = 0, const double graspDisp = 0, const int32_t numAct = 8) ");

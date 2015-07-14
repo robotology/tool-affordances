@@ -88,17 +88,17 @@ It manages the following commands through thrift interface:
     On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given \n    
     return true/false on success/failure holding a tool
     
-    -# <b>doAction</b>: <i>approach</i> (default approach = 0). Performs an pull trial on <i>approach</i> cm wrt the object. \n
-    The trial consist on locating the object, executing the pull, locating the potentially displaced object and computing the effect.\n
+    -# <b>doAction</b>: <i>approach</i> (default approach = 0). Performs an drag trial on <i>approach</i> cm wrt the object. \n
+    The trial consist on locating the object, executing the drag, locating the potentially displaced object and computing the effect.\n
     return true/false on success/failure 
     
-    -# <b>trainDraw</b>:  Performs several pull trials with approaches from -5 to 5 cm to learn the mapping: \n
+    -# <b>trainDraw</b>:  Performs several drag trials with approaches from -5 to 5 cm to learn the mapping: \n
     return true/false on success/failure 
     
     -# <b>trainObserve</b>: <i>tool deg</i> (default tool = 5 deg = 0). Performs  feature extraction on the given tool 5 times from slighlty different prespectives \n
      return true/false on success/failure 
 
-    -# <b>observeAndDo</b>: <i>tool deg trials</i> (default tool = 5, deg = 0, trials = 1). Performs the whole routine a given number of trials with the given tool in the given orientation:  looking at the tool, feature extraction, perform a pull action, and compute the effect. \n
+    -# <b>observeAndDo</b>: <i>tool deg trials</i> (default tool = 5, deg = 0, trials = 1). Performs the whole routine a given number of trials with the given tool in the given orientation:  looking at the tool, feature extraction, perform a drag action, and compute the effect. \n
     return true/false on success/failure 
    
     -# <b>predictDo</b>: <i>tool deg</i> (default tool = 5, deg = 0). Gets a tool, observes it (feature extraction), reads the predicted affordance from MATLAB and perform the best predicted action.
@@ -158,22 +158,45 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     attach(rpcCmd);
     running = true;
     toolLoadedIdx = 0;
-
-    // XXX Attach client port to send RPC commands via thrift to toolFeatExt
-    // tool3DFeat_IDLServer toolFeatExtclient;
-    // toolFeatExtclient.yarp().attachAsClient(rpcFeatExt);
+    trackingObj = false;
 
     // XXX old variables which may be useful
     /*
-
     actionDone = false;
     objCoords3DLoc = false;
-    trackingObj = false;
-    tipOnView = false;    
+    tipOnView = false;
     toolDim.resize(3, 0.0);
     toolTipPix.resize(2,0.0);
     toolPoseName = "undef";
     */
+
+    // Read the Models configurations
+    Bottle temp;
+    string modelName = "obj";
+
+    cout << "Loading mdoels to buffer" << endl;
+    bool noMoreModels = false;
+    int n =1;
+    while (!noMoreModels){      // read until there are no more objects.
+        stringstream s;
+        s.str("");
+        s << modelName << n;
+        string objNameNum = s.str();
+        temp = rf.findGroup("objects").findGroup(objNameNum);
+
+        if(!temp.isNull()) {
+            cout << "model " << n << ", id: " << objNameNum;
+            cout << ", model: " << temp.get(2).asString() << endl;
+            models.push_back(temp);
+            temp.clear();
+            n++;
+        }else {
+            noMoreModels = true;
+        }
+    }
+    int numberObjs = n;
+    cout << "Loaded " << numberObjs << " objects. " << endl;
+
 
     // Initialize effect measuring vectors
     target3DcoordsIni.resize(3, 0.0);
@@ -309,7 +332,7 @@ bool Tool3DManager::getTool(int toolI, int graspOr, double graspDisp){
     if (strcmp(robot.c_str(),"icubSim")==0){
         ok = loadToolSim(toolI,graspOr,graspDisp);
     }else{
-        ok = graspTool();
+        ok = loadToolReal(toolI,graspOr,graspDisp);
     }
     return ok;
 }
@@ -318,8 +341,12 @@ bool Tool3DManager::slide(double theta, double radius){
     return slideExe(theta,radius);
 }
 
-bool Tool3DManager::pull(double theta, double radius){
-    return pullExe(theta,radius);
+bool Tool3DManager::drag(double theta, double radius){
+    return dragExe(theta,radius);
+}
+
+bool Tool3DManager::trackObj(){
+    return trackObjExe();
 }
 
 bool Tool3DManager::compEff(){
@@ -334,9 +361,43 @@ bool Tool3DManager::runToolPose(int toolI, int graspOr, double graspDisp, int nu
     loadToolSim(toolI, graspOr, graspDisp);  // re-grasp the tool with the given grasp parameters
 
     for (int i=1 ; i<=numAct ; i++){
-        pullExe(theta,0.15);
+        dragExe(theta,0.15);
         computeEffect();
         theta += thetaDiv;
+    }
+    return true;
+}
+
+// Functions to run experiment:
+bool Tool3DManager::runRandPoses(int numPoses,int numAct){
+    double thetaDiv = 360.0/numAct;
+    double theta = 0.0;
+    Rand randG; // YARP random generator
+
+    int toolI_prev = round(randG.scalar(1,52));
+    for (int p=1 ; p<=numPoses ; p++){
+        bool toolOK = false;
+        int toolI;
+        while (!toolOK){                // Prevent known non-working tools to stop the run
+            toolI = round(randG.scalar(1,52));
+            if ((toolI == 8) || (toolI == 42) || (toolI == 43) || (toolI == 44) || (toolI == 45) ||(toolI == 50)||(toolI == toolI_prev)){
+                cout << "unvalid tool" <<endl;}
+            else{
+                toolOK = true;
+            }
+        }
+
+        double  graspOr = randG.scalar(-90,90);
+        double  graspDisp = randG.scalar(-3,3);
+
+        loadToolSim(toolI, graspOr, graspDisp);  // re-grasp the tool with the given grasp parameters
+
+        for (int i=1 ; i<=numAct ; i++){
+            dragExe(theta,0.15);
+            computeEffect();
+            theta += thetaDiv;
+        }
+        toolI_prev = toolI;
     }
     return true;
 }
@@ -472,7 +533,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
 
         // check succesful tool creation
         if (replySim.size() <1){
-            cout << "simtoolloader cloudln't load tool." << endl;
+            cout << "simtoolloader couldn't load tool." << endl;
             return false;
         }
         cout << "Received reply: " << replySim.toString() << endl;
@@ -613,6 +674,165 @@ bool Tool3DManager::loadToolSim(const int toolI, const int graspOr,const double 
     return true;
 }
 
+/**********************************************************/
+bool Tool3DManager::loadToolReal(const int toolI = 0, const int graspOr = 0, const double graspDisp = 0.0)
+{
+    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
+
+    Bottle cmdKM,replyKM;               // bottles for Karma Motor
+    Bottle cmdTFE,replyTFE;             // bottles for toolFeatExt
+    Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
+
+    // Send commands to ARE to get the tool, close the hand and go to central position
+    fprintf(stdout,"Reach me a tool please.\n");
+    Bottle cmdAre, replyAre;
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("tato");
+    cmdAre.addString(hand);
+    cmdAre.addString("no_gaze");
+    fprintf(stdout,"RPC to ARE: %s\n", cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre,replyAre);
+    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
+
+    // Send commands to ARE to get the tool, close the hand and go to central position
+    Time::delay(3);
+    // Close hand on tool grasp
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("clto");
+    cmdAre.addString(hand);
+    cmdAre.addString("no_gaze");
+    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
+    rpcMotorAre.write(cmdAre, replyAre);
+    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
+    Time::delay(0.5);
+
+    // Check if grasp was successful
+    cmdAre.clear();
+    replyAre.clear();
+    cmdAre.addString("get");
+    cmdAre.addString("holding");
+    rpcMotorAre.write(cmdAre, replyAre);
+    if(!replyAre.get(0).asBool())
+        return false;
+
+
+    // Get tool name in order to load its 3Dmodel
+    cout << "Retrieving tool name." << endl;
+    string meshName = models[toolI].get(2).asString();
+    string::size_type idx;
+    idx = meshName.rfind('.');
+    string cloudName = meshName.substr(0,idx);  //remove format
+    cloudName = "real/"+ cloudName;
+    cout << "cloud model: " << cloudName << endl;
+
+    // Query toolFeatExt to load model to load 3D Pointcloud.
+    cout << "Loading pointcloud to extract tooltip." << endl;
+
+    cmdTFE.clear();   replyTFE.clear();
+    cmdTFE.addString("loadModel");
+    cmdTFE.addString(cloudName);
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't load the tool." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
+
+    // Extract Canonical tool features.
+    if (!extractFeats()){
+        cout << "ToolFeatExt coudln't extract the features." << endl;
+        return false;
+    }
+    cout << " Canonical 3D features extracted" << endl;
+
+    // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
+    cout << "Getting canonical tooltip coordinates." << endl;
+    cmdTFE.clear();   replyTFE.clear();
+    cmdTFE.addString("getToolTip");
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't compute the tooltip." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
+
+    toolTipCanon.x = replyTFE.get(0).asDouble();
+    toolTipCanon.y = replyTFE.get(1).asDouble();
+    toolTipCanon.z = replyTFE.get(2).asDouble();
+    cout << "Tooltip of canonical model: x= "<< toolTipCanon.x << ", y = " << toolTipCanon.y << ", z = " << toolTipCanon.z <<endl;
+
+    // Tasnform the tooltip from the canonical to the current grasp
+    Point3D ttTrans;            // Point 3D srtuct for tooltips.
+    transformToolTip(toolTipCanon, graspOr, graspDisp, ttTrans);
+
+    tooltip.x = ttTrans.x;
+    tooltip.y = ttTrans.y;
+    tooltip.z = ttTrans.z;
+    cout << "Tooltip of tool in positon: x= "<< ttTrans.x << ", y = " << ttTrans.y << ", z = " << ttTrans.z <<endl;
+
+    cout << endl << "Attaching tooltip." << endl;
+
+    // Send the coordinates to Karmafinder to display it and get the tip pixel
+    cmdKF.clear();replyKF.clear();
+    cmdKF.addString("show");
+    cmdKF.addDouble(tooltip.x);
+    cmdKF.addDouble(tooltip.y);
+    cmdKF.addDouble(tooltip.z);
+    fprintf(stdout,"RCP to KarmaFinder %s\n",cmdKF.toString().c_str());
+    rpcKarmaFinder.write(cmdKF, replyKF);
+    fprintf(stdout,"Reply from KarmaFinder %s\n", replyKF.toString().c_str());
+
+    // Attach the new tooltip to the "body schema"
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("attach");
+    cmdKM.addString(hand);
+    cmdKM.addDouble(tooltip.x);
+    cmdKM.addDouble(tooltip.y);
+    cmdKM.addDouble(tooltip.z);
+    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    fprintf(stdout,"Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+
+    fprintf(stdout,"Tool loaded and tooltip attached \n ");
+
+    // Send command to rotate the pointcloud so that features are extracted from rotated model
+    cout << "Rotating PointCloud for coherent feature extraction." << endl;
+    cmdTFE.clear();   replyTFE.clear();
+    cmdTFE.addString("setCanonicalPose");
+    cmdTFE.addInt(graspOr);
+    cmdTFE.addInt(graspDisp);
+    rpcFeatExt.write(cmdTFE, replyTFE);
+    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
+    if (replyTFE.size() <1){
+        cout << "ToolFeatExt coudln't rotate the pointcloud." << endl;
+        return false;
+    }
+    cout << " Received reply: " << replyTFE.toString() << endl;
+
+    if (!extractFeats()){
+        cout << "ToolFeatExt coudln't extract the features." << endl;
+        return false;
+    }
+    cout << " Oriented 3D features extracted" << endl;
+
+    graspVec.clear();		// Clear to make space for new coordinates
+    graspVec.resize(3);     // Resize to save orientation - displacement coordinates coordinates
+
+    // Put action parameters on a port so they can be read
+    graspVec[0] = toolI;
+    graspVec[1] = (double)graspOr;
+    graspVec[2] = graspDisp;
+    //graspDataPort.write(graspVec);
+
+    // Go home and observe scenario.
+    goHomeExe(false);
+    return true;
+}
 
 /**********************************************************/
 bool Tool3DManager::extractFeats()
@@ -656,43 +876,38 @@ void Tool3DManager::transformToolTip(const Point3D ttCanon, const int graspOr, c
     // Finally add translation along -Y axis to match handle displacement
     tooltipTrans.x = ttTilt.x;
     tooltipTrans.y = ttTilt.y - graspDisp/100.0;;
-    tooltipTrans.z = ttTilt.z + 0.03 - 0.03*sinOr;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
+    tooltipTrans.z = ttTilt.z + 0.03;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
     cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipTrans.x << ", y = " << tooltipTrans.y << ", z = " << tooltipTrans.z << endl;
 
     return;
 }
 
+
 /**********************************************************/
-bool Tool3DManager::graspTool()
+bool Tool3DManager::trackObjExe()
 {
-    // Send commands to ARE to get the tool, close the hand and go to central position
-    fprintf(stdout,"Reach me a tool please.\n");
-    Bottle cmdAre, replyAre;
-    cmdAre.clear();
-    replyAre.clear();
-    cmdAre.addString("tato");
-    cmdAre.addString(hand);
-    cmdAre.addString("no_gaze");
-    fprintf(stdout,"RPC to ARE: %s\n", cmdAre.toString().c_str());
-    rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
-
-    // Send commands to ARE to get the tool, close the hand and go to central position
-    Time::delay(3);
-    // Close hand on tool grasp
-    cmdAre.clear();
-    replyAre.clear();
-    cmdAre.addString("clto");
-    cmdAre.addString(hand);
-    cmdAre.addString("no_gaze");
-    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
-    rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"Reply from ARE: %s\n", replyAre.toString().c_str());
-    Time::delay(0.5);
-
-    // Go home and observe scenario.
     goHomeExe(false);
+    // Select the target object to be tracked
+    printf("\n \n Click first TOP LEFT and then BOTTOM RIGHT from the object to set the tracking template. Please.\n");
+    Bottle cmdFinder,replyFinder;
+    cmdFinder.clear();
+    replyFinder.clear();
+    cmdFinder.addString("getBox");
+    fprintf(stdout,"RPC to objFinder %s:\n", cmdFinder.toString().c_str());
+    rpcObjFinder.write(cmdFinder, replyFinder);
+    fprintf(stdout,"Reply from objFinder %s:\n",replyFinder.toString().c_str());
 
+    printf("Object template has been set properly\n");
+    trackingObj = true;
+
+    // Set ARE to constantly track the object
+    /*Bottle cmdAre, replyAre;
+    cmdAre.addString("track");
+    cmdAre.addString("track");
+    cmdAre.addString("no_sacc");
+    rpcMotorAre.write(cmdAre,replyAre);
+    fprintf(stdout,"tracking started %s:\n",replyAre.toString().c_str());
+    */
     return true;
 }
 
@@ -732,6 +947,11 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
         return false;
 
     }else{
+
+    // If object is not being tracked, initialize tracking.
+        if (!trackingObj)
+            trackObjExe();
+
         // Get the 2D coordinates of the object from objectFinder
         coords3D.resize(3);
 
@@ -835,12 +1055,12 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
 
 
 /**********************************************************/
-bool Tool3DManager::pullExe(const double theta, const double radius)
+bool Tool3DManager::dragExe(const double theta, const double radius)
 {
     actVec.clear();		// Clear to make space for new coordinates
     actVec.resize(2);   // Resize to save theta - radius coordinates coordinates
 
-    cout << endl<< "Performing pull action from angle " << theta <<" and radius "<< radius  << endl;
+    cout << endl<< "Performing drag action from angle " << theta <<" and radius "<< radius  << endl;
     target3DcoordsIni.clear();		// Clear to make space for new coordinates
     target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
     target3DrotIni.clear();         // Clear to make space for new rotation values
@@ -857,7 +1077,7 @@ bool Tool3DManager::pullExe(const double theta, const double radius)
     cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
     Bottle cmdKM,replyKM;                    // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
-    cmdKM.addString("pull");                 // Set a position in the center in front of the robot
+    cmdKM.addString("drag");                 // Set a position in the center in front of the robot
     cmdKM.addDouble(target3DcoordsIni[0] - 0.03);   // Approach the end effector slightly behind the object to grab it properly
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
@@ -970,7 +1190,7 @@ int main(int argc, char *argv[])
     //rf.setDefault("camera","left");
     //rf.setDefault("robot","icub");
     //rf.setDefault("hand","right");
-    rf.setDefaultContext("tool3DManager");
+    rf.setDefaultContext("AffordancesProject");
     //rf.setDefaultConfigFile("affManager.ini");
     //rf.setDefault("tracking_period","30");
     rf.configure(argc,argv);

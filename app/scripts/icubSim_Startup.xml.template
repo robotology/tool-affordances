@@ -1,6 +1,13 @@
 <application>
     <name>icubSim_Startup</name>
     <module>
+        <name>iCub_SIM</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 270.90) (y 105.90))</geometry>
+    </module>
+    <module>
         <name>iKinCartesianSolver</name>
         <parameters>--part right_arm --context simCartesianControl</parameters>
         <node>localhost</node>
@@ -20,13 +27,6 @@
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 510.90) (y 150.90))</geometry>
-    </module>
-    <module>
-        <name>iCub_SIM</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 270.90) (y 105.90))</geometry>
     </module>
     <module>
         <name>simCartesianControl</name>
