@@ -47,9 +47,6 @@
 #include <yarp/dev/GazeControl.h>
 #include <yarp/dev/CartesianControl.h>
 
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/pids.h>
-
 //for the thrift server interface
 #include <tool3DManager_IDLServer.h>
 
