@@ -34,12 +34,20 @@ public:
   virtual bool goHome(const bool hands = 0);
   /**
    * Performs the sequence to get the tool: \n
-   * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and displacement on the -Y hand axis <i>disp</i>. Uses magnet to hold it to hand.
+   * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
    * - Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
-   * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given
+   * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
    * @return true/false on success/failure of looking at that position
    */
-  virtual bool getTool(const int32_t tool = 0, const int32_t deg = 0, const double disp = 0);
+  virtual bool getTool(const int32_t tool = 0, const double deg = 0, const double disp = 0, const double tilt = 45);
+  /**
+   * Performs the sequence to get the tool: \n
+   * - On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>.
+   * - The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
+   * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
+   * @return true/false on success/failure of looking at that position
+   */
+  virtual bool regrasp(const double deg = 0, const double disp = 0, const double tilt = 45);
   /**
    * Queries toolFeatExt module to extract the feaures of the loaded module \n
    * @return true/false on success/failure to extract features
@@ -76,12 +84,12 @@ public:
    * Runs numAct actions with the given tool on the given pose and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runToolPose(const int32_t toolI, const int32_t graspOr = 0, const double graspDisp = 0, const int32_t numAct = 8);
+  virtual bool runToolPose(const int32_t toolI, const double deg = 0, const double disp = 0, const double tilt = 45, const int32_t numAct = 8);
   /**
    * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runToolOr(const int32_t toolI, const int32_t graspOr = 0, const int32_t numAct = 8);
+  virtual bool runToolOr(const int32_t toolI, const double graspOr = 0, const int32_t numAct = 8);
   /**
    * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
    * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
@@ -92,7 +100,7 @@ public:
    * Runs full trials for all tool with indices between toolini and toolEnd. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 50);
+  virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 54);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
