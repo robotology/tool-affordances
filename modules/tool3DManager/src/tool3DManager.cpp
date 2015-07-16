@@ -496,6 +496,9 @@ void Tool3DManager::goHomeExe(const bool hands)
 /**********************************************************/
 bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const double graspDisp, const double graspTilt)
 {    
+    double tiltValid = graspTilt;
+    if (graspTilt > 90.0) {   tiltValid  = 90.0; }
+    if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
     cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
     cout << "Tool present: " << toolLoadedIdx <<"."<< endl;
 
@@ -543,7 +546,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
         cmdSim.addInt(1);                   // object -> Cube
         cmdSim.addInt(graspOr);             // orientation
         cmdSim.addInt(graspDisp);           // displacement
-        cmdSim.addInt(graspTilt);           // tilt
+        cmdSim.addInt(tiltValid);           // tilt
         rpcSimToolLoader.write(cmdSim, replySim);
         cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
 
@@ -612,7 +615,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
         cmdSim.addString("rot");
         cmdSim.addDouble(graspOr);             // orientation
         cmdSim.addDouble(graspDisp);           // displacement
-        cmdSim.addDouble(graspTilt);           // displacement
+        cmdSim.addDouble(tiltValid);           // displacement
         rpcSimToolLoader.write(cmdSim, replySim);
         cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
 
@@ -626,7 +629,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
 
     // Tasnform the tooltip from the canonical to the current grasp
     Point3D ttTrans;            // Point 3D srtuct for tooltips.
-    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp,  graspTilt);
+    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp,  tiltValid);
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
@@ -665,7 +668,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     cmdTFE.addString("setCanonicalPose");
     cmdTFE.addDouble(graspOr);
     cmdTFE.addDouble(graspDisp);
-    cmdTFE.addDouble(graspTilt);
+    cmdTFE.addDouble(tiltValid);
     rpcFeatExt.write(cmdTFE, replyTFE);
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
     if (replyTFE.size() <1){
@@ -687,7 +690,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     graspVec[0] = toolI;
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
-    graspVec[3] = graspTilt;
+    graspVec[3] = tiltValid;
     //graspDataPort.write(graspVec);
 
     return true;
@@ -696,6 +699,10 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
 /**********************************************************/
 bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const double graspDisp, const double graspTilt)
 {
+
+    double tiltValid = graspTilt;
+    if (graspTilt > 90.0) {   tiltValid  = 90.0; }
+    if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
     cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
 
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
@@ -786,7 +793,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
 
     // Tasnform the tooltip from the canonical to the current grasp
     Point3D ttTrans;            // Point 3D srtuct for tooltips.
-    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp, graspTilt);
+    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp, tiltValid);
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
@@ -825,7 +832,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmdTFE.addString("setCanonicalPose");
     cmdTFE.addDouble(graspOr);
     cmdTFE.addDouble(graspDisp);
-    cmdTFE.addDouble(graspTilt);
+    cmdTFE.addDouble(tiltValid);
     rpcFeatExt.write(cmdTFE, replyTFE);
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
     if (replyTFE.size() <1){
@@ -847,7 +854,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     graspVec[0] = toolI;
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
-    graspVec[3] = graspTilt;
+    graspVec[3] = tiltValid;
 
     //graspDataPort.write(graspVec);
 
@@ -859,6 +866,10 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
 /**********************************************************/
 bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, const double graspTilt)
     {
+    double tiltValid = graspTilt;
+    if (graspTilt > 90.0) {   tiltValid  = 90.0; }
+    if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
+
     // Query simtoolloader to rotate the virtual tool
     cout << endl<< "Regrasping tool " << toolLoadedIdx <<" with orientation: "<< graspOr << " and displacement: " << graspDisp <<endl;
 
@@ -869,7 +880,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
         cmdSim.addString("rot");
         cmdSim.addDouble(graspOr);             // orientation
         cmdSim.addDouble(graspDisp);           // displacement
-        cmdSim.addDouble(graspTilt);           // displacement
+        cmdSim.addDouble(tiltValid);           // displacement
         rpcSimToolLoader.write(cmdSim, replySim);
         cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
 
@@ -883,7 +894,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 
     // Tasnform the tooltip from the canonical to the current grasp
     Point3D ttTrans;            // Point 3D srtuct for tooltips.
-    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp,  graspTilt);
+    transformToolTip(toolTipCanon, ttTrans, graspOr, graspDisp,  tiltValid);
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
@@ -925,7 +936,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
     cmdTFE.addString("setCanonicalPose");
     cmdTFE.addDouble(graspOr);
     cmdTFE.addDouble(graspDisp);
-    cmdTFE.addDouble(graspTilt);
+    cmdTFE.addDouble(tiltValid);
     rpcFeatExt.write(cmdTFE, replyTFE);
     cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
     if (replyTFE.size() <1){
@@ -947,7 +958,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
     graspVec[0] = toolLoadedIdx;
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
-    graspVec[3] = graspTilt;
+    graspVec[3] = tiltValid;
     //graspDataPort.write(graspVec);
 
     return true;
@@ -1236,12 +1247,6 @@ bool Tool3DManager::computeEffect()
         return false;
     }
     cout << "Coords after action: (" << target3DcoordsAfter[0] << ", " << target3DcoordsAfter[2] << ", "<< target3DcoordsAfter[2] << "). " <<endl;
-    if(!getObjRot(target3DrotAfter))        // Get the rotation of the object after the action
-    {
-        cout << " Object rotation not available, cant compute effect"<< endl;
-        return false;
-    }
-    cout << "Rotation after action: (" << target3DrotAfter[0] << ", " << target3DrotAfter[2] << ", "<< target3DrotAfter[2] << "). " <<endl;
 
     //To compute the displacement, we assume that the object hasnt move in the z axis (that is, has remained on the table)
     Vector displ = target3DcoordsAfter - target3DcoordsIni;
@@ -1251,30 +1256,42 @@ bool Tool3DManager::computeEffect()
     double displDist = sqrt(dx*dx+dy*dy);  //sum of the squares of the differences
     double displAngle = atan2 (dy,dx) * 180 / M_PI;
 
-    //To compute the rotation, we assume that the object has only rotated around axis Y (that is, has not been tipped)
-    Vector rot = target3DrotAfter - target3DrotIni;
-    double effectRot = rot[1];  // Rotation difference around Y axis
-
     // Put values into the effect Vector
     effectVec[0] = displDist;
     effectVec[1] = displAngle;
-    effectVec[2] = effectRot;
 
-    cout << "Object displaced " << displDist << " meters on " << displAngle << " direction, and rotated " << effectRot << " degrees."<< endl;
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        if(!getObjRot(target3DrotAfter))        // Get the rotation of the object after the action
+        {
+            cout << " Object rotation not available, cant compute effect"<< endl;
+            return false;
+        }
+        cout << "Rotation after action: (" << target3DrotAfter[0] << ", " << target3DrotAfter[2] << ", "<< target3DrotAfter[2] << "). " <<endl;
+
+        //To compute the rotation, we assume that the object has only rotated around axis Y (that is, has not been tipped)
+        Vector rot = target3DrotAfter - target3DrotIni;
+        double effectRot = rot[1];  // Rotation difference around Y axis
+        effectVec[2] = effectRot;
+    } else {
+        effectVec[2] = 0.0;
+    }
+
+    cout << "Object displaced " << effectVec[0] << " meters on " << effectVec[1] << " direction, and rotated " << effectVec[2] << " degrees."<< endl;
 
     // put values on a port so they can be read
-    //effDataPort.write(effectVec);
+    // effDataPort.write(effectVec);
 
-    // Put the cube back in place to restart round:
-    Bottle cmdSim,replySim;       // bottles for Simulator
-    cmdSim.clear();   replySim.clear();
-    cmdSim.addString("move");
-    cmdSim.addInt(1);                   // object -> Cube
-    rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
-    cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
-    cout << " Received reply: " << replySim.toString() << endl;
-    Time::delay(0.3); // give time for the cube to reach its position before jumping to next step
-
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        // Put the cube back in place to restart round:
+        Bottle cmdSim,replySim;       // bottles for Simulator
+        cmdSim.clear();   replySim.clear();
+        cmdSim.addString("move");
+        cmdSim.addInt(1);                   // object -> Cube
+        rpcSimToolLoader.write(cmdSim, replySim); // Call simtoolloader to create the tool
+        cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
+        cout << " Received reply: " << replySim.toString() << endl;
+        Time::delay(0.3); // give time for the cube to reach its position before jumping to next step
+    }
     // Send all data so it can be read and saved.
     sendAffData();
 

@@ -137,8 +137,8 @@ protected:
     bool                        sendAffData();
 
     // Action
-    bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
-    bool                        dragExe(const double theta = 0.0, const double radius = 0.0);
+    bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
+    bool                        dragExe(const double theta = 0.0, const double radius = 0.1);
 
 
 public:
