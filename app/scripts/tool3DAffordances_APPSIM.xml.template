@@ -2,7 +2,7 @@
     <name>tool3DAffordances_APPSIM</name>
     <module>
         <name>tool3DManager</name>
-        <parameters>--robot icubSim</parameters>
+        <parameters>--robot icubSim --from 50tools.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 97) (y 58.9))</geometry>
@@ -90,12 +90,6 @@
         <from>/tool3DManager/simulator:rpc</from>
         <to  external="true">/icubSim/world</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 303) (y 483)) ((x 206) (y 469)) ((x 421) (y 497))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icubSim/cam/left</from>
-        <to>/imLeft/yarpview/img:i</to>
-        <protocol>udp</protocol>
         <geometry>(Pos ((x 303) (y 483)) ((x 206) (y 469)) ((x 421) (y 497))  )</geometry>
     </connection>
     <connection>

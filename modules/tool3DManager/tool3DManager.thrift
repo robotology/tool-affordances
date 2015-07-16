@@ -28,12 +28,22 @@ service tool3DManager_IDLServer
     
     /**
      * Performs the sequence to get the tool: \n
-     * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and displacement on the -Y hand axis <i>disp</i>. Uses magnet to hold it to hand.
+     * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
      * - Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
-     * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given 
+     * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
      * @return true/false on success/failure of looking at that position    
      */
-    bool getTool(1:i32 tool = 0, 2:i32 deg = 0, 3:double disp = 0);
+    bool getTool(1:i32 tool = 0, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0);
+
+    /**
+     * Performs the sequence to get the tool: \n
+     * - On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>.
+     * - The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
+     * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
+     * @return true/false on success/failure of looking at that position
+     */
+    bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0);
+
 
     /**
      * Queries toolFeatExt module to extract the feaures of the loaded module \n
@@ -78,13 +88,13 @@ service tool3DManager_IDLServer
      * Runs numAct actions with the given tool on the given pose and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runToolPose(1: i32 toolI, 2: i32 graspOr = 0, 3: double graspDisp = 0.0, 4: i32 numAct = 8);
+    bool runToolPose(1: i32 toolI, 2: double deg = 0.0, 3: double disp = 0.0, 4: double tilt = 45.0, 5: i32 numAct = 8);
 
     /**
      * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runToolOr(1: i32 toolI, 2: i32 graspOr = 0, 3: i32 numAct = 8);
+    bool runToolOr(1: i32 toolI, 2: double graspOr = 0.0, 3: i32 numAct = 8);
 
     /**
      * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
@@ -97,7 +107,7 @@ service tool3DManager_IDLServer
      * Runs full trials for all tool with indices between toolini and toolEnd. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runExp(1: i32 toolIni = 1, 2: i32 toolEnd = 50);
+    bool runExp(1: i32 toolIni = 1, 2: i32 toolEnd = 54);
 
 
 

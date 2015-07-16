@@ -222,8 +222,9 @@ void CtrlThread::run() {
     Bottle simCmd;
     //int objIndex  = 0;
     //int toolIndex = 0;
-    int toolPose = 0;
+    double toolPose = 0.0;
     double toolDisp = 0.0;
+    double toolTilt = 0.0;
     double objPosX = -0.1;
     double objPosZ = 0.4;
     NetInt32 code;
@@ -352,11 +353,15 @@ void CtrlThread::run() {
                 }
 
                 //receive the orientation of the tool
-                toolPose = controlCmd.get(3).asInt();
+                toolPose = controlCmd.get(3).asDouble();
                 toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
                 toolDisp = controlCmd.get(4).asDouble(); // Longitudinal displacement along the tool grasp, in cm
+                toolTilt = controlCmd.get(5).asDouble(); // Tilt of the tool wrt the Y axis. 0 means tool grasped along -Y axis, 90 along X axis
+                if (toolTilt > 90.0)   { toolTilt = 90.0;  }
+                if (toolTilt < 0.0)    { toolTilt = 0.0;   }
 
-                cout << "Requested to create tool " << toolIndex << " with orientation " << toolPose << "and extension" << toolDisp << endl;
+                cout << "Requested to create tool " << toolIndex << " with orientation " << toolPose << " extension " << toolDisp << ", and tilt " << toolTilt << endl;
+                toolTilt = 90 - toolTilt;       // Because rotation in SIM goes on oppoiste axis as on PCL visualizer.
 
                 /* Tool to hand transformation*/
                 // Transformation to express coordinate from the tool in the hand coordinate system.
@@ -364,7 +369,7 @@ void CtrlThread::run() {
                 // Orientation in all 3 axis in axis-angle notation
                 //--- this works on positions around the rest position (0 10 0 90 -10)
                 rot1[0] = 0.0; rot1[1] = 1.0; rot1[2] = 0.0; rot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
-                rot2[0] = 0.0; rot2[1] = 0.0; rot2[2] = 1.0; rot2[3] = 45*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
+                rot2[0] = 0.0; rot2[1] = 0.0; rot2[2] = 1.0; rot2[3] = toolTilt*M_PI/180;  // rotate 'tilt' aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
                 rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180; //rotate around the tool axis (Z) to select the tool orientation.
 
                 //--- this works on positions around upper position (-40 100 50 70 -10)
@@ -372,7 +377,7 @@ void CtrlThread::run() {
                 //rot2[0] = 0.0; rot2[1] = 1.0; rot2[2] = 0.0; rot2[3] = 45*M_PI/180;
                 //rot3[0] = 1.0; rot3[1] = 0.0; rot3[2] = 0.0; rot3[3] = M_PI/2 + toolPose*M_PI/180;
 
-                printf("Tool oriented %i deg wrt hand:\n", toolPose);
+                cout << "Tool oriented "<<  toolPose <<" deg wrt hand. " << endl;
 
                 Matrix Rrot1 = axis2dcm(rot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
                 Matrix Rrot2 = axis2dcm(rot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
@@ -382,14 +387,17 @@ void CtrlThread::run() {
                 // then around the X axis to tilt the tool 45deg wrt the hand
                 // finally around the tool axis (Z) axis to tool-pose (orientation) of the tool effector
                 Matrix T2H = Rrot3 * Rrot2 * Rrot1; // Mutiply from right to left.
+                //Matrix T2H = Rrot2*Rrot1; // Mutiply from right to left.
+                //Matrix T2H(4,4);
+                //T2H.eye();
 
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
                 T2H(2,3) = 0.03;                    // This accounts for the traslation of 3 cm in the Z axis in the hand coord system.
                 T2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
                 printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", T2H.toString().c_str());
                 Vector T2Hrpy = dcm2rpy(T2H);  // from rot Matrix to roll pitch yaw
-                Vector T2HrpyDeg = T2Hrpy *(180.0/M_PI);
-                printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",T2HrpyDeg.toString().c_str());
+                //Vector T2HrpyDeg = T2Hrpy *(180.0/M_PI);
+                //printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",T2HrpyDeg.toString().c_str());
 
 
                 /* Hand to Robot transformation*/
@@ -400,8 +408,9 @@ void CtrlThread::run() {
 
                 Matrix H2R=axis2dcm(H2Raa);   // from axis/angle to rotation matrix notation
                 H2Rrpy = dcm2rpy(H2R);  // from rot Matrix to roll pitch yaw
-                H2RrpyDeg = H2Rrpy *(180.0/M_PI);
-                printf("Orientation of hand in robot coords, in degrees:\n %s \n",H2RrpyDeg.toString().c_str());
+                //H2RrpyDeg = H2Rrpy *(180.0/M_PI);
+                //printf("Orientation of hand in robot coords, in degrees:\n %s \n",H2RrpyDeg.toString().c_str());
+
                 // Include translation
                 H2R(0,3)= posRobot[0];
                 H2R(1,3)= posRobot[1];
@@ -482,12 +491,15 @@ void CtrlThread::run() {
                 cout << "Rotate the tool in the hand." <<endl;
 
                 //receive the orientation of the tool
-                toolPose = controlCmd.get(1).asInt();
+                toolPose = controlCmd.get(1).asDouble();
                 toolPose -= 90; // Add 90 degrees to the tool orientation to orient it to the front by default.
                 toolDisp = controlCmd.get(2).asDouble(); // Longitudinal displacement along the tool grasp, in cm
+                toolTilt = controlCmd.get(3).asDouble(); // Tilt of the tool wrt the Y axis. 0 means tool grasped along -Y axis, 90 along X axis
+                if (toolTilt > 90.0)   { toolTilt = 90.0;  }
+                if (toolTilt < 0.0)    { toolTilt = 0.0;   }
 
-                cout << "Requested to regrasp tool " << toolIndex << " with orientation " << toolPose << " and extension " << toolDisp << endl;
-
+                cout << "Requested to regrasp tool " << toolIndex << " with orientation " << toolPose << " extension " << toolDisp << ", and tilt " << toolTilt << endl;
+                toolTilt = 90 - toolTilt;       // Because rotation in SIM goes on oppoiste axis as on PCL visualizer.
 
                 // Tool to hand transformation
                 // Transformation to express coordinate from the tool in the hand coordinate system.
@@ -495,7 +507,7 @@ void CtrlThread::run() {
                 // Orientation in all 3 axis in axis-angle notation
                 //--- this works on positions around the rest position (0 10 0 90 -10)
                 newRot1[0] = 0.0; newRot1[1] = 1.0; newRot1[2] = 0.0; newRot1[3] = M_PI/2;     // introduce 90 degree rot on Y axis and perform it first, to change the tool orientation (along Z) to aling
-                newRot2[0] = 0.0; newRot2[1] = 0.0; newRot2[2] = 1.0; newRot2[3] = 45*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
+                newRot2[0] = 0.0; newRot2[1] = 0.0; newRot2[2] = 1.0; newRot2[3] = toolTilt*M_PI/180;  // rotate 45 aroudn the new X axis (hands -Z axis) to set the position of the tool w.r.t the hand
                 newRot3[0] = 1.0; newRot3[1] = 0.0; newRot3[2] = 0.0; newRot3[3] = M_PI/2 + toolPose*M_PI/180; //rotate around the tool axis (Z) to select the tool orientation.
 
                 //--- this works on positions around upper position (-40 100 50 70 -10)
@@ -503,7 +515,7 @@ void CtrlThread::run() {
                 //newRot2[0] = 0.0; newRot2[1] = 1.0; newRot2[2] = 0.0; newRot2[3] = 45*M_PI/180;
                 //newRot3[0] = 1.0; newRot3[1] = 0.0; newRot3[2] = 0.0; newRot3[3] = M_PI/2 + toolPose*M_PI/180;
 
-                printf("Tool oriented %i deg wrt hand:\n", toolPose);
+                cout << "Tool oriented " << toolPose << " deg wrt hand"<< endl;
 
                 Matrix newRrot1 = axis2dcm(newRot1);                //printf("Rotation in Y in hand coords:\n %s \n", Rrot1.toString().c_str());
                 Matrix newRrot2 = axis2dcm(newRot2);                //printf("Rotation in X in hand coords:\n %s \n", Rrot2.toString().c_str());
@@ -519,8 +531,8 @@ void CtrlThread::run() {
                 newT2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
                 printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", newT2H.toString().c_str());
                 Vector newT2Hrpy = dcm2rpy(newT2H);  // from rot Matrix to roll pitch yaw
-                Vector newT2HrpyDeg = newT2Hrpy *(180.0/M_PI);
-                printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",newT2HrpyDeg.toString().c_str());
+                //Vector newT2HrpyDeg = newT2Hrpy *(180.0/M_PI);
+                //printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",newT2HrpyDeg.toString().c_str());
 
 
                 // Hand to Robot transformation
@@ -531,8 +543,8 @@ void CtrlThread::run() {
 
                 Matrix newH2R=axis2dcm(newH2Raa);   // from axis/angle to rotation matrix notation
                 newH2Rrpy = dcm2rpy(newH2R);  // from rot Matrix to roll pitch yaw
-                newH2RrpyDeg = newH2Rrpy *(180.0/M_PI);
-                printf("Orientation of hand in robot coords, in degrees:\n %s \n",newH2RrpyDeg.toString().c_str());
+                //newH2RrpyDeg = newH2Rrpy *(180.0/M_PI);
+                //printf("Orientation of hand in robot coords, in degrees:\n %s \n",newH2RrpyDeg.toString().c_str());
                 // Include translation
                 newH2R(0,3)= newPosRobot[0];
                 newH2R(1,3)= newPosRobot[1];
@@ -591,7 +603,7 @@ void CtrlThread::run() {
                 controlCmd.clear();
                 controlCmd.addVocab(code);
                 controlCmd.addInt(toolIndex);
-                controlCmd.addInt(toolPose+90); // +90 to cancel the 90 substracted before.
+                controlCmd.addDouble(toolPose+90); // +90 to cancel the 90 substracted before.
                 controlCmd.addDouble(toolDisp);
                 replyCmd(controlCmd);
 

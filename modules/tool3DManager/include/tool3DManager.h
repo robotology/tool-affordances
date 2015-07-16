@@ -120,10 +120,11 @@ protected:
     void                        goHomeExe(const bool hands = false);
 
     // Tool loading and feature extraction
-    bool                        loadToolSim(const int toolI = 0, const int graspOr = 0, const double graspDisp = 0.0);
-    bool                        loadToolReal(const int toolI, const int graspOr, const double graspDisp);
+    bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
+    bool                        loadToolReal(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
+    bool                        regraspExe(const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0);
     bool                        extractFeats();
-    void                        transformToolTip(const Point3D ttCanon, const int graspOr, const double graspDisp, Point3D &tooltipTrans);
+    void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
 
     // Object Localization and effect computation
     bool                        trackObjExe();
@@ -133,8 +134,8 @@ protected:
     bool                        sendAffData();
 
     // Action
-    bool                        slideExe(const double theta = 0.0, const double radius = 0.0);
-    bool                        dragExe(const double theta = 0.0, const double radius = 0.0);
+    bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
+    bool                        dragExe(const double theta = 0.0, const double radius = 0.1);
 
 
 public:
@@ -145,7 +146,8 @@ public:
 	bool						start();
 	bool						quit();
     bool                        goHome(bool hands = false);
-    bool                        getTool(int toolI = 0, int graspOr = 0, double graspDisp = 0);
+    bool                        getTool(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0);
+    bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        getToolFeats();
     bool                        slide(double theta, double radius);
     bool                        drag(double theta, double radius);
@@ -154,8 +156,8 @@ public:
 
     // Experiment functions
     bool                        runRandPoses(int numPoses = 50,int numAct = 8);
-    bool                        runToolPose(int toolI, int graspOr = 0, double graspDisp = 0, int numAct = 8);
-    bool                        runToolOr(int toolI, int graspOr = 0, int numAct = 8);
+    bool                        runToolPose(int toolI, double graspOr = 0.0, double graspDisp = 0.0, double graspTilt = 45.0, int numAct = 8);
+    bool                        runToolOr(int toolI, double graspOr = 0.0, int numAct = 8);
     bool                        runToolTrial(int toolI, int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
 
