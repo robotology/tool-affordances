@@ -8,7 +8,7 @@
         <geometry>(Pos (x 97) (y 58.9))</geometry>
     </module>
     <module>
-        <name>tool3Dshow</name>
+        <name>show3D</name>
         <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
@@ -50,7 +50,7 @@
         <geometry>(Pos (x 397) (y 95.9))</geometry>
     </module>
     <module>
-        <name>yarpview-gtk</name>
+        <name>yarpview</name>
         <parameters>--x 700 --y 700</parameters>
         <node>localhost</node>
         <prefix>/toolFinder</prefix>
@@ -100,7 +100,7 @@
     </connection>
     <connection>
         <from>/toolFeatExt/mesh:o</from>
-        <to>/tool3Dshow/mesh:i</to>
+        <to>/show3D/mesh:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>

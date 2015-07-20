@@ -50,7 +50,7 @@
         <geometry>(Pos (x 45) (y 57.9))</geometry>
     </module>
     <module>
-        <name>tool3Dshow</name>
+        <name>show3D</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
@@ -134,7 +134,7 @@
     </connection>
     <connection>
         <from>/toolFeatExt/mesh:o</from>
-        <to>/tool3Dshow/mesh:i</to>
+        <to>/show3D/mesh:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 620) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>
