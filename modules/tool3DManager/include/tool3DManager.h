@@ -145,6 +145,7 @@ public:
     bool						attach(yarp::os::RpcServer &source);
 	bool						start();
 	bool						quit();
+	bool						settableheight(double th = -0.1);
     bool                        goHome(bool hands = false);
     bool                        getTool(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0);

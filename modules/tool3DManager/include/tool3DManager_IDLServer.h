@@ -28,6 +28,11 @@ public:
    */
   virtual bool quit();
   /**
+   * Sets the table height: \n
+   * @returns true
+   */
+  virtual bool settableheight(const double th = -0.1);
+  /**
    * Adopt home position
    * @return true/false on success/failure
    */

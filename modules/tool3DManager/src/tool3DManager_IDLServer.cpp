@@ -22,6 +22,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_settableheight : public yarp::os::Portable {
+public:
+  double th;
+  bool _return;
+  void init(const double th);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_goHome : public yarp::os::Portable {
 public:
   bool hands;
@@ -192,6 +201,29 @@ bool tool3DManager_IDLServer_quit::read(yarp::os::ConnectionReader& connection) 
 
 void tool3DManager_IDLServer_quit::init() {
   _return = false;
+}
+
+bool tool3DManager_IDLServer_settableheight::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("settableheight",1,1)) return false;
+  if (!writer.writeDouble(th)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_settableheight::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_settableheight::init(const double th) {
+  _return = false;
+  this->th = th;
 }
 
 bool tool3DManager_IDLServer_goHome::write(yarp::os::ConnectionWriter& connection) {
@@ -542,6 +574,16 @@ bool tool3DManager_IDLServer::quit() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool tool3DManager_IDLServer::settableheight(const double th) {
+  bool _return = false;
+  tool3DManager_IDLServer_settableheight helper;
+  helper.init(th);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::settableheight(const double th)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool tool3DManager_IDLServer::goHome(const bool hands) {
   bool _return = false;
   tool3DManager_IDLServer_goHome helper;
@@ -696,6 +738,21 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "quit") {
       bool _return;
       _return = quit();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "settableheight") {
+      double th;
+      if (!reader.readDouble(th)) {
+        th = -0.1;
+      }
+      bool _return;
+      _return = settableheight(th);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -991,6 +1048,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("*** Available commands:");
     helpString.push_back("start");
     helpString.push_back("quit");
+    helpString.push_back("settableheight");
     helpString.push_back("goHome");
     helpString.push_back("getTool");
     helpString.push_back("regrasp");
@@ -1016,6 +1074,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("bool quit() ");
       helpString.push_back("Quit the module ");
       helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="settableheight") {
+      helpString.push_back("bool settableheight(const double th = -0.1) ");
+      helpString.push_back("Sets the table height: \n ");
+      helpString.push_back("@returns true ");
     }
     if (functionName=="goHome") {
       helpString.push_back("bool goHome(const bool hands = 0) ");

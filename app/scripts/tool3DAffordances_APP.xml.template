@@ -29,13 +29,6 @@
         <geometry>(Pos (x 421) (y 560.9))</geometry>
     </module>
     <module>
-        <name>simtoolloader</name>
-        <parameters>--from realTools.ini</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 397) (y 95.9))</geometry>
-    </module>
-    <module>
         <name>templatePFTracker</name>
         <parameters></parameters>
         <node></node>
@@ -91,12 +84,6 @@
         <geometry>(Pos ((x 434.5) (y 75)) ((x 234) (y 75)) ((x 656) (y 75))  )</geometry>
     </connection>
     <connection>
-        <from>/tool3DManager/simToolLoader:rpc</from>
-        <to>/simtoolloader/cmd:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 305) (y 106.5)) ((x 234) (y 100)) ((x 397) (y 113))  )</geometry>
-    </connection>
-    <connection>
         <from>/tool3DManager/karmaMotor:rpc</from>
         <to>/karmaMotor/rpc</to>
         <protocol>tcp</protocol>
@@ -115,13 +102,7 @@
         <geometry>(Pos ((x 305) (y 299)) ((x 234) (y 200)) ((x 397) (y 398))  )</geometry>
     </connection>
     <connection>
-        <from>/tool3DManager/simulator:rpc</from>
-        <to external="true">/icubSim/world</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 325) (y 310)) ((x 234) (y 125)) ((x 437) (y 495))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icubSim/cam/left</from>
+        <from external="true">/icub/camcalib/left/out</from>
         <to external="true">/imLeft/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 311) (y 481)) ((x 206) (y 467)) ((x 437) (y 495))  )</geometry>
@@ -139,13 +120,13 @@
         <geometry>(Pos ((x 620) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/icubSim/cam/left</from>
+        <from external="true">/icub/camcalib/left/out</from>
         <to>/karmaToolFinder/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 291.5) (y 400)) ((x 206) (y 467)) ((x 398) (y 333))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/icubSim/cam/left</from>
+        <from external="true">/icub/camcalib/left/out</from>
         <to>/objectFinder/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 303.5) (y 535.5)) ((x 206) (y 467)) ((x 422) (y 604))  )</geometry>
@@ -157,7 +138,7 @@
         <geometry>(Pos ((x 317) (y 401.5)) ((x 234) (y 225)) ((x 421) (y 578))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/icubSim/cam/left</from>
+        <from external="true">/icub/camcalib/left/out</from>
         <to>/templatePFTracker/left/image:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 458.5) (y 553.5)) ((x 206) (y 467)) ((x 732) (y 640))  )</geometry>

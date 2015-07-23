@@ -316,6 +316,12 @@ bool Tool3DManager::quit(){
 	return true;
 }
 
+bool Tool3DManager::settableheight(double th){
+    cout << "Setting table height to " << th << endl;
+    tableHeight = th;
+    return true;
+}
+
 
 bool Tool3DManager::goHome(bool hands){
     goHomeExe(hands);
@@ -351,6 +357,7 @@ bool Tool3DManager::regrasp(double deg, double disp, double tilt){
 bool Tool3DManager::slide(double theta, double radius){
     return slideExe(theta,radius);
 }
+
 
 bool Tool3DManager::drag(double theta, double radius){
     return dragExe(theta,radius);
@@ -480,7 +487,7 @@ void Tool3DManager::goHomeExe(const bool hands)
     }
     fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"Reply ARE: %s:\n",replyAre.toString().c_str());
+    fprintf(stdout,"  Reply ARE: %s:\n",replyAre.toString().c_str());
 
     /*
     cmdAre.clear();
@@ -499,7 +506,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
     if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
-    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
+    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << ", displacement: " << graspDisp << "and tilt: " << graspTilt << endl;
     cout << "Tool present: " << toolLoadedIdx <<"."<< endl;
 
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
@@ -703,7 +710,9 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
     if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
-    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << " and displacement: " << graspDisp << endl;
+
+    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << ", displacement: " << graspDisp << "and tilt: " << graspTilt << endl;
+    toolLoadedIdx = toolI;
 
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
     Bottle cmdTFE,replyTFE;             // bottles for toolFeatExt
@@ -1318,16 +1327,14 @@ int main(int argc, char *argv[])
     if (!yarp.checkNetwork())
         return -1;
 
-    //YARP_REGISTER_DEVICES(icubmod)
-
     ResourceFinder rf;
     rf.setVerbose(true);
     // rf.setDefault("name","tool3DManager");
     //rf.setDefault("camera","left");
-    //rf.setDefault("robot","icub");
+    rf.setDefault("robot","icub");
     //rf.setDefault("hand","right");
     rf.setDefaultContext("AffordancesProject");
-    //rf.setDefaultConfigFile("affManager.ini");
+    rf.setDefaultConfigFile("realTools.ini");
     //rf.setDefault("tracking_period","30");
     rf.configure(argc,argv);
 

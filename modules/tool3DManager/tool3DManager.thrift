@@ -21,6 +21,13 @@ service tool3DManager_IDLServer
     bool quit();
 
     /**
+     * Sets the table height: \n
+     * @returns true
+     */
+    bool settableheight(1:double th = -0.1);
+
+
+    /**
      * Adopt home position
      * @return true/false on success/failure
      */
