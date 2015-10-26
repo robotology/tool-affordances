@@ -30,8 +30,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    YARP_REGISTER_DEVICES(icubmod)
-
     SimToolLoaderModule module;
 
     ResourceFinder rf;

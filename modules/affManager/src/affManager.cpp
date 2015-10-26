@@ -30,7 +30,6 @@ It works with minor differences on the real robot and the simulator, save the ne
  
 \section lib_sec Libraries 
 - YARP libraries. 
-- icubmod library.
 
 \section parameters_sec Parameters 
 --robot \e robot
@@ -1126,8 +1125,6 @@ int main(int argc, char *argv[])
     Network yarp;
     if (!yarp.checkNetwork())
         return -1;
-
-	YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setVerbose(true);
