@@ -27,7 +27,7 @@ as well as get the 3D coordinates of the tracked object on a ginven plane.
  
 \section lib_sec Libraries 
 - YARP libraries. 
-- icubmod library
+
 
 \section parameters_sec Parameters 
 --robot \e robot
@@ -92,7 +92,6 @@ Windows, Linux
 
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/GazeControl.h>
-YARP_DECLARE_DEVICES(icubmod)
 
 using namespace std;
 using namespace yarp::os;
@@ -437,7 +436,6 @@ int main(int argc, char *argv[])
     if (!yarp.checkNetwork())
         return -1;
 
-    YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setVerbose(true);
