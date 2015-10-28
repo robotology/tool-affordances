@@ -53,8 +53,6 @@
 //for the thrift interface
 #include <affManager_IDLServer.h>
 
-YARP_DECLARE_DEVICES(icubmod)
-
 /**********************************************************/
 class AffManager : public yarp::os::RFModule, public affManager_IDLServer
 {
