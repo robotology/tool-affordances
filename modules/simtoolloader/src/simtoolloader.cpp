@@ -1060,6 +1060,7 @@ Bottle SimSBox::makeObjectBottle(vector<int>& ind, bool collision) {
     cmd.addDouble(colorB);
     if (collision == false) {
         cmd.addString("false");
+	cout << "Collision with Static box set to False" <<  endl;
     }
 
     ind[SBOX]++;
