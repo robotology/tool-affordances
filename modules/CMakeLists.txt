@@ -4,9 +4,9 @@
 
 add_subdirectory(affManager)
 ## add_subdirectory(affLearn)
-#add_subdirectory(objectFinder)
+add_subdirectory(objectFinder)
 # add_subdirectory(feat2DExt)
-add_subdirectory(simtoolloader)
+# add_subdirectory(simtoolloader)
 # add_subdirectory(toolBlobber)
 add_subdirectory(tool3DManager)
 ## add_subdirectory(affStateMachine)
