@@ -179,7 +179,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     Bottle temp;
     string modelName = "obj";
 
-    cout << "Loading mdoels to buffer" << endl;
+    cout << "Loading models to buffer" << endl;
     bool noMoreModels = false;
     int n =1;
     while (!noMoreModels){      // read until there are no more objects.
