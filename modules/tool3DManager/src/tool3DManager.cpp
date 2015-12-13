@@ -152,7 +152,12 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     hand = rf.check("hand",Value("right")).asString().c_str();
     robot = rf.check("robot",Value("icub")).asString().c_str();
 
-    tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
+    }else{
+        tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
+    }
+    
 
     // Attach server port to read RPC commands via thrift
     attach(rpcCmd);

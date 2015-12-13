@@ -99,8 +99,8 @@
         <geometry>(Pos ((x 637) (y 381.5)) ((x 607) (y 320)) ((x 688) (y 443))  )</geometry>
     </connection>
     <connection>
-        <from>/toolFeatExt/mesh:o</from>
-        <to>/show3D/mesh:i</to>
+        <from>/toolFeatExt/clouds:o</from>
+        <to>/show3D/clouds:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>
