@@ -28,7 +28,6 @@ as well as get the 3D coordinates of the tracked object on a ginven plane.
 \section lib_sec Libraries 
 - YARP libraries. 
 
-
 \section parameters_sec Parameters 
 --robot \e robot
 - Select the robot to connect to.
@@ -435,7 +434,6 @@ int main(int argc, char *argv[])
     Network yarp;
     if (!yarp.checkNetwork())
         return -1;
-
 
     ResourceFinder rf;
     rf.setVerbose(true);
