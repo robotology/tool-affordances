@@ -85,8 +85,9 @@ class tool3DManager_IDLServer_drag : public yarp::os::Portable {
 public:
   double thetha;
   double radius;
+  double tilt;
   bool _return;
-  void init(const double thetha, const double radius);
+  void init(const double thetha, const double radius, const double tilt);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -353,10 +354,11 @@ void tool3DManager_IDLServer_slide::init(const double thetha, const double radiu
 
 bool tool3DManager_IDLServer_drag::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeListHeader(4)) return false;
   if (!writer.writeTag("drag",1,1)) return false;
   if (!writer.writeDouble(thetha)) return false;
   if (!writer.writeDouble(radius)) return false;
+  if (!writer.writeDouble(tilt)) return false;
   return true;
 }
 
@@ -370,10 +372,11 @@ bool tool3DManager_IDLServer_drag::read(yarp::os::ConnectionReader& connection) 
   return true;
 }
 
-void tool3DManager_IDLServer_drag::init(const double thetha, const double radius) {
+void tool3DManager_IDLServer_drag::init(const double thetha, const double radius, const double tilt) {
   _return = false;
   this->thetha = thetha;
   this->radius = radius;
+  this->tilt = tilt;
 }
 
 bool tool3DManager_IDLServer_trackObj::write(yarp::os::ConnectionWriter& connection) {
@@ -634,12 +637,12 @@ bool tool3DManager_IDLServer::slide(const double thetha, const double radius) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::drag(const double thetha, const double radius) {
+bool tool3DManager_IDLServer::drag(const double thetha, const double radius, const double tilt) {
   bool _return = false;
   tool3DManager_IDLServer_drag helper;
-  helper.init(thetha,radius);
+  helper.init(thetha,radius,tilt);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::drag(const double thetha, const double radius)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::drag(const double thetha, const double radius, const double tilt)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -859,14 +862,18 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "drag") {
       double thetha;
       double radius;
+      double tilt;
       if (!reader.readDouble(thetha)) {
         thetha = 0;
       }
       if (!reader.readDouble(radius)) {
         radius = 0;
       }
+      if (!reader.readDouble(tilt)) {
+        tilt = 0;
+      }
       bool _return;
-      _return = drag(thetha,radius);
+      _return = drag(thetha,radius,tilt);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1113,7 +1120,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure to do Action ");
     }
     if (functionName=="drag") {
-      helpString.push_back("bool drag(const double thetha = 0, const double radius = 0) ");
+      helpString.push_back("bool drag(const double thetha = 0, const double radius = 0, const double tilt = 0) ");
       helpString.push_back("Performs a drag action from the object to the direction indicated by theta and radius. \n ");
       helpString.push_back("The trial consist on locating the object and executing the slide action ");
       helpString.push_back("@return true/false on success/failure to do Action ");

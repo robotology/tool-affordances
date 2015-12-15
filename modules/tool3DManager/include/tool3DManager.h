@@ -135,7 +135,7 @@ protected:
 
     // Action
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
-    bool                        dragExe(const double theta = 0.0, const double radius = 0.1);
+    bool                        dragExe(const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
 
 
 public:
@@ -151,7 +151,7 @@ public:
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        getToolFeats();
     bool                        slide(double theta, double radius);
-    bool                        drag(double theta, double radius);
+    bool                        drag(double theta, double radius, double tilt);
     bool                        compEff();
     bool                        trackObj();
 

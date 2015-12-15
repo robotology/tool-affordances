@@ -364,8 +364,8 @@ bool Tool3DManager::slide(double theta, double radius){
 }
 
 
-bool Tool3DManager::drag(double theta, double radius){
-    return dragExe(theta,radius);
+bool Tool3DManager::drag(double theta, double radius, double tilt){
+    return dragExe(theta,radius, tilt);
 }
 
 bool Tool3DManager::trackObj(){
@@ -1199,7 +1199,7 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
 
 
 /**********************************************************/
-bool Tool3DManager::dragExe(const double theta, const double radius)
+bool Tool3DManager::dragExe(const double theta, const double radius, const double tilt)
 {
     actVec.clear();		// Clear to make space for new coordinates
     actVec.resize(2);   // Resize to save theta - radius coordinates coordinates
@@ -1227,6 +1227,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius)
     cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
     cmdKM.addDouble(theta);
     cmdKM.addDouble(radius);
+    cmdKM.addDouble(tilt);
     fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
     fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
