@@ -381,11 +381,26 @@ bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, dou
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
 
-    getTool(toolI, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
+    if (strcmp(robot.c_str(),"icubSim")==0){
+        getTool(toolI, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
+    }
+    // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
 
     for (int i=1 ; i<=numAct ; i++){
         dragExe(theta,0.15);
         computeEffect();
+        cout << "Effect computed, 5 seconds to put the object back in place" <<endl;
+        cout << "5" <<endl;
+        Time::delay(1);
+        cout << "4" <<endl;
+        Time::delay(1);
+        cout << "3" <<endl;
+        Time::delay(1);
+        cout << "2" <<endl;
+        Time::delay(1);
+        cout << "1" <<endl;
+        Time::delay(1);
+        cout << "Going to next action" <<endl;
         theta += thetaDiv;
     }
     return true;
@@ -419,7 +434,7 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
         getTool(toolI, graspOr, graspDisp, graspTilt);  // re-grasp the tool with the given grasp parameters
 
         for (int i=1 ; i<=numAct ; i++){
-            dragExe(theta,0.15);
+            dragExe(theta,0.15,-15);
             computeEffect();
             theta += thetaDiv;
         }
@@ -1147,7 +1162,7 @@ bool Tool3DManager::getObjRot(Vector &rot3D)
         return false;
 
     }else{
-        cout << "XXX rotation detection not yet implemented for the real robot." << endl;
+
         return false;
     }
 }
