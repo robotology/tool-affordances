@@ -181,7 +181,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
     cout << "Loading models to buffer" << endl;
     bool noMoreModels = false;
-    int n =1;
+    int n =0;
     while (!noMoreModels){      // read until there are no more objects.
         stringstream s;
         s.str("");
@@ -555,7 +555,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
         cmdSim.clear();   replySim.clear();
         cmdSim.addString("tool");
         cmdSim.addInt(toolI);               // tool
-        cmdSim.addInt(1);                   // object -> Cube
+        cmdSim.addInt(0);                   // object -> Cube
         cmdSim.addInt(graspOr);             // orientation
         cmdSim.addInt(graspDisp);           // displacement
         cmdSim.addInt(tiltValid);           // tilt
@@ -716,7 +716,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
     if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
 
-    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << ", displacement: " << graspDisp << "and tilt: " << graspTilt << endl;
+    cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << ", displacement: " << graspDisp << " and tilt: " << graspTilt << endl;
     toolLoadedIdx = toolI;
 
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
