@@ -539,9 +539,9 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("remove");
-    fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
+    //fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+    //fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
     // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
     cout << "Moving "<< hand << " arm to a central position" << endl;
@@ -741,6 +741,15 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
     Bottle cmdAre, replyAre;
 
+
+    // Remove any end effector extension that might be.
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("remove");
+    //fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    //fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+
     // Send commands to ARE to get the tool, close the hand and go to central position
     fprintf(stdout,"Reach me a tool please.\n");
     cmdAre.clear();
@@ -748,9 +757,9 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmdAre.addString("tato");
     cmdAre.addString(hand);
     cmdAre.addString("no_gaze");
-    fprintf(stdout,"RPC to ARE: %s\n", cmdAre.toString().c_str());
+    //fprintf(stdout,"RPC to ARE: %s\n", cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre,replyAre);
-    fprintf(stdout,"  Reply from ARE: %s\n", replyAre.toString().c_str());
+    //fprintf(stdout,"  Reply from ARE: %s\n", replyAre.toString().c_str());
 
     // Send commands to ARE to get the tool, close the hand and go to central position
     Time::delay(3);
@@ -760,9 +769,9 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmdAre.addString("clto");
     cmdAre.addString(hand);
     cmdAre.addString("no_gaze");
-    fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
+    //fprintf(stdout,"RPC to ARE: %s\n",cmdAre.toString().c_str());
     rpcMotorAre.write(cmdAre, replyAre);
-    fprintf(stdout,"  Reply from ARE: %s\n", replyAre.toString().c_str());
+    //fprintf(stdout,"  Reply from ARE: %s\n", replyAre.toString().c_str());
     Time::delay(0.5);
 
     // Check if grasp was successful
@@ -852,9 +861,9 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmdKF.addDouble(tooltip.x);
     cmdKF.addDouble(tooltip.y);
     cmdKF.addDouble(tooltip.z);
-    fprintf(stdout,"RCP to KarmaFinder %s\n",cmdKF.toString().c_str());
+    //fprintf(stdout,"RCP to KarmaFinder %s\n",cmdKF.toString().c_str());
     rpcKarmaFinder.write(cmdKF, replyKF);
-    fprintf(stdout,"  Reply from KarmaFinder %s\n", replyKF.toString().c_str());
+    //fprintf(stdout,"  Reply from KarmaFinder %s\n", replyKF.toString().c_str());
 
     // Attach the new tooltip to the "body schema"
     cmdKM.clear();replyKM.clear();
@@ -864,9 +873,9 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmdKM.addDouble(tooltip.x);
     cmdKM.addDouble(tooltip.y);
     cmdKM.addDouble(tooltip.z);
-    fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
+    //fprintf(stdout,"RPC to KarmaMotor%s\n",cmdKM.toString().c_str());
     rpcKarmaMotor.write(cmdKM, replyKM);
-    fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+    //fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
     fprintf(stdout,"Tool loaded and tooltip attached \n ");
 
