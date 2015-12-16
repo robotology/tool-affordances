@@ -98,7 +98,7 @@ bool   SimToolLoaderModule::configure(yarp::os::ResourceFinder &rf) {
 
     cout << "Loading objects to buffer" << endl;
     bool noMoreModels = false;
-    int n =1;
+    int n =0;
     while (!noMoreModels){      // read until there are no more objects.
         stringstream s;
         s.str("");
@@ -267,15 +267,15 @@ void CtrlThread::run() {
                 //---------------------------------------------------------------
                 //Create one object:
 				objIndex = controlCmd.get(1).asInt();
-				if ( objIndex==0 ) {
+                if ( objIndex==100 ) {
 					objIndex = rand() % simWorld.simObject.size() + 1;
 				}
-				//simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
-				simWorld.simObject[objIndex-1]->setObjectPosition(
+                //simWorld.simObject[objIndex]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+                simWorld.simObject[objIndex]->setObjectPosition(
 										threadTable.get(4).asDouble()+objPosX,
 										threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
 										objPosZ);
-				simCmd = simWorld.simObject[objIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+                simCmd = simWorld.simObject[objIndex]->makeObjectBottle(simWorld.objSubIndex);
 				writeSim(simCmd);
 
                 //reply to the control manager the tool ID
@@ -293,19 +293,19 @@ void CtrlThread::run() {
                 objIndex = controlCmd.get(1).asInt();
                 //---------------------------------------------------------------
                 //Create one object:
-                //simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+                //simWorld.simObject[objIndex]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
 
-                if (simWorld.simObject[objIndex-1]->objSubIndex != 0)
+                if (simWorld.simObject[objIndex]->objSubIndex != 0)
                 {
-                    simWorld.simObject[objIndex-1]->setObjectPosition(
+                    simWorld.simObject[objIndex]->setObjectPosition(
                                                 threadTable.get(4).asDouble()+objPosX,
                                                 threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
                                                 objPosZ);
-                    simCmd = simWorld.simObject[objIndex-1]->moveObjectBottle();
+                    simCmd = simWorld.simObject[objIndex]->moveObjectBottle();
                     writeSim(simCmd);
 
-                    simWorld.simObject[objIndex-1]->setObjectRotation(0, 0, 0);
-                    simCmd = simWorld.simObject[objIndex-1]->rotateObjectBottle();
+                    simWorld.simObject[objIndex]->setObjectRotation(0, 0, 0);
+                    simCmd = simWorld.simObject[objIndex]->rotateObjectBottle();
                     writeSim(simCmd);
 
                     //reply to the control manager the tool ID
@@ -348,7 +348,7 @@ void CtrlThread::run() {
                     break;
                 }
 
-                if ( toolIndex==0 ) {
+                if ( toolIndex==100 ) {
                     toolIndex = rand() % simWorld.simObject.size() + 1;
                 }
 
@@ -446,34 +446,34 @@ void CtrlThread::run() {
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",T2WrpyDeg.toString().c_str());
 
                 /* create rotate and grab the tool */
-                simWorld.simObject[toolIndex-1]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
-                simCmd = simWorld.simObject[toolIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+                simWorld.simObject[toolIndex]->setObjectPosition(posWorld[0],posWorld[1],posWorld[2]);//(0.23, 0.70, 0.20);    //left arm end effector position
+                simCmd = simWorld.simObject[toolIndex]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
 
-                //simWorld.simObject[toolIndex-1]->setObjectRotation(70, 120, 30);
-                simWorld.simObject[toolIndex-1]->setObjectRotation(T2WrpyDeg[0],T2WrpyDeg[1],T2WrpyDeg[2]);//(-65, -5, 110);
-                simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
+                //simWorld.simObject[toolIndex]->setObjectRotation(70, 120, 30);
+                simWorld.simObject[toolIndex]->setObjectRotation(T2WrpyDeg[0],T2WrpyDeg[1],T2WrpyDeg[2]);//(-65, -5, 110);
+                simCmd = simWorld.simObject[toolIndex]->rotateObjectBottle();
                 writeSim(simCmd);
-                simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
+                simCmd = simWorld.simObject[toolIndex]->grabObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
 
                 // Get and return the name of the loaded tool
-                string modelName = simWorld.simObject[toolIndex-1]->getObjName();
+                string modelName = simWorld.simObject[toolIndex]->getObjName();
                 cout << endl << "Model " << modelName << " has been loaded." << endl;
 
 
                 //------------------------------------------------------------------
                 //Create one object:
                 objIndex = controlCmd.get(2).asInt();
-                if ( objIndex==0 ) {
+                if ( objIndex==100 ) {
                     objIndex = rand() % simWorld.simObject.size() + 1;
                 }
-                //simWorld.simObject[objIndex-1]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
-                simWorld.simObject[objIndex-1]->setObjectPosition(
+                //simWorld.simObject[objIndex]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
+                simWorld.simObject[objIndex]->setObjectPosition(
                                         threadTable.get(4).asDouble()+objPosX,
                                         threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
                                         objPosZ);
-                simCmd = simWorld.simObject[objIndex-1]->makeObjectBottle(simWorld.objSubIndex);
+                simCmd = simWorld.simObject[objIndex]->makeObjectBottle(simWorld.objSubIndex);
                 writeSim(simCmd);
 
                 //reply to the control manager the tool and object IDs
@@ -580,23 +580,23 @@ void CtrlThread::run() {
                 printf("Orientation of tool in world coords, in degrees:\n %s \n",newT2WrpyDeg.toString().c_str());
 
                 // Set new position and orientation
-                simWorld.simObject[toolIndex-1]->setObjectRotation(newT2WrpyDeg[0],newT2WrpyDeg[1],newT2WrpyDeg[2]);// new regrasp position
-                simWorld.simObject[toolIndex-1]->setObjectPosition(newPosWorld[0],newPosWorld[1],newPosWorld[2]);   // new regrasp orientation
+                simWorld.simObject[toolIndex]->setObjectRotation(newT2WrpyDeg[0],newT2WrpyDeg[1],newT2WrpyDeg[2]);// new regrasp position
+                simWorld.simObject[toolIndex]->setObjectPosition(newPosWorld[0],newPosWorld[1],newPosWorld[2]);   // new regrasp orientation
 
                 // Release grasp-magnet to allow regrasping
-                simCmd = simWorld.simObject[toolIndex-1]->releaseObjectBottle(RIGHT);        //right arm by default
+                simCmd = simWorld.simObject[toolIndex]->releaseObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
 
                 // send new position command
-                simCmd = simWorld.simObject[toolIndex-1]->moveObjectBottle();
+                simCmd = simWorld.simObject[toolIndex]->moveObjectBottle();
                 writeSim(simCmd);
 
                 // send new orientation command
-                simCmd = simWorld.simObject[toolIndex-1]->rotateObjectBottle();
+                simCmd = simWorld.simObject[toolIndex]->rotateObjectBottle();
                 writeSim(simCmd);
 
                 // Reactivate grasp-magnet to fix tool in place.
-                simCmd = simWorld.simObject[toolIndex-1]->grabObjectBottle(RIGHT);        //right arm by default
+                simCmd = simWorld.simObject[toolIndex]->grabObjectBottle(RIGHT);        //right arm by default
                 writeSim(simCmd);
 
                 //reply to the control manager the tool and object IDs

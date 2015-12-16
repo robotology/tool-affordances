@@ -1,12 +1,32 @@
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>motionCUT</name>
-    <description>The module exploits the pyramidal Lucas-Kanade algorithm to detect independent moving points over a selectable grid of nodes. The algorithm is designed in such a way that it works also - and especially - with moving cameras. </description>
-    <version>1.0</version>
+    <doxygen-group>icub_modules</doxygen-group>
+    <description>Detects independent moving points of a grid used to sample the 
+input images.</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>1.0</version>
+  
+    <description-long>The module exploits the pyramidal Lucas-Kanade algorithm to detect independent moving points over a selectable grid of nodes. The algorithm is designed in such a way that it works also - and especially - with moving cameras. 
+        <note>The name motionCUT stands for <i>motion Cover/Uncover rick</i> and refers to its working principle that is detailed in the paper: Ciliberto C., Pattacini U., Natale L., Nori F. and Metta G., "Reexamining Lucas-Kanade Method for Real-Time Independent Motion Detection: Application to the iCub Humanoid Robot", <i>IEEE/RSJ International Conference on Intelligent Robots and Systems</i>, San Francisco, CA, USA, 2011. </note>
+        
+        <note><b>If you're going to use the motionCUT for your work, 
+      please quote it within any resulting publication</b>.<\note>
+ 
+<note> We warmly suggest to use OpenCV in conjunction with 
+      multi-threading layers such as OpenMP and TBB in order to
+      achieve high performances for motion detection. Refer to
+      the OpenCV documentation for the details.<\note>
+ 
+<note> A video on iCub employing \e motionCUT can be seen <a
+      href="http://www.youtube.com/watch?v=Ql8Qe0oxHaY">here</a>. <\note>
+        
+        
+    </description-long>
 
     <!-- <arguments> can have multiple <param> tags-->
     <arguments>
-        <param desc="[OLD?]specifies the stem name of ports created by the module" default="motionCUT"> name </param>
+        <param desc="specifies the stem name of ports created by the module" default="motionCUT"> name </param>
         <param desc="Portion of the x-axis of the image covered by the grid nodes. Example: if the value is 0.75, then the central 3/4 of the x-axis will be covered with points." default=""> coverXratio </param>
         <param desc="Portion of the y-axis of the image covered by the grid nodes. Example: if the value is 0.75, then the central 3/4 of the y-axis will be covered with points." default=""> coverYratio </param>
         <param desc="Step (in pixels) between two consecutive grid nodes." default=""> nodesStep </param>
@@ -44,15 +64,7 @@
 
             <!-- input port which receive the data. -->
             <port carrier="udp">/motionCUT/img:i</port>
-
-            <!-- required input means the execution of module depends on
-                 this input data. Notice that not all the input are required
-                 for a module to perform its task (e.g. control input, status
-                 request input). -->
             <required>yes</required>
-
-            <!-- priority forces the execution of module to be delayed
-                 until the required data becomes available on the port -->
             <priority>no</priority>
             <description>Accepts the incoming images</description>
         </input>
@@ -81,7 +93,7 @@
             <description>Outputs the input x-y location of blobs centroids along with their size in this format: ('b0.cx' 'b0.cy' 'b0.size') ('b1.cx' 'b1.cy' 'b1.size') ... The output blobs list is sorted according to their size (decreasing order). . This port propagates the time-stamp carried by the input image.</description>
         </output>
 <output>
-            <type>Image?</type>
+            <type>Image</type>
             <port carrier="udp">/motionCUT/crop:o</port>
             <description>outputs a window of fixed size obtained from
   a ROI around the center of mass of the largest blob detected.</description>
@@ -93,19 +105,9 @@
         </output>
     </data>
 
-    <!-- physical and logical resource dependencies can be introduced in this
-         section. Dependencies must follow resource conceptional models. Currently
-         available resource models are 'memory', 'processor', 'storage', 'network',
-         'yarp_port', 'platform' and 'gpu'. All resource dependencies should be introduced
-         inside <computer></computer> tags. While resources described inside <computer>
-         tags represent conjunctional dependency, resources from different <computer>
-         tags can be seen as disjunctions. Meaning that If a module depend on either
-         resource R1 or R2 they can be introduced inside two different <computer> tags.
-         Resource dependencies should be introduced if they are really required. For
-         example, if module's performance drops significantly in case of memory swapping,
-         a memory resource dependency can be introduced with the required memory space. -->
     <dependencies>
         <computer>
+            OpenCV
         </computer>
     </dependencies>
 

@@ -64,11 +64,8 @@ It manages the following commands through thrift interface:
     -# <b>reset</b>: Sets the experiment flow flags to false (action done, object located, tip on view).\n
      return true/false on success/failure      
 
-    -# <b>goHome</b>: Adopt home position, also opening hands \n 
+    -# <b>goHome</b>: Adopt home position, true to open also hands (and thus release tool) and false (default), to keep hands as they are \n
     return true/false on success/failure
-    
-    -# <b>goHomeNoHands</b>: Adopt home position while keeping hand pose (tools remain grasped) \n
-     return true/false on success/failure
     
     -# <b>findToolDims</b>: Uses active exploration and non-linear optimization to compute the tool dimensions (only on real robot) \n
      Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder \n
@@ -145,16 +142,20 @@ using namespace yarp::dev;
 /******************* RF overwrites ************************/
 bool Tool3DManager::configure(ResourceFinder &rf)
 {
-	printf("Configuring...\n");
+    printf("Configuring module...\n");
 
     name = rf.check("name",Value("tool3DManager")).asString().c_str();
     camera = rf.check("camera",Value("left")).asString().c_str();
     hand = rf.check("hand",Value("right")).asString().c_str();
     robot = rf.check("robot",Value("icub")).asString().c_str();
 
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    cout << "Configuring module name " << name << ", camera " << camera << ", hand "<< hand << ", on robot " << robot << endl;
+
+    if (robot=="icubSim"){
+        cout << "Configuring for robot icubSim" <<endl;
         tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
     }else{
+        cout << "Configuring for robot real iCub" <<endl;
         tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
     }
     
@@ -340,7 +341,7 @@ bool Tool3DManager::getToolFeats(){
 
 bool Tool3DManager::getTool(int toolI, double deg, double disp, double tilt){
     bool ok;
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         ok = loadToolSim(toolI, deg, disp, tilt);
     }else{
         ok = loadToolReal(toolI, deg, disp, tilt);
@@ -381,7 +382,7 @@ bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, dou
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
 
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         getTool(toolI, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
     }
     // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
@@ -543,11 +544,12 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
 
     // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
-    cout << "Moving arm to a central position" << endl;
+    cout << "Moving "<< hand << " arm to a central position" << endl;
+    double dispY = (hand=="right")?0.15:-0.15;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
     cmdKM.addDouble(-0.25);
-    cmdKM.addDouble(0.15);
+    cmdKM.addDouble(dispY);
     cmdKM.addDouble(0.05);
     cmdKM.addDouble(0.0);       // No angle
     cmdKM.addDouble(0.0);       // No radius
@@ -737,10 +739,10 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
     Bottle cmdTFE,replyTFE;             // bottles for toolFeatExt
     Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
+    Bottle cmdAre, replyAre;
 
     // Send commands to ARE to get the tool, close the hand and go to central position
     fprintf(stdout,"Reach me a tool please.\n");
-    Bottle cmdAre, replyAre;
     cmdAre.clear();
     replyAre.clear();
     cmdAre.addString("tato");
@@ -772,6 +774,19 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     if(!replyAre.get(0).asBool())
         return false;
 
+    // Move hand to central position to check tool extension and perform regrasp easily.
+    cout << "Moving arm to a central position" << endl;
+    double dispY = (hand=="right")?0.15:-0.15;
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");            // Set a position in the center in front of the robot
+    cmdKM.addDouble(-0.25);
+    cmdKM.addDouble(dispY);
+    cmdKM.addDouble(0.05);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
+    //fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    //fprintf(stdout,"  Reply from KarmaMotor: %s:\n",replyKM.toString().c_str());
 
     // Get tool name in order to load its 3Dmodel
     cout << "Retrieving tool name." << endl;
@@ -871,7 +886,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cout << " Received reply: " << replyTFE.toString() << endl;
 
     if (!extractFeats()){
-        cout << "ToolFeatExt coudln't extract the features." << endl;
+        cout << "ToolFeatExt couldn't extract the features." << endl;
         return false;
     }
     cout << " Oriented 3D features extracted" << endl;
@@ -888,7 +903,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     //graspDataPort.write(graspVec);
 
     // Go home and observe scenario.
-    goHomeExe(false);
+    //goHomeExe(false);
     return true;
 }
 
@@ -903,7 +918,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
     cout << endl<< "Regrasping tool " << toolLoadedIdx <<" with orientation: "<< graspOr << " and displacement: " << graspDisp <<endl;
 
     // Call simtoolloader to create the tool
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot == "icubSim"){
         Bottle cmdSim,replySim;       // bottles for Simulator
         cmdSim.clear();   replySim.clear();
         cmdSim.addString("rot");
@@ -1074,7 +1089,7 @@ bool Tool3DManager::trackObjExe()
 /**********************************************************/
 bool Tool3DManager::getObjLoc(Vector &coords3D)
 {
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         Bottle cmdSim,replySim;
         cout << endl <<"Geting 3D coords of object." <<endl;
         cmdSim.clear();        replySim.clear();
@@ -1139,7 +1154,7 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
 /**********************************************************/
 bool Tool3DManager::getObjRot(Vector &rot3D)
 {
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         Bottle cmdSim,replySim;
         //fprintf(stdout,"Get 3D coords of tracked object:\n");
         cmdSim.clear();        replySim.clear();
@@ -1253,7 +1268,6 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     //actDataPort.write(actVec);
 
     goHomeExe();
-    goHomeExe();
 
     return true;
 }
@@ -1290,7 +1304,7 @@ bool Tool3DManager::computeEffect()
     effectVec[0] = displDist;
     effectVec[1] = displAngle;
 
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         if(!getObjRot(target3DrotAfter))        // Get the rotation of the object after the action
         {
             cout << " Object rotation not available, cant compute effect"<< endl;
@@ -1311,7 +1325,7 @@ bool Tool3DManager::computeEffect()
     // put values on a port so they can be read
     // effDataPort.write(effectVec);
 
-    if (strcmp(robot.c_str(),"icubSim")==0){
+    if (robot=="icubSim"){
         // Put the cube back in place to restart round:
         Bottle cmdSim,replySim;       // bottles for Simulator
         cmdSim.clear();   replySim.clear();

@@ -15,5 +15,5 @@ add_subdirectory(tool3DManager)
 add_subdirectory(simtoolloader) #Use only in simulation
 
 # Not fully developed modules
-add_subdirectory(affLearn)
+## add_subdirectory(affLearn)
 ## add_subdirectory(affStateMachine)
