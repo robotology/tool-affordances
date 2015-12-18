@@ -71,9 +71,7 @@ It manages the following commands through thrift interface:
      Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder \n
      return true/false on success/failure 
 
-    -# <b>lookAtTool</b>: Moves the tool in hand in front of iCub eyes to a position where it can be observed fully. \n
-     return true/false on success/failure of bringing the tool in front
-     
+
     -# <b>observeTool</b>: Finds tool in hand and does Feature Extraction. \n
      return true/false on success/failure finding and extracting feats from tool
      
@@ -334,6 +332,7 @@ bool Tool3DManager::goHome(bool hands){
 	return true;
 }
 
+
 bool Tool3DManager::getToolFeats(){
     extractFeats();
     return true;
@@ -388,7 +387,7 @@ bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, dou
     // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
 
     for (int i=1 ; i<=numAct ; i++){
-        dragExe(theta,0.15);
+        dragExe(theta,0.15,-15);
         computeEffect();
         if (!(robot == "icubSim"))
         {
@@ -523,6 +522,7 @@ void Tool3DManager::goHomeExe(const bool hands)
 
     return;
 }
+
 
 /**********************************************************/
 bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const double graspDisp, const double graspTilt)
@@ -852,7 +852,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
-    tooltip.z = ttTrans.z;
+    tooltip.z = ttTrans.z + 0.03; // XXX add 3 cm towards the palm to compensate for the fact that the center of the tool axis is ON the palm, not IN the hand
     cout << "Tooltip of tool in positon: x= "<< ttTrans.x << ", y = " << ttTrans.y << ", z = " << ttTrans.z <<endl;
 
     cout << endl << "Attaching tooltip." << endl;
@@ -1297,7 +1297,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     Bottle cmdKM,replyKM;                    // bottles for Karma Motor
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("drag");                 // Set a position in the center in front of the robot
-    cmdKM.addDouble(target3DcoordsIni[0] - 0.03);   // Approach the end effector slightly behind the object to grab it properly
+    cmdKM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
     cmdKM.addDouble(theta);

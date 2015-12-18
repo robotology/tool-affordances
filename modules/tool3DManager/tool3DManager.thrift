@@ -32,7 +32,7 @@ service tool3DManager_IDLServer
      * @return true/false on success/failure
      */
     bool goHome(1:bool hands = false);
-    
+
     /**
      * Performs the sequence to get the tool: \n
      * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
