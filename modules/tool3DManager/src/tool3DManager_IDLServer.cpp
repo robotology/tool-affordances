@@ -65,8 +65,9 @@ public:
   double deg;
   double disp;
   double tilt;
+  double Z;
   bool _return;
-  void init(const double deg, const double disp, const double tilt);
+  void init(const double deg, const double disp, const double tilt, const double Z);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -310,11 +311,12 @@ void tool3DManager_IDLServer_getTool::init(const int32_t tool, const double deg,
 
 bool tool3DManager_IDLServer_regrasp::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeListHeader(5)) return false;
   if (!writer.writeTag("regrasp",1,1)) return false;
   if (!writer.writeDouble(deg)) return false;
   if (!writer.writeDouble(disp)) return false;
   if (!writer.writeDouble(tilt)) return false;
+  if (!writer.writeDouble(Z)) return false;
   return true;
 }
 
@@ -328,11 +330,12 @@ bool tool3DManager_IDLServer_regrasp::read(yarp::os::ConnectionReader& connectio
   return true;
 }
 
-void tool3DManager_IDLServer_regrasp::init(const double deg, const double disp, const double tilt) {
+void tool3DManager_IDLServer_regrasp::init(const double deg, const double disp, const double tilt, const double Z) {
   _return = false;
   this->deg = deg;
   this->disp = disp;
   this->tilt = tilt;
+  this->Z = Z;
 }
 
 bool tool3DManager_IDLServer_getToolFeats::write(yarp::os::ConnectionWriter& connection) {
@@ -646,12 +649,12 @@ bool tool3DManager_IDLServer::getTool(const int32_t tool, const double deg, cons
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::regrasp(const double deg, const double disp, const double tilt) {
+bool tool3DManager_IDLServer::regrasp(const double deg, const double disp, const double tilt, const double Z) {
   bool _return = false;
   tool3DManager_IDLServer_regrasp helper;
-  helper.init(deg,disp,tilt);
+  helper.init(deg,disp,tilt,Z);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::regrasp(const double deg, const double disp, const double tilt)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::regrasp(const double deg, const double disp, const double tilt, const double Z)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -860,6 +863,7 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       double deg;
       double disp;
       double tilt;
+      double Z;
       if (!reader.readDouble(deg)) {
         deg = 0;
       }
@@ -869,8 +873,11 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       if (!reader.readDouble(tilt)) {
         tilt = 45;
       }
+      if (!reader.readDouble(Z)) {
+        Z = 0;
+      }
       bool _return;
-      _return = regrasp(deg,disp,tilt);
+      _return = regrasp(deg,disp,tilt,Z);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1157,7 +1164,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure of looking at that position ");
     }
     if (functionName=="regrasp") {
-      helpString.push_back("bool regrasp(const double deg = 0, const double disp = 0, const double tilt = 45) ");
+      helpString.push_back("bool regrasp(const double deg = 0, const double disp = 0, const double tilt = 45, const double Z = 0) ");
       helpString.push_back("Performs the sequence to get the tool: \n ");
       helpString.push_back("- On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. ");
       helpString.push_back("- The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder. ");

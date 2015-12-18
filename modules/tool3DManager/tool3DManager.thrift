@@ -55,7 +55,7 @@ service tool3DManager_IDLServer
      * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
      * @return true/false on success/failure of looking at that position
      */
-    bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0);
+    bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0, 4:double Z = 0.0);
 
 
     /**

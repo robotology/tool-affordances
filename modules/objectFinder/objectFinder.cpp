@@ -201,6 +201,8 @@ public:
 
         } else if (receivedCmd == "getPointTrack")
         {   
+            tableHeight = command.get(1).asDouble();
+
             if (!getPointTrack(tableHeight))
             {
                 //Encode response

@@ -57,7 +57,7 @@ public:
    * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
    * @return true/false on success/failure of looking at that position
    */
-  virtual bool regrasp(const double deg = 0, const double disp = 0, const double tilt = 45);
+  virtual bool regrasp(const double deg = 0, const double disp = 0, const double tilt = 45, const double Z = 0);
   /**
    * Queries toolFeatExt module to extract the feaures of the loaded module \n
    * @return true/false on success/failure to extract features

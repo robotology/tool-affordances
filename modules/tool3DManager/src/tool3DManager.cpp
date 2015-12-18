@@ -154,14 +154,14 @@ bool Tool3DManager::configure(ResourceFinder &rf)
         tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
     }else{
         cout << "Configuring for robot real iCub" <<endl;
-        tableHeight = rf.check("tableHeight", Value(-0.10)).asDouble();      // Height of the table in the robots coord frame
+        tableHeight = rf.check("tableHeight", Value(-0.12)).asDouble();      // Height of the table in the robots coord frame
     }
     
 
     // Attach server port to read RPC commands via thrift
     attach(rpcCmd);
     running = true;
-    toolLoadedIdx = 0;
+    toolLoadedIdx = -1;
     trackingObj = false;
 
     // XXX old variables which may be useful
@@ -352,14 +352,14 @@ bool Tool3DManager::getTool(int toolI, double deg, double disp, double tilt){
     return ok;
 }
 
-bool Tool3DManager::regrasp(double deg, double disp, double tilt){
+bool Tool3DManager::regrasp(double deg, double disp, double tilt, double Z){
     bool ok;
-    if (toolLoadedIdx==0){
+    if (toolLoadedIdx<0){
         cout << "A tool has to be loaded before regrasping is possible" << endl;
         return false;
     }
 
-    ok = regraspExe(deg, disp, tilt);
+    ok = regraspExe(deg, disp, tilt, Z);
     return ok;
 }
 
@@ -395,6 +395,7 @@ bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, dou
         computeEffect();
         if (!(robot == "icubSim"))
         {
+            cout << '\a' << endl;
             cout << "Effect computed, 5 seconds to put the object back in place" <<endl;
             cout << "5" <<endl;
             Time::delay(1);
@@ -940,7 +941,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
 }
 
 /**********************************************************/
-bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, const double graspTilt)
+bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, const double graspTilt, const double Z)
     {
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
@@ -962,7 +963,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 
         // check succesful tool reGrasping
         if (replySim.size() <1){
-            cout << "simtoolloader cloudln't regrasp tool." << endl;
+            cout << "simtoolloader clouldn't regrasp tool." << endl;
             return false;
         }
         //cout << "Received reply: " << replySim.toString() << endl;
@@ -974,8 +975,8 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 
     tooltip.x = ttTrans.x;
     tooltip.y = ttTrans.y;
-    tooltip.z = ttTrans.z;
-    cout << "Tooltip of tool in positon: x= "<< ttTrans.x << ", y = " << ttTrans.y << ", z = " << ttTrans.z <<endl;
+    tooltip.z = ttTrans.z + Z;
+    cout << "Tooltip of tool in positon: x= "<< tooltip.x << ", y = " << tooltip.y << ", z = " << tooltip.z <<endl;
 
     cout << endl << "Attaching tooltip." << endl;
 
