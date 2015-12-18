@@ -38,6 +38,11 @@ public:
    */
   virtual bool goHome(const bool hands = 0);
   /**
+   * Move arm with tool to center to have tool in visual field and check  grasping.
+   * @return true/false on success/failure
+   */
+  virtual bool centerTool();
+  /**
    * Performs the sequence to get the tool: \n
    * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
    * - Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.

@@ -118,6 +118,7 @@ protected:
 	
     /* Protected Methods */    
     void                        goHomeExe(const bool hands = false);
+    void                        toolToCenter();
 
     // Tool loading and feature extraction
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
@@ -147,6 +148,7 @@ public:
 	bool						quit();
 	bool						settableheight(double th = -0.1);
     bool                        goHome(bool hands = false);
+    bool                        centerTool();
     bool                        getTool(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        getToolFeats();

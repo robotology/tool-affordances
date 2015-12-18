@@ -40,6 +40,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_centerTool : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_getTool : public yarp::os::Portable {
 public:
   int32_t tool;
@@ -248,6 +256,27 @@ bool tool3DManager_IDLServer_goHome::read(yarp::os::ConnectionReader& connection
 void tool3DManager_IDLServer_goHome::init(const bool hands) {
   _return = false;
   this->hands = hands;
+}
+
+bool tool3DManager_IDLServer_centerTool::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("centerTool",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_centerTool::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_centerTool::init() {
+  _return = false;
 }
 
 bool tool3DManager_IDLServer_getTool::write(yarp::os::ConnectionWriter& connection) {
@@ -597,6 +626,16 @@ bool tool3DManager_IDLServer::goHome(const bool hands) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool tool3DManager_IDLServer::centerTool() {
+  bool _return = false;
+  tool3DManager_IDLServer_centerTool helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::centerTool()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool tool3DManager_IDLServer::getTool(const int32_t tool, const double deg, const double disp, const double tilt) {
   bool _return = false;
   tool3DManager_IDLServer_getTool helper;
@@ -771,6 +810,17 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       }
       bool _return;
       _return = goHome(hands);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "centerTool") {
+      bool _return;
+      _return = centerTool();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1057,6 +1107,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("quit");
     helpString.push_back("settableheight");
     helpString.push_back("goHome");
+    helpString.push_back("centerTool");
     helpString.push_back("getTool");
     helpString.push_back("regrasp");
     helpString.push_back("getToolFeats");
@@ -1090,6 +1141,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     if (functionName=="goHome") {
       helpString.push_back("bool goHome(const bool hands = 0) ");
       helpString.push_back("Adopt home position ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="centerTool") {
+      helpString.push_back("bool centerTool() ");
+      helpString.push_back("Move arm with tool to center to have tool in visual field and check  grasping. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="getTool") {

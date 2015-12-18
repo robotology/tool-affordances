@@ -332,6 +332,10 @@ bool Tool3DManager::goHome(bool hands){
 	return true;
 }
 
+bool Tool3DManager::centerTool(){
+    toolToCenter();
+    return true;
+}
 
 bool Tool3DManager::getToolFeats(){
     extractFeats();
@@ -523,6 +527,23 @@ void Tool3DManager::goHomeExe(const bool hands)
     return;
 }
 
+
+void Tool3DManager::toolToCenter()
+{
+    // Move hand to central position to check tool extension and perform regrasp easily.
+    Bottle cmdKM, replyKM;
+    cout << "Moving arm to a central position" << endl;
+    double dispY = (hand=="right")?0.15:-0.15;
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");            // Set a position in the center in front of the robot
+    cmdKM.addDouble(-0.25+tooltip.x);   // Taking in account that a tool might be loaded
+    cmdKM.addDouble(dispY+tooltip.y);
+    cmdKM.addDouble(0.05+tooltip.z);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+}
 
 /**********************************************************/
 bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const double graspDisp, const double graspTilt)
