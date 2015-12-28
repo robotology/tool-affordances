@@ -320,9 +320,12 @@ bool Tool3DManager::quit(){
 	return true;
 }
 
-bool Tool3DManager::settableheight(double th){
-    cout << "Setting table height to " << th << endl;
+bool Tool3DManager::settableheight(double th){\
+    if (th > 0){        // Table is below waist level to avoid accidents.
+        th= -th;
+    }
     tableHeight = th;
+    cout << "Setting table height to " << th << endl;
     return true;
 }
 
