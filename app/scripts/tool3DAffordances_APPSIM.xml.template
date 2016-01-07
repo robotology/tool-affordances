@@ -105,6 +105,18 @@
         <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
     </connection>
     <connection>
+        <from>/toolFeatExt/feats3D:o</from>
+        <to>/matlab/readFeats</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
+    </connection>
+    <connection>
+        <from>/matlab/data:o</from>
+        <to>/tool3DManager/matlab:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 630.5) (y 453.5)) ((x 575) (y 386)) ((x 686) (y 521))  )</geometry>
+    </connection>
+    <connection>
         <from external="true">/icubSim/cam/left</from>
         <to>/karmaToolFinder/img:i</to>
         <protocol>udp</protocol>

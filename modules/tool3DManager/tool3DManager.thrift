@@ -122,6 +122,12 @@ service tool3DManager_IDLServer
      */
     bool runExp(1: i32 toolIni = 1, 2: i32 toolEnd = 54);
 
+    /**
+     * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
+     * Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n
+     * @return true/false on success/failure to perform all actions
+     */
+    bool selectAction(1: i32 goal = 1);
 
 
 }

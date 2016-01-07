@@ -171,6 +171,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_selectAction : public yarp::os::Portable {
+public:
+  int32_t goal;
+  bool _return;
+  void init(const int32_t goal);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool tool3DManager_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -586,6 +595,29 @@ void tool3DManager_IDLServer_runExp::init(const int32_t toolIni, const int32_t t
   this->toolEnd = toolEnd;
 }
 
+bool tool3DManager_IDLServer_selectAction::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("selectAction",1,1)) return false;
+  if (!writer.writeI32(goal)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_selectAction::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_selectAction::init(const int32_t goal) {
+  _return = false;
+  this->goal = goal;
+}
+
 tool3DManager_IDLServer::tool3DManager_IDLServer() {
   yarp().setOwner(*this);
 }
@@ -755,6 +787,16 @@ bool tool3DManager_IDLServer::runExp(const int32_t toolIni, const int32_t toolEn
   helper.init(toolIni,toolEnd);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runExp(const int32_t toolIni, const int32_t toolEnd)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::selectAction(const int32_t goal) {
+  bool _return = false;
+  tool3DManager_IDLServer_selectAction helper;
+  helper.init(goal);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::selectAction(const int32_t goal)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1076,6 +1118,21 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "selectAction") {
+      int32_t goal;
+      if (!reader.readI32(goal)) {
+        goal = 1;
+      }
+      bool _return;
+      _return = selectAction(goal);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -1127,6 +1184,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("runToolOr");
     helpString.push_back("runToolTrial");
     helpString.push_back("runExp");
+    helpString.push_back("selectAction");
     helpString.push_back("help");
   }
   else {
@@ -1222,6 +1280,12 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     if (functionName=="runExp") {
       helpString.push_back("bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 54) ");
       helpString.push_back("Runs full trials for all tool with indices between toolini and toolEnd. \n ");
+      helpString.push_back("@return true/false on success/failure to perform all actions ");
+    }
+    if (functionName=="selectAction") {
+      helpString.push_back("bool selectAction(const int32_t goal = 1) ");
+      helpString.push_back("Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action ");
+      helpString.push_back("Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n ");
       helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
     if (functionName=="help") {

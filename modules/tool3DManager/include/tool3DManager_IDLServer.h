@@ -111,6 +111,12 @@ public:
    * @return true/false on success/failure to perform all actions
    */
   virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 54);
+  /**
+   * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
+   * Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n
+   * @return true/false on success/failure to perform all actions
+   */
+  virtual bool selectAction(const int32_t goal = 1);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

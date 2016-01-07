@@ -385,13 +385,18 @@ bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, dou
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
 
+    int tilt = 0;
     if (robot=="icubSim"){
         getTool(toolI, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
+        extractFeats();
+    } else {
+        tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
     }
+
     // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
 
     for (int i=1 ; i<=numAct ; i++){
-        dragExe(theta,0.15,-15);
+        dragExe(theta,0.15,tilt);
         computeEffect();
         if (!(robot == "icubSim"))
         {
@@ -420,6 +425,12 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
     double theta = 0.0;
     Rand randG; // YARP random generator
 
+    int tilt = 0;
+    if (!(robot=="icubSim")){
+        tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
+    }
+
+
     int toolI_prev = round(randG.scalar(1,52));
     for (int p=1 ; p<=numPoses ; p++){
         bool toolOK = false;
@@ -440,9 +451,10 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
         cout << "Starting trial with orientation "<< graspOr <<", displacement "<<  graspDisp << " and tilt " << graspTilt << "." << endl;
 
         getTool(toolI, graspOr, graspDisp, graspTilt);  // re-grasp the tool with the given grasp parameters
+        extractFeats();
 
         for (int i=1 ; i<=numAct ; i++){
-            dragExe(theta,0.15,-15);
+            dragExe(theta,0.15,tilt);
             computeEffect();
             theta += thetaDiv;
         }
@@ -492,6 +504,67 @@ bool Tool3DManager::runExp(int toolIni, int toolEnd)
     return true;
 }
 
+bool Tool3DManager::selectAction(int goal)
+{
+    int tilt = 0;
+    if (!(robot=="icubSim")){
+        tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
+    }
+
+    // A tool has to have been handled in the first place -> so the model is already loaded    
+    // Extract features to send them to MATLAB.
+    if (!extractFeats()){
+        cout << "ToolFeatExt coudln't extract the features." << endl;
+        return false;
+    }
+    cout << " Oriented 3D features extracted and sent to Matlab" << endl;
+
+    Bottle *matReply = matlabPort.read(true);
+    cout << " Read prediction form Matlab " << matReply->toString().c_str() << endl;
+
+    // Find the maximum for affPred and perform doAction on the max index.
+    int predClust = matReply->get(0).asInt();
+    Bottle *effPred = matReply->get(1).asList();
+    cout << "Cluster " << predClust << ", Predicted Effect Vector " << effPred->toString().c_str() << endl;
+
+    if (goal == 1) // Goal is to achieve maximum displacement
+    {
+        int numPoint = effPred->size();
+        double bestEff = 0;
+        int bestAngleI = 0;
+        for ( int angleI = 0; angleI < numPoint; angleI++ ) // Find the approach that will generate predicted maximum effect
+        {
+           double predEff = effPred->get(angleI).asDouble();
+           if (predEff > bestEff){
+               bestEff = 	predEff;
+               bestAngleI = angleI;
+           }
+        }
+        double theta = 45 * bestAngleI;     // Get the drag angle corresponding to the best predicted effect
+        printf("Best predicted drag from angle %g, predicted effect of %f m  \n", theta, bestEff);
+
+        dragExe(theta,0.15, tilt);
+
+        return computeEffect();
+    }
+    if (goal == 2)
+    {
+        // Pull action is dragging towards the robot -> angle 270 -> actionI = 6
+        int pullI = 6;
+        double predEff = effPred->get(pullI).asDouble();
+        if (predEff < 0.05) // If the expected pull is smaller than 5 cm means teh tool can't afford pulling{
+        {
+            cout << "Please give me another tool, I can't pull with this tool" << endl;
+            return false;
+        }
+        cout << "I can pull with this tool, expected drag is "<< predEff << endl;
+        dragExe(270, 0.15, tilt);
+        return computeEffect();
+    }else{
+        cout << "Please select a goal (1:Max disp, 2: pull)" <<endl;
+        return false;
+    }
+}
 
 
 /**********************************************************
@@ -635,11 +708,11 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
         //cout << " Received reply: " << replyTFE.toString() << endl;
 
         // Extract Canonical tool features.
-        if (!extractFeats()){
-            cout << "ToolFeatExt coudln't extract the features." << endl;
-            return false;
-        }
-        cout << " Canonical 3D features extracted" << endl;
+//        if (!extractFeats()){
+//            cout << "ToolFeatExt coudln't extract the features." << endl;
+//            return false;
+//        }
+//        cout << " Canonical 3D features extracted" << endl;
 
         // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
         cout << "Getting canonical tooltip coordinates." << endl;
@@ -730,11 +803,11 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     }
     //cout << " Received reply: " << replyTFE.toString() << endl;
 
-    if (!extractFeats()){
-        cout << "ToolFeatExt coudln't extract the features." << endl;
-        return false;
-    }
-    cout << " Oriented 3D features extracted" << endl;
+//    if (!extractFeats()){
+//        cout << "ToolFeatExt coudln't extract the features." << endl;
+//        return false;
+//    }
+//    cout << " Oriented 3D features extracted" << endl;
 
     graspVec.clear();		// Clear to make space for new coordinates
     graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
@@ -844,12 +917,12 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     }
     //cout << " Received reply: " << replyTFE.toString() << endl;
 
-    // Extract Canonical tool features.
-    if (!extractFeats()){
-        cout << "ToolFeatExt coudln't extract the features." << endl;
-        return false;
-    }
-    cout << " Canonical 3D features extracted" << endl;
+ //   // Extract Canonical tool features.
+ //  if (!extractFeats()){
+ //       cout << "ToolFeatExt coudln't extract the features." << endl;
+ //       return false;
+ //   }
+ //    cout << " Canonical 3D features extracted" << endl;
 
     // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
     cout << "Getting canonical tooltip coordinates." << endl;
@@ -918,11 +991,11 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     }
     //cout << " Received reply: " << replyTFE.toString() << endl;
 
-    if (!extractFeats()){
-        cout << "ToolFeatExt couldn't extract the features." << endl;
-        return false;
-    }
-    cout << " Oriented 3D features extracted" << endl;
+//    if (!extractFeats()){
+//       cout << "ToolFeatExt couldn't extract the features." << endl;
+//        return false;
+//    }
+//    cout << " Oriented 3D features extracted" << endl;
 
     graspVec.clear();		// Clear to make space for new coordinates
     graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
@@ -1022,11 +1095,11 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
     }
     //cout << " Received reply: " << replyTFE.toString() << endl;
 
-    if (!extractFeats()){
-    cout << "ToolFeatExt coudln't extract the features." << endl;
-    return false;
-    }
-    cout << " Oriented 3D features extracted" << endl;
+//    if (!extractFeats()){
+//        cout << "ToolFeatExt coudln't extract the features." << endl;
+//        return false;
+//     }
+//     cout << " Oriented 3D features extracted" << endl;
 
     graspVec.clear();		// Clear to make space for new coordinates
     graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
@@ -1044,7 +1117,7 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 /**********************************************************/
 bool Tool3DManager::extractFeats()
 {    // Query toolFeatExt to extract features
-    cout << "Loading pointcloud to extract tooltip." << endl;
+    cout << "Extacting features of handled tool." << endl;
     Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
     cmdTFE.clear();   replyTFE.clear();
     cmdTFE.addString("getFeats");
