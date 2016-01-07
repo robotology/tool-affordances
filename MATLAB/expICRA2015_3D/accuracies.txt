@@ -1,0 +1,49 @@
+Accuracies:
+
+Divided dataset:
+SIM:
+Random: 54.36 %
+Only orient: 53.021 %
+Only feats: 82.99 %
+Feats + orient: 79.85 %
+
+ROBOT:
+Random: 55.4%
+Only Orient: 51.28%
+Only feats: 68.23%
+Feats + orient: 64.1%
+
+LEAVE-ONE-OUT
+
+ROBOT:
+Only Feats: 51.3%
+    66    26    41
+     4     0     0
+     0     0     1
+Only Orient: 44.6%
+    46    30    24
+    14    11     0
+    10     1     2
+Feats + Orient: 42.42%
+    53    39    25
+    11     3     1
+     6     0     0
+     
+
+SIM
+
+
+LEAVE-ONE-OUT
+Only feats: 57.33%
+    188    69    54
+    24     1     9
+    95     1   126
+    
+Only Orient: 43.77%
+    239   143    35
+    32    12    35
+    36    34     1
+Feats+Orient: 60.7%
+    197    43    68
+    86   137     2
+    24     9     1
