@@ -150,10 +150,10 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     cout << "Configuring module name " << name << ", camera " << camera << ", hand "<< hand << ", on robot " << robot << endl;
 
     if (robot=="icubSim"){
-        cout << "Configuring for robot icubSim" <<endl;
+        cout << "Configuring for robot icubSim" << endl;
         tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
     }else{
-        cout << "Configuring for robot real iCub" <<endl;
+        cout << "Configuring for robot real iCub" << endl;
         tableHeight = rf.check("tableHeight", Value(-0.12)).asDouble();      // Height of the table in the robots coord frame
     }
     

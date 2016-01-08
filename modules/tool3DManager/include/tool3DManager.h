@@ -117,9 +117,6 @@ protected:
 
 	
     /* Protected Methods */    
-    void                        goHomeExe(const bool hands = false);
-    void                        toolToCenter();
-
     // Tool loading and feature extraction
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        loadToolReal(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
@@ -135,6 +132,8 @@ protected:
     bool                        sendAffData();
 
     // Action
+    void                        goHomeExe(const bool hands = false);
+    void                        toolToCenter();
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
     bool                        dragExe(const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
 
