@@ -125,11 +125,15 @@ service tool3DManager_IDLServer
     /**
      * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
      * Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n
-     * @return true/false on success/failure to perform all actions
+     * @return true/false on success/failure to query matlab and perform action
      */
     bool selectAction(1: i32 goal = 1);
 
-
+    /**
+     * Runs selectAction trials for all the test tools for given goal (1: maxDist, 2: Pull)
+     * @return true/false on success/failure to perform actions selections
+     */
+    bool predExp(1: i32 goal = 1);
 }
 
 

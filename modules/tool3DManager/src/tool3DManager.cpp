@@ -508,7 +508,7 @@ bool Tool3DManager::runExp(int toolIni, int toolEnd)
 }
 
 bool Tool3DManager::selectAction(int goal)
-{
+{   // Goals are 1 to achieve maximum displacement, 2 to perform pull
     int tilt = 0;
     if (!(robot=="icubSim")){
         tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
@@ -550,7 +550,7 @@ bool Tool3DManager::selectAction(int goal)
 
         return computeEffect();
     }
-    if (goal == 2)
+    if (goal == 2) // Goal is to pull the object, if possible
     {
         // Pull action is dragging towards the robot -> angle 270 -> actionI = 6
         int pullI = 6;
@@ -568,6 +568,41 @@ bool Tool3DManager::selectAction(int goal)
         return false;
     }
 }
+
+
+bool Tool3DManager::predExp(int goal)
+{   // Remember that MATLAB has to be connected to YARP, and the right affordance models loaded.
+
+    // List the tools to use for testing:
+    if (robot == "icubSim"){
+        int testTools[14] = {  // 1,  4,  8,       // hoe0, hoe3, hoe7
+                               //14, 17,      // hook3, hook6
+                               25, 28, 30,  // rake4, rake7, rake9
+                               33, 36, 39,  // stick2, stick5, stick8
+                               48, 49,      // shovel8, shovel9
+                               53 };        // star
+        for (int testToolI = 0; testToolI < 14; testToolI++ ){
+            for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
+                for (int disp=0  ; disp<2 ; disp++ ){                 // This is a loop for disp {0,1}
+                    if (getTool(testTools[testToolI], ori, disp)){
+                        cout << "Tool loaded, selecting best action for goal " << goal << endl;
+                        selectAction(goal);
+                    }else{
+                        cout << "Couldn't load the desired test tool" << endl;
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+
+    }else{
+
+
+    }
+
+}
+
 
 
 /**********************************************************

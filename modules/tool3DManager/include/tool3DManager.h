@@ -162,7 +162,8 @@ public:
     bool                        runToolOr(int toolI, double graspOr = 0.0, int numAct = 8);
     bool                        runToolTrial(int toolI, int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
-    bool                        selectAction(int goal = 0);
+    bool                        selectAction(int goal = 1);
+    bool                        predExp(int goal = 1);
 
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);
