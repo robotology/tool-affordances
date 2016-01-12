@@ -575,11 +575,11 @@ bool Tool3DManager::predExp(int goal)
 
     // List the tools to use for testing:
     if (robot == "icubSim"){
-        int testTools[14] = {  // 1,  4,  8,       // hoe0, hoe3, hoe7
-                               //14, 17,      // hook3, hook6
+        int testTools[14] = {   1,  4,  8,       // hoe0, hoe3, hoe7
+                               14, 18,      // hook3, hook6
                                25, 28, 30,  // rake4, rake7, rake9
                                33, 36, 39,  // stick2, stick5, stick8
-                               48, 49,      // shovel8, shovel9
+                               48, 50,      // shovel8, shovel9
                                53 };        // star
         for (int testToolI = 0; testToolI < 14; testToolI++ ){
             for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
