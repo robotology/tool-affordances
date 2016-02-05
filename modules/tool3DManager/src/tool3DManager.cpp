@@ -228,6 +228,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
     retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
     retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             //rpc server to query tool Feat Extraction module
+    retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());             //rpc server to query tool Feat Extraction module
     //retRPC = retRPC && rpcToolShow.open(("/"+name+"/tool3Dshow:rpc").c_str());	   //rpc server to query toolExplorer Module
 
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());         //rpc server to query objectFinder
@@ -354,6 +355,18 @@ bool Tool3DManager::getTool(int toolI, double deg, double disp, double tilt){
     }
     return ok;
 }
+
+bool Tool3DManager::findPose(){
+    bool ok;
+    if (robot=="icubSim"){
+        cout << "Grasp in sim corresponds surely with given one." << endl;
+        ok = false;
+    }else{
+        ok = findPoseExe();
+    }
+    return ok;
+}
+
 
 bool Tool3DManager::regrasp(double deg, double disp, double tilt, double Z){
     bool ok;
@@ -873,7 +886,8 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
 
     Bottle cmdKM,replyKM;               // bottles for Karma Motor
     Bottle cmdTFE,replyTFE;             // bottles for toolFeatExt
-    Bottle cmdKF,replyKF;       // bottles for Karma ToolFinder
+    Bottle cmd3DE, reply3DE;            // bottles for objects3DExplorer
+    Bottle cmdKF,replyKF;               // bottles for Karma ToolFinder
     Bottle cmdAre, replyAre;
 
 
@@ -953,6 +967,17 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
         cout << "ToolFeatExt coudln't load the tool." << endl;
         return false;
     }
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("loadCloud");
+    cmd3DE.addString(cloudName);
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "Sent RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    if (reply3D.size() <1){
+        cout << "objects3DExplorer coudln't load the tool." << endl;
+        return false;
+    }
+
     //cout << " Received reply: " << replyTFE.toString() << endl;
 
  //   // Extract Canonical tool features.
@@ -1151,6 +1176,24 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 
     return true;
 }
+
+/**********************************************************/
+bool Tool3DManager::findPoseExe()
+{    // Query toolFeatExt to extract features
+    cout << "Finding out tool pose from 3D partial view." << endl;
+    Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("findToolPose");
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "Sent RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    if (reply3DE.size() <1){
+        cout << "Objects3Dexplorer couldn't find out the pose." << endl;
+        return false;
+    }
+    return true;
+}
+
+
 
 /**********************************************************/
 bool Tool3DManager::extractFeats()

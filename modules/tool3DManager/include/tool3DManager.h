@@ -76,7 +76,9 @@ protected:
 	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
     yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
     yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
+
     yarp::os::RpcClient         rpcFeatExt;	        //rpc connection to toolFeatExt to extract features from cloud
+    yarp::os::RpcClient         rpc3Dexp;	        //rpc connection to toolFeatExt to extract features from cloud
 
     yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
     //yarp::os::RpcClient         rpcToolShow;        //rpc connecting to pointcloud 3D visualizer
@@ -124,6 +126,7 @@ protected:
     bool                        extractFeats();
     void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
 
+
     // Object Localization and effect computation
     bool                        trackObjExe();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
@@ -150,6 +153,8 @@ public:
     bool                        centerTool();
     bool                        getTool(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0);
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double Z = 0.0);
+    bool                        findPose();
+
     bool                        getToolFeats();
     bool                        slide(double theta, double radius);
     bool                        drag(double theta, double radius, double tilt);

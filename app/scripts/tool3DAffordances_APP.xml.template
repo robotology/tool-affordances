@@ -1,6 +1,13 @@
 <application>
     <name>tool3DAffordances_APP</name>
     <module>
+        <name>tool3DManager</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 45) (y 57.9))</geometry>
+    </module>
+    <module>
         <name>actionsRenderingEngine</name>
         <parameters></parameters>
         <node>localhost</node>
@@ -36,13 +43,6 @@
         <geometry>(Pos (x 731) (y 559.9))</geometry>
     </module>
     <module>
-        <name>tool3DManager</name>
-        <parameters>--from realTools.ini</parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 45) (y 57.9))</geometry>
-    </module>
-    <module>
         <name>show3D</name>
         <parameters></parameters>
         <node>localhost</node>
@@ -51,6 +51,13 @@
     </module>
     <module>
         <name>toolFeatExt</name>
+        <parameters>--context tool3DManager</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 397) (y 367.9))</geometry>
+    </module>
+    <module>
+        <name>objects3DExplorer</name>
         <parameters>--context tool3DManager</parameters>
         <node>localhost</node>
         <prefix></prefix>
@@ -92,6 +99,12 @@
     <connection>
         <from>/tool3DManager/karmaFinder:rpc</from>
         <to>/karmaToolFinder/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 305) (y 228.5)) ((x 234) (y 175)) ((x 397) (y 282))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/obj3Dexp:rpc</from>
+        <to>/objects3DExplorer/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 305) (y 228.5)) ((x 234) (y 175)) ((x 397) (y 282))  )</geometry>
     </connection>
