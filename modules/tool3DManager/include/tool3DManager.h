@@ -123,6 +123,7 @@ protected:
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        loadToolReal(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        regraspExe(const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
+    bool                        findPoseExe();
     bool                        extractFeats();
     void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
 

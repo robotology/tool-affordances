@@ -973,7 +973,7 @@ bool Tool3DManager::loadToolReal(const int toolI, const double graspOr, const do
     cmd3DE.addString(cloudName);
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "Sent RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
-    if (reply3D.size() <1){
+    if (reply3DE.size() <1){
         cout << "objects3DExplorer coudln't load the tool." << endl;
         return false;
     }
@@ -1179,7 +1179,21 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 
 /**********************************************************/
 bool Tool3DManager::findPoseExe()
-{    // Query toolFeatExt to extract features
+{
+    // Move hand to central position to check tool extension and perform regrasp easily.
+    cout << "Moving arm to a central position" << endl;
+    double dispY = (hand=="right")?0.15:-0.15;
+    Bottle cmdKM, replyKM;
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");            // Set a position in the center in front of the robot
+    cmdKM.addDouble(-0.25);
+    cmdKM.addDouble(dispY);
+    cmdKM.addDouble(0.05);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+    // Query toolFeatExt to extract features
     cout << "Finding out tool pose from 3D partial view." << endl;
     Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
     cmd3DE.clear();   reply3DE.clear();
