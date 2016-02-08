@@ -53,9 +53,15 @@ service tool3DManager_IDLServer
      * - On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>.
      * - The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
      * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
-     * @return true/false on success/failure of looking at that position
+     * @return true/false on success/failure of regrasping the tool
      */
     bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0, 4:double Z = 0.0);
+
+    /**
+     * Start the methods to find the tool pose by aligning the partial reconstruction with a tool model: \n
+     * @return true/false on success/failure of finding the tool pose
+     */
+    bool findPose();
 
 
     /**

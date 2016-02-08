@@ -72,6 +72,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_findPose : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_getToolFeats : public yarp::os::Portable {
 public:
   bool _return;
@@ -354,6 +362,27 @@ void tool3DManager_IDLServer_regrasp::init(const double deg, const double disp, 
   this->disp = disp;
   this->tilt = tilt;
   this->Z = Z;
+}
+
+bool tool3DManager_IDLServer_findPose::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("findPose",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_findPose::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_findPose::init() {
+  _return = false;
 }
 
 bool tool3DManager_IDLServer_getToolFeats::write(yarp::os::ConnectionWriter& connection) {
@@ -723,6 +752,16 @@ bool tool3DManager_IDLServer::regrasp(const double deg, const double disp, const
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool tool3DManager_IDLServer::findPose() {
+  bool _return = false;
+  tool3DManager_IDLServer_findPose helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::findPose()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool tool3DManager_IDLServer::getToolFeats() {
   bool _return = false;
   tool3DManager_IDLServer_getToolFeats helper;
@@ -962,6 +1001,17 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       }
       bool _return;
       _return = regrasp(deg,disp,tilt,Z);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "findPose") {
+      bool _return;
+      _return = findPose();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1231,6 +1281,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("centerTool");
     helpString.push_back("getTool");
     helpString.push_back("regrasp");
+    helpString.push_back("findPose");
     helpString.push_back("getToolFeats");
     helpString.push_back("slide");
     helpString.push_back("drag");
@@ -1285,7 +1336,12 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("- On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. ");
       helpString.push_back("- The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder. ");
       helpString.push_back("- On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose. ");
-      helpString.push_back("@return true/false on success/failure of looking at that position ");
+      helpString.push_back("@return true/false on success/failure of regrasping the tool ");
+    }
+    if (functionName=="findPose") {
+      helpString.push_back("bool findPose() ");
+      helpString.push_back("Start the methods to find the tool pose by aligning the partial reconstruction with a tool model: \n ");
+      helpString.push_back("@return true/false on success/failure of finding the tool pose ");
     }
     if (functionName=="getToolFeats") {
       helpString.push_back("bool getToolFeats() ");

@@ -1181,17 +1181,17 @@ bool Tool3DManager::regraspExe(const double graspOr, const double graspDisp, con
 bool Tool3DManager::findPoseExe()
 {
     // Move hand to central position to check tool extension and perform regrasp easily.
-    cout << "Moving arm to a central position" << endl;
-    double dispY = (hand=="right")?0.15:-0.15;
-    Bottle cmdKM, replyKM;
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.25);
-    cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.05);
-    cmdKM.addDouble(0.0);       // No angle
-    cmdKM.addDouble(0.0);       // No radius
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    //cout << "Moving arm to a central position" << endl;
+    //double dispY = (hand=="right")?0.15:-0.15;
+    //Bottle cmdKM, replyKM;
+    //cmdKM.clear();replyKM.clear();
+    //cmdKM.addString("push");            // Set a position in the center in front of the robot
+    //cmdKM.addDouble(-0.25);
+    //cmdKM.addDouble(dispY);
+    //cmdKM.addDouble(0.05);
+    //cmdKM.addDouble(0.0);       // No angle
+    //cmdKM.addDouble(0.0);       // No radius
+    //rpcKarmaMotor.write(cmdKM, replyKM);
 
     // Query toolFeatExt to extract features
     cout << "Finding out tool pose from 3D partial view." << endl;
