@@ -108,27 +108,33 @@ protected:
     yarp::sig::Vector			graspVec;               // Measurements of the grasp parameters (toolI - grasp Orientation - grasp Displacement)
     yarp::sig::Vector			actVec;                 // Measurements of the action parameters (action angle, distance of drag)
 
-    //yarp::sig::Vector			toolDim;    		    // Keeps the dimensions of the detected tool
-    //std::string               toolPoseName;
-
     struct                      Point3D {double x;double y; double z;};
 
     Point3D                     toolTipCanon, tooltip;            // Coordinates of the tooltip in 3D.
     int                         toolLoadedIdx;      // Index of the tool loaded, in order to decide whether to reload or reGrasp
     bool						trackingObj;
+    std::string                 toolname;
 
 	
-    /* Protected Methods */    
+    /****  Protected Methods ******/
     // Tool loading and feature extraction
+    bool                        graspToolExe();
+    bool                        load3Dmodel(const std::string& tool);
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
-    bool                        loadToolReal(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
-    bool                        regraspExe(const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
-    bool                        findPoseExe();
+    bool                        loadToolPose(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
+    bool                        loadToolName(const std::string& tool);
+
+    bool                        findPoseExe(const std::string& tool, Point3D ttip);
+    bool                        regraspExe(Point3D newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
+
+    bool                        findTipFromParam( Point3D ttip, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0, const double graspShift = 0.0);
+    bool                        addToolTip(const Point3D ttip);
     bool                        extractFeats();
-    void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
+    //void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
 
 
     // Object Localization and effect computation
+    double                      findTableHeight(bool calib = true);
     bool                        trackObjExe();
     bool                        getObjLoc(yarp::sig::Vector &coords3D);
     bool                        getObjRot(yarp::sig::Vector &rot3D);
@@ -137,7 +143,6 @@ protected:
 
     // Action
     void                        goHomeExe(const bool hands = false);
-    void                        toolToCenter();
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
     bool                        dragExe(const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
 
@@ -145,22 +150,27 @@ protected:
 public:
 
 	/* RPC commands handling */
-	//atomic commands
+    // module control commands
     bool						attach(yarp::os::RpcServer &source);
 	bool						start();
 	bool						quit();
-	bool						settableheight(double th = -0.1);
-    bool                        goHome(bool hands = false);
-    bool                        centerTool();
-    bool                        getTool(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0);
-    bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double Z = 0.0);
-    bool                        findPose();
 
+    // tool load and information
+    bool                        setToolName(std::string &tool);
+    bool                        getToolByPose(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
+    bool                        getToolByName(std::string &tool);
+    bool                        graspTool();
+    bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
+    bool                        findPose();
     bool                        getToolFeats();
+
+    // actions
+    bool                        goHome(bool hands = false);
+    bool						findTable(bool calib = true);
     bool                        slide(double theta, double radius);
     bool                        drag(double theta, double radius, double tilt);
-    bool                        compEff();
     bool                        trackObj();
+    bool                        compEff();
 
     // Experiment functions
     bool                        runRandPoses(int numPoses = 50,int numAct = 8);

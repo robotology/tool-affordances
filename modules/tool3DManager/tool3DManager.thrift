@@ -21,41 +21,40 @@ service tool3DManager_IDLServer
     bool quit();
 
     /**
-     * Sets the table height: \n
-     * @returns true
-     */
-    bool settableheight(1:double th = -0.1);
-
-
-    /**
-     * Adopt home position
+     * Set the tool name on objects3DExplorer
      * @return true/false on success/failure
      */
-    bool goHome(1:bool hands = false);
-
-    /**
-     * Move arm with tool to center to have tool in visual field and check  grasping.
-     * @return true/false on success/failure
-     */
-    bool centerTool();
+    bool setToolName(1: string tool);
 
     /**
      * Performs the sequence to get the tool: \n
      * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
      * - Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
      * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
-     * @return true/false on success/failure of looking at that position    
+     * @return true/false on success/failure of loading the tool with correct pose
      */
-    bool getTool(1:i32 tool = 0, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0);
+    bool getToolByPose(1:i32 tool = 0, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0,  5:double shift = 0.0);
 
     /**
      * Performs the sequence to get the tool: \n
-     * - On the simulator calls simtoolloader to rotate the handled tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>.
-     * - The new tool end effector position is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder.
-     * - On the real robot the robot does not regrasp, but updates is end-effector position to match the real tool pose.
+     * - Grasp action
+     * - Load tool in objects3Dexplorer
+     * - Find pose and tooltip
+     * @return true/false on success/failure of grasping and loading the named tool
+     */
+    bool getToolByName(1:string tool);
+
+    /**
+     * Communicates with ARE and KM to grasp a tool and move it to the center.
+     * @return true/false on success/failure
+     */
+    bool graspTool();
+
+    /**
+     * Move tool in hand (sim) and change kinematic extension (sim and real).
      * @return true/false on success/failure of regrasping the tool
      */
-    bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0, 4:double Z = 0.0);
+    bool regrasp(1:double deg = 0.0, 2:double disp = 0.0, 3:double tilt = 45.0, 4:double shift = 0.0);
 
     /**
      * Start the methods to find the tool pose by aligning the partial reconstruction with a tool model: \n
@@ -69,6 +68,20 @@ service tool3DManager_IDLServer
      * @return true/false on success/failure to extract features
      */
     bool getToolFeats();
+
+    /****************************** ACTIONS **************************************/
+
+    /**
+     * Adopt home position
+     * @return true/false on success/failure
+     */
+    bool goHome(1:bool hands = false);
+
+    /**
+     * Calibrates the table height: \n
+     * @returns true
+     */
+    bool findTable(1:bool calib = true);
 
     /**
      * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
@@ -96,12 +109,13 @@ service tool3DManager_IDLServer
      */
     bool compEff();
 
+    /*********************** EXPERIMENT ROUTINES ************************************/
+
     /**
      * Runs numAct actions for numPoses times, each time with a random tool in a random pose
      * @return true/false on success/failure to perform all actions
      */
     bool runRandPoses(1: i32 numPoses, 2: i32 numAct = 8);
-
 
     /**
      * Runs numAct actions with the given tool on the given pose and computes the effect. \n

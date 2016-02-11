@@ -37,6 +37,11 @@
             <port carrier="tcp">/tool3DManager/rpc:i</port>
             <description>takes RPC commands from Human, stateMachine or other modules</description>
         </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/tool3DManager/matlab:i</port>
+            <description>receives info from MATLAB, for example, the predicted affrodance for a given tool</description>
+        </input>
         
         <!-- output data if available -->
         <output port_type="service">
@@ -58,6 +63,11 @@
             <type>rpc</type>
             <port>/tool3DManager/karmaMotor:rpc</port>
             <description> Send commands to the Karma motor for tool use related actions</description>
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/tool3DManager/obj3Dexp:rpc</port>
+            <description> Send commands to the object3Dexplorer for cloud pose estimation.</description>
         </output>
          <output port_type="service">
             <type>rpc</type>
