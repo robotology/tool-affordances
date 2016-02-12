@@ -827,7 +827,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     cmd3DE.addDouble(graspDisp);
     cmd3DE.addDouble(tiltValid);
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "Sent RPC command to toolFeatExt: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sent RPC command to object3DExplorer: " << cmd3DE.toString() << "."<< endl;
     if (reply3DE.size() <1){
         cout << "Object3DExplorer coudln't compute the tooltip." << endl;
         return false;
