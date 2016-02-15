@@ -156,9 +156,9 @@ public:
 	bool						quit();
 
     // tool load and information
-    bool                        setToolName(std::string &tool);
+    bool                        setToolName(const std::string &tool);
     bool                        getToolByPose(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
-    bool                        getToolByName(std::string &tool);
+    bool                        getToolByName(const std::string &tool);
     bool                        graspTool();
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();

@@ -327,7 +327,7 @@ bool Tool3DManager::quit(){
 /***********************************************************************************/
 // ======================== Tool Load and Info Extraction
 
-bool Tool3DManager::setToolName(string &tool){
+bool Tool3DManager::setToolName(const string &tool){
     toolname = tool;
     bool ok = load3Dmodel(tool);
     return ok;
@@ -343,7 +343,7 @@ bool Tool3DManager::getToolByPose(int toolI, double deg, double disp, double til
     return ok;
 }
 
-bool Tool3DManager::getToolByName(string &tool){
+bool Tool3DManager::getToolByName(const string &tool){
     bool ok;
     if (robot=="icubSim"){
          cout << "Grasp params need to be given to grasp on simulator. Try getToolByPose." << endl;
