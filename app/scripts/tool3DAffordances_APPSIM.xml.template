@@ -10,7 +10,7 @@
     <module>
         <name>objects3DExplorer</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 426) (y 274.9))</geometry>
     </module>
@@ -121,7 +121,7 @@
     <connection>
         <from>/objects3DExplorer/clouds:o</from>
         <to>/show3D/clouds:i</to>
-        <protocol></protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 799.5) (y 335.5)) ((x 652) (y 293)) ((x 947) (y 378))  )</geometry>
     </connection>
     <connection>

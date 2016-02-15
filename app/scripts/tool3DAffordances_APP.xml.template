@@ -176,7 +176,7 @@
     <connection>
         <from>/tool3DManager/obj3Dexp:rpc</from>
         <to external="true">/objects3DExplorer/rpc:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 366.5) (y 221.5)) ((x 329) (y 206)) ((x 425) (y 237))  )</geometry>
     </connection>
     <connection>
