@@ -163,6 +163,8 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     running = true;
     toolLoadedIdx = -1;
     trackingObj = false;
+    toolname = "";
+    seg2D = true;
 
     // XXX old variables which may be useful
     /*
@@ -653,6 +655,31 @@ bool Tool3DManager::predExp(int goal)
 
     }
 
+}
+
+
+/***********************************************************************************/
+// ========================  CONFIGURATION FUNTIONS
+
+
+bool Tool3DManager::setSeg(bool seg){
+    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("setSeg");
+    if (seg){
+        cmd3DE.addString("ON");
+    }else{
+        cmd3DE.addString("OFF");
+    }
+    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.size() <1){                                                // XXX change to check on 'nack'
+        cout << "objects3DExplorer couldnt set segmentatio to ON/OFF" << endl;
+        return false;
+    }
+
+    return true;
 }
 
 

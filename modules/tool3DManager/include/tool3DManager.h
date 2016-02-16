@@ -114,6 +114,7 @@ protected:
     int                         toolLoadedIdx;      // Index of the tool loaded, in order to decide whether to reload or reGrasp
     bool						trackingObj;
     std::string                 toolname;
+    bool                        seg2D;              // if false, seg is from 3D.
 
 	
     /****  Protected Methods ******/
@@ -163,6 +164,7 @@ public:
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();
+    bool                        setSeg(bool);
 
     // actions
     bool                        goHome(bool hands = false);
