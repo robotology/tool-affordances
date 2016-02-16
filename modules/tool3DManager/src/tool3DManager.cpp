@@ -348,6 +348,7 @@ bool Tool3DManager::getToolByName(const string &tool){
     if (robot=="icubSim"){
          cout << "Grasp params need to be given to grasp on simulator. Try getToolByPose." << endl;
     }else{
+        toolname = tool;
         ok = loadToolName(tool);
     }
     return ok;
@@ -379,11 +380,24 @@ bool Tool3DManager::findPose(){
     bool ok;
     if (robot=="icubSim"){
         cout << "Grasp in sim corresponds surely with given one." << endl;
-        ok = false;
-    }else{
-        ok = findPoseExe(toolname, tooltip);
+        return false;
     }
-    return ok;
+    ok = findPoseExe(toolname, tooltip);
+    if (!ok){
+        cout << "Tool Pose could not be estimated properly" << endl;
+        return false;
+    }
+    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
+
+    ok = addToolTip(tooltip);
+    if (!ok){
+        cout << "Tool tip could not be attached." << endl;
+        return false;
+    }
+    cout <<  "Tooltip attached, ready to perform action!" << endl;
+
+
+    return true;
 }
 
 bool Tool3DManager::getToolFeats(){
@@ -691,17 +705,38 @@ bool Tool3DManager::graspToolExe()
     if(!replyARE.get(0).asBool())
         return false;
 
+    // Close hand on tool grasp
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("look");
+    cmdARE.addString("hand");
+    cmdARE.addString(hand);
+    cmdARE.addString("fixate");
+    cmdARE.addString("block_eyes");
+    cmdARE.addDouble(5.0);
+    rpcMotorAre.write(cmdARE, replyARE);
+    Time::delay(0.5);
+
     // Move hand to central position to check tool extension and perform regrasp easily.
     cout << "Moving arm to a central position" << endl;
     double dispY = (hand=="right")?0.15:-0.15;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.25);
+    cmdKM.addDouble(-0.2);
     cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.05);
+    cmdKM.addDouble(0.0);
     cmdKM.addDouble(0.0);       // No angle
     cmdKM.addDouble(0.0);       // No radius
     rpcKarmaMotor.write(cmdKM, replyKM);
+
+    Time::delay(3.0);
+    // Stop head moving for further visual processing
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("idle");
+    rpcMotorAre.write(cmdARE, replyARE);
+
+    return true;
 }
 
 /**********************************************************/
@@ -932,7 +967,7 @@ bool Tool3DManager::loadToolName(const string& tool)
         cout << "Tool Pose could not be estimated properly" << endl;
         return false;
     }
-    cout <<  "Tool loaded and pose and tooltip found!" << endl;
+    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
     ok =addToolTip(tooltip);
     if (!ok){
@@ -947,8 +982,13 @@ bool Tool3DManager::loadToolName(const string& tool)
 
 
 /**********************************************************/
-bool Tool3DManager::findPoseExe(const string& tool, Point3D ttip)
+bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
 {
+    if (tool.size()<4){
+        cout << " Tool not loaded, please load tool before attempting to estimate pose" << endl;
+        return false;
+    }
+
     // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
     Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
 
@@ -998,7 +1038,7 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D ttip)
 
 
 /**********************************************************/
-bool Tool3DManager::regraspExe(Point3D newTip, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
+bool Tool3DManager::regraspExe(Point3D &newTip, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
     {
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
@@ -1059,7 +1099,7 @@ bool Tool3DManager::regraspExe(Point3D newTip, const double graspOr, const doubl
 
 
 /**********************************************************/
-bool Tool3DManager::findTipFromParam( Point3D ttip, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
+bool Tool3DManager::findTipFromParam( Point3D &ttip, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
     // Query object3DExplorer to find the tooltip
     cout << "Finding out tooltoltip from model and grasp parameters." << endl;
@@ -1098,7 +1138,9 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
     cmdKF.addDouble(ttip.x);
     cmdKF.addDouble(ttip.y);
     cmdKF.addDouble(ttip.z);
+    cout << "RPC command to KarmaToolFinder: " << cmdKF.toString() << endl;
     rpcKarmaFinder.write(cmdKF, replyKF);
+    cout << "RPC reply from KarmaToolFinder: " << replyKF.toString() << endl;
     if (replyKF.get(0).asString() == "[nack]"){
         cout <<  "Karma Finder could not project the tooltip " << endl;
         return false;
@@ -1112,7 +1154,9 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
     cmdKM.addDouble(ttip.x);
     cmdKM.addDouble(ttip.y);
     cmdKM.addDouble(ttip.z);
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cout << "RPC command to KarmaMotor: " << cmdKM.toString() << endl;
+    rpcKarmaFinder.write(cmdKM, replyKM);
+    cout << "RPC reply from KarmaMotor: " << replyKM.toString() << endl;
     if (replyKM.get(0).asString() == "[nack]"){
         cout <<  "Karma Motor could not add the tooltip " << endl;
         return false;

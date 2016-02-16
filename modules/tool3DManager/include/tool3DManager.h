@@ -124,10 +124,10 @@ protected:
     bool                        loadToolPose(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
     bool                        loadToolName(const std::string& tool);
 
-    bool                        findPoseExe(const std::string& tool, Point3D ttip);
-    bool                        regraspExe(Point3D newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
+    bool                        findPoseExe(const std::string& tool, Point3D &ttip);
+    bool                        regraspExe(Point3D &newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
 
-    bool                        findTipFromParam( Point3D ttip, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0, const double graspShift = 0.0);
+    bool                        findTipFromParam( Point3D &ttip, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0, const double graspShift = 0.0);
     bool                        addToolTip(const Point3D ttip);
     bool                        extractFeats();
     //void                        transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0 );
