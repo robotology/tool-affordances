@@ -137,6 +137,11 @@ public:
    * @return true/false on success/failure to perform actions selections
    */
   virtual bool predExp(const int32_t goal = 1);
+  /**
+   * Sets segmentation to 2D (true) or 3D (false)
+   * @return true/false on success/failure to toggle segmentation method.
+   */
+  virtual bool setSeg(const bool seg = 0);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

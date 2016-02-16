@@ -216,6 +216,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_setSeg : public yarp::os::Portable {
+public:
+  bool seg;
+  bool _return;
+  void init(const bool seg);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool tool3DManager_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(1)) return false;
@@ -746,6 +755,29 @@ void tool3DManager_IDLServer_predExp::init(const int32_t goal) {
   this->goal = goal;
 }
 
+bool tool3DManager_IDLServer_setSeg::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setSeg",1,1)) return false;
+  if (!writer.writeBool(seg)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_setSeg::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_setSeg::init(const bool seg) {
+  _return = false;
+  this->seg = seg;
+}
+
 tool3DManager_IDLServer::tool3DManager_IDLServer() {
   yarp().setOwner(*this);
 }
@@ -965,6 +997,16 @@ bool tool3DManager_IDLServer::predExp(const int32_t goal) {
   helper.init(goal);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::predExp(const int32_t goal)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::setSeg(const bool seg) {
+  bool _return = false;
+  tool3DManager_IDLServer_setSeg helper;
+  helper.init(seg);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::setSeg(const bool seg)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1363,6 +1405,21 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "setSeg") {
+      bool seg;
+      if (!reader.readBool(seg)) {
+        seg = 0;
+      }
+      bool _return;
+      _return = setSeg(seg);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -1419,6 +1476,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("runExp");
     helpString.push_back("selectAction");
     helpString.push_back("predExp");
+    helpString.push_back("setSeg");
     helpString.push_back("help");
   }
   else {
@@ -1541,6 +1599,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("bool predExp(const int32_t goal = 1) ");
       helpString.push_back("Runs selectAction trials for all the test tools for given goal (1: maxDist, 2: Pull) ");
       helpString.push_back("@return true/false on success/failure to perform actions selections ");
+    }
+    if (functionName=="setSeg") {
+      helpString.push_back("bool setSeg(const bool seg = 0) ");
+      helpString.push_back("Sets segmentation to 2D (true) or 3D (false) ");
+      helpString.push_back("@return true/false on success/failure to toggle segmentation method. ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

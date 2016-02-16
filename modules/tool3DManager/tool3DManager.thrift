@@ -154,6 +154,14 @@ service tool3DManager_IDLServer
      * @return true/false on success/failure to perform actions selections
      */
     bool predExp(1: i32 goal = 1);
+
+    /*********************** EXPERIMENT ROUTINES ************************************/
+    /**
+     * Sets segmentation to 2D (true) or 3D (false)
+     * @return true/false on success/failure to toggle segmentation method.
+     */
+    bool setSeg(1: bool seg = false);
+
 }
 
 
