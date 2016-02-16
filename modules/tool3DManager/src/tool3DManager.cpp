@@ -818,7 +818,6 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
         }
     }
 
-
     // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
     cout << "Getting tooltip coordinates." << endl;
     cmd3DE.clear();   reply3DE.clear();
