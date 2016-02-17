@@ -713,7 +713,7 @@ bool Tool3DManager::graspToolExe()
     cmdARE.addString("tato");
     cmdARE.addString(hand);
     rpcMotorAre.write(cmdARE,replyARE);
-    Time::delay(3);
+    //Time::delay(2);
 
     // Close hand on tool grasp
     cmdARE.clear();
@@ -721,7 +721,6 @@ bool Tool3DManager::graspToolExe()
     cmdARE.addString("clto");
     cmdARE.addString(hand);
     rpcMotorAre.write(cmdARE, replyARE);
-    Time::delay(0.5);
 
     // Check if grasp was successful
     cmdARE.clear();
@@ -742,7 +741,7 @@ bool Tool3DManager::graspToolExe()
     cmdARE.addString("block_eyes");
     cmdARE.addDouble(5.0);
     rpcMotorAre.write(cmdARE, replyARE);
-    Time::delay(0.5);
+    //Time::delay(0.5);
 
     // Move hand to central position to check tool extension and perform regrasp easily.
     cout << "Moving arm to a central position" << endl;
@@ -756,7 +755,7 @@ bool Tool3DManager::graspToolExe()
     cmdKM.addDouble(0.0);       // No radius
     rpcKarmaMotor.write(cmdKM, replyKM);
 
-    Time::delay(3.0);
+    //Time::delay(1.0);
     // Stop head moving for further visual processing
     cmdARE.clear();
     replyARE.clear();
@@ -769,18 +768,26 @@ bool Tool3DManager::graspToolExe()
 /**********************************************************/
 bool Tool3DManager::load3Dmodel(const string &cloudName)
 {
+    string ack = "[ack]";
     // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
     Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("loadCloud");
     cmd3DE.addString(cloudName);
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
-    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;    
+    bool wr = rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "write command returned " << wr << endl;
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.size() <1){                                                // XXX change to check on 'nack'
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.get(0).asString() << "."<< endl;
+    // XXX fix this comprobation
+    /*
+    if (!(reply3DE.get(0).asString().c_str() == ack.c_str())){
+    //if (!strcmp(reply3DE.toString().c_str(),ack.c_str())){
         cout << "objects3DExplorer coudln't load the tool." << endl;
         return false;
     }
+    */
+    cout << "Cloud " << cloudName << " loaded" << endl;
     return true;
 }
 
@@ -1024,10 +1031,11 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.size() <1){                                                // XXX change to check on 'nack'
+    /*
+    if (!(reply3DE.toString() == "[ack]")){
         cout << "objects3DExplorer coudln't load the tool." << endl;
         return false;
-    }
+    }*/
 
     // Query object3DExplorer to find the object pose
     cout << "Finding out tool pose from 3D partial view." << endl;
@@ -1036,11 +1044,13 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.size() <1){                                                // XXX change to check on 'nack'
+    /*
+    if (!(reply3DE.toString() == "[ack]")){
         cout << "Objects3Dexplorer couldn't find out the pose." << endl;
         return false;
     }
     //Matrix pose = reply3DE.get(0).asList();
+    */
 
     // Query object3DExplorer to find the tooltip
     cout << "Finding out tooltip from model and pose." << endl;
@@ -1049,10 +1059,12 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.size() <1){
+    /*
+    if (!(reply3DE.toString() == "[ack]")){
         cout << "Objects3Dexplorer couldn't estimate the tip." << endl;
         return false;
     }
+    */
     ttip.x = reply3DE.get(0).asDouble();
     ttip.y = reply3DE.get(1).asDouble();
     ttip.z = reply3DE.get(2).asDouble();
@@ -1167,7 +1179,7 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
     cout << "RPC command to KarmaToolFinder: " << cmdKF.toString() << endl;
     rpcKarmaFinder.write(cmdKF, replyKF);
     cout << "RPC reply from KarmaToolFinder: " << replyKF.toString() << endl;
-    if (replyKF.get(0).asString() == "[nack]"){
+    if (!(replyKF.toString() == "[ack]")){
         cout <<  "Karma Finder could not project the tooltip " << endl;
         return false;
     }
@@ -1176,14 +1188,14 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
     cmdKM.addString("attach");
-    cmdKM.addString(hand);
+    cmdKM.addString(hand.c_str());
     cmdKM.addDouble(ttip.x);
     cmdKM.addDouble(ttip.y);
     cmdKM.addDouble(ttip.z);
     cout << "RPC command to KarmaMotor: " << cmdKM.toString() << endl;
-    rpcKarmaFinder.write(cmdKM, replyKM);
+    rpcKarmaMotor.write(cmdKM, replyKM);
     cout << "RPC reply from KarmaMotor: " << replyKM.toString() << endl;
-    if (replyKM.get(0).asString() == "[nack]"){
+    if (!(replyKM.toString() == "[ack]")){
         cout <<  "Karma Motor could not add the tooltip " << endl;
         return false;
     }
