@@ -1,0 +1,117 @@
+<application>
+    <name>Xperience_toolAff_APP</name>
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters></parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1018) (y 1.44329e-15))</geometry>
+    </module>
+    <module>
+        <name>karmaMotor</name>
+        <parameters>--movTime 0.4</parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 381) (y 20.9))</geometry>
+    </module>
+    <module>
+        <name>karmaToolFinder</name>
+        <parameters></parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 220) (y 204.9))</geometry>
+    </module>
+    <module>
+        <name>objects3DExplorer</name>
+        <parameters></parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 614) (y 73.9))</geometry>
+    </module>
+    <module>
+        <name>show3D</name>
+        <parameters></parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 867) (y 82.9))</geometry>
+    </module>
+    <module>
+        <name>tool3DManager</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 0) (y -3.33067e-16))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 700</parameters>
+        <node>console</node>
+        <prefix>/toolFinder</prefix>
+        <geometry>(Pos (x 437) (y 158.9))</geometry>
+    </module>
+    <application>
+        <name>obj3Drec_APP</name>
+        <prefix></prefix>
+        <geometry>(Pos (x 466.898) (y 212.898))</geometry>
+    </application>
+    <connection>
+        <from>/tool3DManager/are:rpc</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 593.5) (y 17.5)) ((x 189) (y 17)) ((x 1019) (y 18))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/karmaMotor:rpc</from>
+        <to>/karmaMotor/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 274.5) (y 65)) ((x 189) (y 92)) ((x 381) (y 38))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/karmaFinder:rpc</from>
+        <to>/karmaToolFinder/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 194) (y 182)) ((x 189) (y 142)) ((x 220) (y 222))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/karmaToolFinder/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 196) (y 294.5)) ((x 192) (y 316)) ((x 221) (y 273))  )</geometry>
+    </connection>
+    <connection>
+        <from>/karmaToolFinder/img:o</from>
+        <to>/toolFinder/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 423.5) (y 218.5)) ((x 430) (y 260)) ((x 438) (y 177))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/obj3Dexp:rpc</from>
+        <to>/objects3DExplorer/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 391) (y 116.5)) ((x 189) (y 117)) ((x 614) (y 116))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/show3D/clouds:i</to>
+        <protocol></protocol>
+        <geometry>(Pos ((x 854) (y 109)) ((x 840) (y 92)) ((x 868) (y 126))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/visualizer:rpc</from>
+        <to>/show3D/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 840.5) (y 120.5)) ((x 835) (y 141)) ((x 867) (y 100))  )</geometry>
+    </connection>
+    <connection>
+        <from>/obj3Drec/pnt:o</from>
+        <to>/objects3DExplorer/clouds:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 718) (y 279)) ((x 842) (y 416)) ((x 615) (y 142))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/objrec:rpc</from>
+        <to>/obj3Drec/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 751) (y 259.5)) ((x 835) (y 116)) ((x 688) (y 403))  )</geometry>
+    </connection>
+</application>
