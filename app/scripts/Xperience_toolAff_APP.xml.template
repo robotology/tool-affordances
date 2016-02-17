@@ -49,11 +49,6 @@
         <prefix>/toolFinder</prefix>
         <geometry>(Pos (x 437) (y 158.9))</geometry>
     </module>
-    <application>
-        <name>obj3Drec_APP</name>
-        <prefix></prefix>
-        <geometry>(Pos (x 466.898) (y 212.898))</geometry>
-    </application>
     <connection>
         <from>/tool3DManager/are:rpc</from>
         <to>/actionsRenderingEngine/cmd:io</to>
@@ -93,7 +88,7 @@
     <connection>
         <from>/objects3DExplorer/clouds:o</from>
         <to>/show3D/clouds:i</to>
-        <protocol></protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 854) (y 109)) ((x 840) (y 92)) ((x 868) (y 126))  )</geometry>
     </connection>
     <connection>
@@ -105,7 +100,7 @@
     <connection>
         <from>/obj3Drec/pnt:o</from>
         <to>/objects3DExplorer/clouds:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x 718) (y 279)) ((x 842) (y 416)) ((x 615) (y 142))  )</geometry>
     </connection>
     <connection>
