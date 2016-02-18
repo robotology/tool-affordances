@@ -427,6 +427,9 @@ bool Tool3DManager::slide(double theta, double radius){
     return slideExe(theta,radius);
 }
 
+bool Tool3DManager::drag3D(double x, double y, double z, double theta, double radius, double tilt){
+    return drag3DExe(x,y,z,theta,radius, tilt);
+}
 
 bool Tool3DManager::drag(double theta, double radius, double tilt){
     return dragExe(theta,radius, tilt);
@@ -1574,7 +1577,6 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
     return true;
 }
 
-
 /**********************************************************/
 bool Tool3DManager::dragExe(const double theta, const double radius, const double tilt)
 {
@@ -1615,6 +1617,56 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     cmdKM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly
     cmdKM.addDouble(target3DcoordsIni[1]);
     cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
+    cmdKM.addDouble(theta);
+    cmdKM.addDouble(radius);
+    cmdKM.addDouble(tilt);
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+
+    // Restore show tool coordinates
+    cmdKF.clear();replyKF.clear();
+    cmdKF.addString("show");
+    cmdKF.addDouble(tooltip.x);
+    cmdKF.addDouble(tooltip.y);
+    cmdKF.addDouble(tooltip.z);
+    rpcKarmaFinder.write(cmdKF, replyKF);
+
+    goHomeExe();
+
+    return true;
+}
+
+
+
+/**********************************************************/
+bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double radius, double tilt)
+{
+
+    cout << endl<< "Performing drag action from angle " << theta <<" and radius "<< radius  << endl;
+    target3DcoordsIni.clear();		// Clear to make space for new coordinates
+    target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
+    target3DrotIni.clear();         // Clear to make space for new rotation values
+    target3DrotIni.resize(3);
+
+    // Action during Karma execution transforms the end-effector from the hand to the tip pf the tool,
+    // so the representation has to be inverted so it still shows the right tooltip while performing the action
+    // and restored afterwards so it shows it also during not execution.
+    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
+    cmdKF.clear();replyKF.clear();
+    cmdKF.addString("show");
+    cmdKF.addDouble(0.0);
+    cmdKF.addDouble(0.0);
+    cmdKF.addDouble(0.0);
+    rpcKarmaFinder.write(cmdKF, replyKF);
+    //cout << " Received reply: " << replyKF.toString() << endl;
+
+    cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
+    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("drag");                 // Set a position in the center in front of the robot
+    cmdKM.addDouble(x);   // Approach the end effector slightly behind the object to grab it properly
+    cmdKM.addDouble(y);
+    cmdKM.addDouble(z);   // Approach the center of the object, not its lower part.
     cmdKM.addDouble(theta);
     cmdKM.addDouble(radius);
     cmdKM.addDouble(tilt);

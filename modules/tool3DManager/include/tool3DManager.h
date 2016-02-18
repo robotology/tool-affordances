@@ -145,7 +145,8 @@ protected:
     // Action
     void                        goHomeExe(const bool hands = false);
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
-    bool                        dragExe(const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
+    bool                        dragExe(double theta = 0.0, double radius = 0.1, double tilt = 0.0);
+    bool                        drag3DExe(double x, double y, double z,  const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
 
 
 public:
@@ -170,6 +171,7 @@ public:
     bool                        goHome(bool hands = false);
     bool						findTable(bool calib = true);
     bool                        slide(double theta, double radius);
+    bool                        drag3D(double x, double y, double z, double theta = 0.0, double radius = 0.0, double tilt = -15.0);
     bool                        drag(double theta, double radius, double tilt);
     bool                        trackObj();
     bool                        compEff();

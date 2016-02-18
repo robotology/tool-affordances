@@ -95,7 +95,15 @@ service tool3DManager_IDLServer
      * The trial consist on locating the object and executing the slide action
      * @return true/false on success/failure to do Action
      */
-    bool drag(1:double thetha = 0.0, 2:double radius = 0.0,  3:double tilt = 0.0);
+    bool drag(1:double thetha = 0.0, 2:double radius = 0.0,  3:double tilt = -15.0);
+
+    /**
+     * Performs a drag action from the object to the direction indicated by theta and radius. \n
+     * The trial consist on locating the object and executing the slide action
+     * @return true/false on success/failure to do Action
+     */
+    bool drag3D(1:double x, 2:double y, 3:double z, 4:double thetha = 0.0, 5:double radius = 0.0,  6:double tilt = -15.0);
+
 
     /**
      * (Re)Initializes object tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
