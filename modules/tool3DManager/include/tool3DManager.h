@@ -33,6 +33,7 @@
 #include <yarp/os/Port.h>
 #include <yarp/os/Os.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/LogStream.h>
 
 #include <yarp/sig/Image.h>
 #include <yarp/sig/Vector.h>
@@ -120,6 +121,7 @@ protected:
     /****  Protected Methods ******/
     // Tool loading and feature extraction
     bool                        graspToolExe();
+    bool                        lookToolExe();
     bool                        load3Dmodel(const std::string& tool);
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        loadToolPose(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
@@ -146,7 +148,7 @@ protected:
     void                        goHomeExe(const bool hands = false);
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
     bool                        dragExe(double theta = 0.0, double radius = 0.1, double tilt = 0.0);
-    bool                        drag3DExe(double x, double y, double z,  const double theta = 0.0, const double radius = 0.1, const double tilt = 0.0);
+    bool                        drag3DExe(double x, double y, double z,  double theta = 0.0, double radius = 0.1, double tilt = -15.0, bool useTool = true);
 
 
 public:
@@ -162,16 +164,18 @@ public:
     bool                        getToolByPose(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        getToolByName(const std::string &tool);
     bool                        graspTool();
+    bool                        lookTool();
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();
     bool                        setSeg(bool);
 
+
     // actions
     bool                        goHome(bool hands = false);
     bool						findTable(bool calib = true);
     bool                        slide(double theta, double radius);
-    bool                        drag3D(double x, double y, double z, double theta = 0.0, double radius = 0.0, double tilt = -15.0);
+    bool                        drag3D(double x, double y, double z, double theta = 0.0, double radius = 0.0, double tilt = -15.0, bool useTool = true);
     bool                        drag(double theta, double radius, double tilt);
     bool                        trackObj();
     bool                        compEff();

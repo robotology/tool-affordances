@@ -51,6 +51,12 @@ service tool3DManager_IDLServer
     bool graspTool();
 
     /**
+     * Communicates with KM  move the tool to the center.
+     * @return true/false on success/failure
+     */
+    bool lookTool();
+
+    /**
      * Move tool in hand (sim) and change kinematic extension (sim and real).
      * @return true/false on success/failure of regrasping the tool
      */
@@ -102,7 +108,7 @@ service tool3DManager_IDLServer
      * The trial consist on locating the object and executing the slide action
      * @return true/false on success/failure to do Action
      */
-    bool drag3D(1:double x, 2:double y, 3:double z, 4:double thetha = 0.0, 5:double radius = 0.0,  6:double tilt = -15.0);
+    bool drag3D(1:double x, 2:double y, 3:double z, 4:double thetha = 0.0, 5:double radius = 0.0,  6:double tilt = -15.0, 7:bool useTool = true);
 
 
     /**

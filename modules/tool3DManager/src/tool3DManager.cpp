@@ -367,6 +367,12 @@ bool Tool3DManager::graspTool(){
     return ok;
 }
 
+bool Tool3DManager::lookTool(){
+    bool ok;
+    ok = lookToolExe();
+    return ok;
+}
+
 bool Tool3DManager::regrasp(double deg, double disp, double tilt, double Z){
     bool ok;
     if (toolLoadedIdx<0){
@@ -427,8 +433,8 @@ bool Tool3DManager::slide(double theta, double radius){
     return slideExe(theta,radius);
 }
 
-bool Tool3DManager::drag3D(double x, double y, double z, double theta, double radius, double tilt){
-    return drag3DExe(x,y,z,theta,radius, tilt);
+bool Tool3DManager::drag3D(double x, double y, double z, double theta, double radius, double tilt, bool useTool){
+    return drag3DExe(x, y, z, theta, radius, tilt, useTool);
 }
 
 bool Tool3DManager::drag(double theta, double radius, double tilt){
@@ -767,6 +773,69 @@ bool Tool3DManager::graspToolExe()
 
     return true;
 }
+
+
+/**********************************************************/
+bool Tool3DManager::lookToolExe()
+{
+    Bottle cmdKM,replyKM;               // bottles for Karma Motor
+    Bottle cmdARE, replyARE;            // bottles for actionsRenderingEngine
+
+    // Remove any end effector extension that might be.
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("remove");
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+    // Close hand on tool grasp
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("look");
+    cmdARE.addString("hand");
+    cmdARE.addString(hand);
+    cmdARE.addString("fixate");
+    cmdARE.addString("block_eyes");
+    cmdARE.addDouble(5.0);
+    rpcMotorAre.write(cmdARE, replyARE);
+    //Time::delay(0.5);
+
+    // Move hand to central position to check tool extension and perform regrasp easily.
+    cout << "Moving arm to a central position" << endl;
+    double dispY = (hand=="right")?0.15:-0.15;
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("push");            // Set a position in the center in front of the robot
+    cmdKM.addDouble(-0.2);
+    cmdKM.addDouble(dispY);
+    cmdKM.addDouble(0.0);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
+    // Stop head moving for further visual processing
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("idle");
+    rpcMotorAre.write(cmdARE, replyARE);
+
+    // Attach the new tooltip to the "body schema"
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("attach");
+    cmdKM.addString(hand.c_str());
+    cmdKM.addDouble(tooltip.x);
+    cmdKM.addDouble(tooltip.y);
+    cmdKM.addDouble(tooltip.z);
+    cout << "RPC command to KarmaMotor: " << cmdKM.toString() << endl;
+    rpcKarmaMotor.write(cmdKM, replyKM);
+    cout << "RPC reply from KarmaMotor: " << replyKM.toString() << endl;
+    if (!(replyKM.toString() == "[ack]")){
+        cout <<  "Karma Motor could not add the tooltip " << endl;
+        return false;
+    }
+
+    return true;
+}
+
 
 /**********************************************************/
 bool Tool3DManager::load3Dmodel(const string &cloudName)
@@ -1639,19 +1708,25 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
 
 
 /**********************************************************/
-bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double radius, double tilt)
+bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double radius, double tilt, bool useTool)
 {
 
-    cout << endl<< "Performing drag action from angle " << theta <<" and radius "<< radius  << endl;
-    target3DcoordsIni.clear();		// Clear to make space for new coordinates
-    target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
-    target3DrotIni.clear();         // Clear to make space for new rotation values
-    target3DrotIni.resize(3);
+    cout << endl<< "Performing drag3D action from angle " << theta <<" and radius "<< radius  <<", tilt:"<< tilt <<endl;
+    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
+    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
+
+    if (!useTool){
+         yInfo()<<"Removing tool";
+        // Remove any end effector so that action is carried wrt hand reference frame.
+        cmdKM.clear();replyKM.clear();
+        cmdKM.addString("tool");
+        cmdKM.addString("remove");
+        rpcKarmaMotor.write(cmdKM, replyKM);
+    }
 
     // Action during Karma execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
     cmdKF.clear();replyKF.clear();
     cmdKF.addString("show");
     cmdKF.addDouble(0.0);
@@ -1660,8 +1735,8 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     rpcKarmaFinder.write(cmdKF, replyKF);
     //cout << " Received reply: " << replyKF.toString() << endl;
 
-    cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
-    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
+    cout << "Approaching to object on coords: (" << x << ", " << y << ", "<< z << "). " <<endl;
+
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("drag");                 // Set a position in the center in front of the robot
     cmdKM.addDouble(x);   // Approach the end effector slightly behind the object to grab it properly
@@ -1681,10 +1756,21 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     cmdKF.addDouble(tooltip.z);
     rpcKarmaFinder.write(cmdKF, replyKF);
 
-    // Put action parameters on the vector so that they can be sent
-    actVec[0] = theta;
-    actVec[1] = radius;
-    //actDataPort.write(actVec);
+    // Re-attach the tooltip for further actions
+    if (!useTool){
+        cmdKM.clear();replyKM.clear();
+        cmdKM.addString("tool");
+        cmdKM.addString("attach");
+        cmdKM.addString(hand.c_str());
+        cmdKM.addDouble(tooltip.x);
+        cmdKM.addDouble(tooltip.y);
+        cmdKM.addDouble(tooltip.z);
+        rpcKarmaMotor.write(cmdKM, replyKM);
+        if (!(replyKM.toString() == "[ack]")){
+            cout <<  "Karma Motor could not re-attach the tooltip " << endl;
+            return false;
+        }
+    }
 
     goHomeExe();
 
