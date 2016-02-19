@@ -1,6 +1,20 @@
 <application>
     <name>Xperience_toolAff_APP</name>
     <module>
+        <name>objects3DExplorer</name>
+        <parameters></parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 614) (y 73.9))</geometry>
+    </module>
+    <module>
+        <name>tool3DManager</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>console</node>
+        <prefix>icub21</prefix>
+        <geometry>(Pos (x 0) (y -3.33067e-16))</geometry>
+    </module>
+    <module>
         <name>actionsRenderingEngine</name>
         <parameters></parameters>
         <node>console</node>
@@ -22,13 +36,6 @@
         <geometry>(Pos (x 220) (y 204.9))</geometry>
     </module>
     <module>
-        <name>objects3DExplorer</name>
-        <parameters></parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 614) (y 73.9))</geometry>
-    </module>
-    <module>
         <name>show3D</name>
         <parameters></parameters>
         <node>console</node>
@@ -36,19 +43,35 @@
         <geometry>(Pos (x 867) (y 82.9))</geometry>
     </module>
     <module>
-        <name>tool3DManager</name>
-        <parameters>--from realTools.ini</parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 0) (y -3.33067e-16))</geometry>
-    </module>
-    <module>
         <name>yarpview</name>
-        <parameters>--x 0 --y 700</parameters>
+        <parameters>--x 380 --y 700</parameters>
         <node>console</node>
         <prefix>/toolFinder</prefix>
         <geometry>(Pos (x 437) (y 158.9))</geometry>
     </module>
+
+    <module>
+        <name>lbpExtract</name>
+         <node>console</node>
+    </module>
+
+    <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/lbpExtracted/view --x 380 --y 350 --p 50 --compact</parameters>
+            <node>console</node>
+    </module>
+    <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/lbpSegmented/view  --x 380 --y 0 --p 50 --compact</parameters>
+            <node>console</node>
+    </module>
+
+    <module>
+        <name>drop-away.lua</name>
+        <deployer>lua</deployer>
+        <node>console</node>
+    </module>
+
     <connection>
         <from>/tool3DManager/are:rpc</from>
         <to>/actionsRenderingEngine/cmd:io</to>
@@ -109,4 +132,41 @@
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 751) (y 259.5)) ((x 835) (y 116)) ((x 688) (y 403))  )</geometry>
     </connection>
+
+    <connection>
+            <from>/icub/camcalib/left/out</from>
+            <to>/lbpExtract/image:i</to>
+            <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+            <from>/lbpExtract/extractedlbp:o</from>
+            <to>/iolViewer/lbpExtracted/view</to>
+            <protocol>udp</protocol>
+    </connection>
+    <connection>
+            <from>/lbpExtract/segmentedlbp:o</from>
+            <to>/iolViewer/lbpSegmented/view</to>
+            <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+            <from>/actionsRenderingEngine/wbd:rpc</from>
+            <to>/wholeBodyDynamics/rpc:i</to>
+            <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+            <from>/drop-away/cmd:o</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_drop</protocol>
+    </connection>
+
+    <connection>
+            <from>/lbpExtract/blobs:o</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_take</protocol>
+    </connection>
+
 </application>

@@ -1710,10 +1710,10 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
 /**********************************************************/
 bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double radius, double tilt, bool useTool)
 {
-
     cout << endl<< "Performing drag3D action from angle " << theta <<" and radius "<< radius  <<", tilt:"<< tilt <<endl;
     Bottle cmdKM,replyKM;                    // bottles for Karma Motor
     Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
+    Bottle cmdARE,replyARE;
 
     if (!useTool){
          yInfo()<<"Removing tool";
@@ -1737,6 +1737,17 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
 
     cout << "Approaching to object on coords: (" << x << ", " << y << ", "<< z << "). " <<endl;
 
+    // Close hand on tool grasp
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("look");
+    cmdARE.addString("hand");
+    cmdARE.addString(hand);
+    cmdARE.addString("fixate");
+    cmdARE.addString("block_eyes");
+    cmdARE.addDouble(5.0);
+    rpcMotorAre.write(cmdARE, replyARE);
+
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("drag");                 // Set a position in the center in front of the robot
     cmdKM.addDouble(x);   // Approach the end effector slightly behind the object to grab it properly
@@ -1747,6 +1758,11 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     cmdKM.addDouble(tilt);
     rpcKarmaMotor.write(cmdKM, replyKM);
 
+    // Stop head moving for further visual processing
+    cmdARE.clear();
+    replyARE.clear();
+    cmdARE.addString("idle");
+    rpcMotorAre.write(cmdARE, replyARE);
 
     // Restore show tool coordinates
     cmdKF.clear();replyKF.clear();
