@@ -727,7 +727,8 @@ bool Tool3DManager::graspToolExe()
     // Close hand on tool grasp
     cmdARE.clear();
     replyARE.clear();
-    cmdARE.addString("clto");
+    cmdARE.addString("hand");
+    cmdARE.addString("close_hand_tool");
     cmdARE.addString(hand);
     rpcMotorAre.write(cmdARE, replyARE);
 
@@ -757,11 +758,11 @@ bool Tool3DManager::graspToolExe()
     double dispY = (hand=="right")?0.15:-0.15;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.2);
-    cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.0);
-    cmdKM.addDouble(0.0);       // No angle
-    cmdKM.addDouble(0.0);       // No radius
+    cmdKM.addDouble(-0.2);          //  X
+    cmdKM.addDouble(dispY);         //  Y
+    cmdKM.addDouble(0.0);           //  Z
+    cmdKM.addDouble(0.0);           // No angle
+    cmdKM.addDouble(0.0);           // No radius -> no displacement, just move arm to that positon
     rpcKarmaMotor.write(cmdKM, replyKM);
 
     //Time::delay(1.0);
@@ -1109,7 +1110,7 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     // Query object3DExplorer to find the object pose
     cout << "Finding out tool pose from 3D partial view." << endl;
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findToolPose");
+    cmd3DE.addString("findPoseAlign");
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
@@ -1122,7 +1123,7 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     // Query object3DExplorer to find the tooltip
     cout << "Finding out tooltip from model and pose." << endl;
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findTooltip");
+    cmd3DE.addString("findTooltipAlign");
     cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
