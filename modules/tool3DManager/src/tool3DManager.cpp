@@ -758,9 +758,9 @@ bool Tool3DManager::graspToolExe()
     double dispY = (hand=="right")?0.15:-0.15;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.2);          //  X
+    cmdKM.addDouble(-0.25);          //  X
     cmdKM.addDouble(dispY);         //  Y
-    cmdKM.addDouble(0.0);           //  Z
+    cmdKM.addDouble(0.05);           //  Z
     cmdKM.addDouble(0.0);           // No angle
     cmdKM.addDouble(0.0);           // No radius -> no displacement, just move arm to that positon
     rpcKarmaMotor.write(cmdKM, replyKM);
