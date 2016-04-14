@@ -741,36 +741,7 @@ bool Tool3DManager::graspToolExe()
     if(!replyARE.get(0).asBool())
         return false;
 
-    // Close hand on tool grasp
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("look");
-    cmdARE.addString("hand");
-    cmdARE.addString(hand);
-    cmdARE.addString("fixate");
-    cmdARE.addString("block_eyes");
-    cmdARE.addDouble(5.0);
-    rpcMotorAre.write(cmdARE, replyARE);
-    //Time::delay(0.5);
-
-    // Move hand to central position to check tool extension and perform regrasp easily.
-    cout << "Moving arm to a central position" << endl;
-    double dispY = (hand=="right")?0.15:-0.15;
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.25);          //  X
-    cmdKM.addDouble(dispY);         //  Y
-    cmdKM.addDouble(0.05);           //  Z
-    cmdKM.addDouble(0.0);           // No angle
-    cmdKM.addDouble(0.0);           // No radius -> no displacement, just move arm to that positon
-    rpcKarmaMotor.write(cmdKM, replyKM);
-
-    //Time::delay(1.0);
-    // Stop head moving for further visual processing
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("idle");
-    rpcMotorAre.write(cmdARE, replyARE);
+    lookToolExe();
 
     return true;
 }
@@ -817,7 +788,7 @@ bool Tool3DManager::lookToolExe()
     replyARE.clear();
     cmdARE.addString("idle");
     rpcMotorAre.write(cmdARE, replyARE);
-
+/*
     // Attach the new tooltip to the "body schema"
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("tool");
@@ -833,7 +804,7 @@ bool Tool3DManager::lookToolExe()
         cout <<  "Karma Motor could not add the tooltip " << endl;
         return false;
     }
-
+*/
     return true;
 }
 
