@@ -130,6 +130,7 @@ protected:
     bool                        findPoseExe(const std::string& tool, Point3D &ttip);
     bool                        regraspExe(Point3D &newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
 
+    bool                        exploreTool(Point3D &ttip);
     bool                        findTipFromParam( Point3D &ttip, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0, const double graspShift = 0.0);
     bool                        addToolTip(const Point3D ttip);
     bool                        extractFeats();
@@ -165,6 +166,7 @@ public:
     bool                        getToolByName(const std::string &tool);
     bool                        graspTool();
     bool                        lookTool();
+    bool                        explore();
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();

@@ -61,6 +61,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_explore : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_lookTool : public yarp::os::Portable {
 public:
   bool _return;
@@ -385,6 +393,27 @@ bool tool3DManager_IDLServer_graspTool::read(yarp::os::ConnectionReader& connect
 }
 
 void tool3DManager_IDLServer_graspTool::init() {
+  _return = false;
+}
+
+bool tool3DManager_IDLServer_explore::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("explore",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_explore::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_explore::init() {
   _return = false;
 }
 
@@ -920,6 +949,16 @@ bool tool3DManager_IDLServer::graspTool() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool tool3DManager_IDLServer::explore() {
+  bool _return = false;
+  tool3DManager_IDLServer_explore helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::explore()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool tool3DManager_IDLServer::lookTool() {
   bool _return = false;
   tool3DManager_IDLServer_lookTool helper;
@@ -1208,6 +1247,17 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "graspTool") {
       bool _return;
       _return = graspTool();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "explore") {
+      bool _return;
+      _return = explore();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1612,6 +1662,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("getToolByPose");
     helpString.push_back("getToolByName");
     helpString.push_back("graspTool");
+    helpString.push_back("explore");
     helpString.push_back("lookTool");
     helpString.push_back("regrasp");
     helpString.push_back("findPose");
@@ -1668,6 +1719,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     if (functionName=="graspTool") {
       helpString.push_back("bool graspTool() ");
       helpString.push_back("Communicates with ARE and KM to grasp a tool and move it to the center. ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="explore") {
+      helpString.push_back("bool explore() ");
+      helpString.push_back("Communicates with O3DE to explore the tool and get the tooltip without a model ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="lookTool") {

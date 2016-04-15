@@ -51,6 +51,12 @@ service tool3DManager_IDLServer
     bool graspTool();
 
     /**
+     * Communicates with O3DE to explore the tool and get the tooltip without a model
+     * @return true/false on success/failure
+     */
+    bool explore();
+
+    /**
      * Communicates with KM  move the tool to the center.
      * @return true/false on success/failure
      */

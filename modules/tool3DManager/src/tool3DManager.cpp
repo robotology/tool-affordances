@@ -367,6 +367,22 @@ bool Tool3DManager::graspTool(){
     return ok;
 }
 
+
+bool Tool3DManager::explore(){
+    bool ok;
+    ok = exploreTool(tooltip);
+
+    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
+
+    ok = addToolTip(tooltip);
+    if (!ok){
+        cout << "Tool tip could not be attached." << endl;
+        return false;
+    }
+    cout <<  "Tooltip attached, ready to perform action!" << endl;
+    return ok;
+}
+
 bool Tool3DManager::lookTool(){
     bool ok;
     ok = lookToolExe();
@@ -1201,6 +1217,41 @@ bool Tool3DManager::findTipFromParam( Point3D &ttip, const double graspOr, const
     return true;
 }
 
+
+/**********************************************************/
+bool Tool3DManager::exploreTool(Point3D &ttip)
+{
+    // Query object3DExplorer to find the tooltip
+    cout << "Finding out tooltoltip by exploration and symmetry" << endl;
+    Bottle cmd3DE, reply3DE;
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("exploreTool");
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "There was some error exploring the tool." << endl;
+        return false;
+    }
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("findTooltipSym");
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "There was some estimating the tooltip." << endl;
+        return false;
+    }
+
+    ttip.x = reply3DE.get(1).asDouble();
+    ttip.y = reply3DE.get(2).asDouble();
+    ttip.z = reply3DE.get(3).asDouble();
+
+
+    return true;
+}
 
 /**********************************************************/
 bool Tool3DManager::addToolTip(const Point3D ttip)
