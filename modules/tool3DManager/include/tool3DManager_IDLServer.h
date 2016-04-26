@@ -28,8 +28,13 @@ public:
    */
   virtual bool quit();
   /**
+   * Sets segmentation to 2D (true) or 3D (false)
+   * @return true/false on success/failure to toggle segmentation method.
+   */
+  virtual bool setSeg(const bool seg = 0);
+  /**
    * Set the tool name on objects3DExplorer
-   * @return true/false on success/failure
+   * @return true/false on success/failure on setting name
    */
   virtual bool setToolName(const std::string& tool);
   /**
@@ -42,22 +47,17 @@ public:
   virtual bool getToolByPose(const int32_t tool = 0, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0);
   /**
    * Performs the sequence to get the tool: \n
-   * - Grasp action
-   * - Load tool in objects3Dexplorer
-   * - Find pose and tooltip
+   * - Grasp (through ARE)
+   * - Load tool in objects3Dexplorer (by setToolName)
+   * - Find pose and tooltip with align method (by findPose)
    * @return true/false on success/failure of grasping and loading the named tool
    */
-  virtual bool getToolByName(const std::string& tool);
+  virtual bool getTool(const std::string& tool);
   /**
    * Communicates with ARE and KM to grasp a tool and move it to the center.
    * @return true/false on success/failure
    */
   virtual bool graspTool();
-  /**
-   * Communicates with KM  move the tool to the center.
-   * @return true/false on success/failure
-   */
-  virtual bool lookTool();
   /**
    * Move tool in hand (sim) and change kinematic extension (sim and real).
    * @return true/false on success/failure of regrasping the tool
@@ -74,35 +74,34 @@ public:
    */
   virtual bool getToolFeats();
   /**
-   * Adopt home position
+   * Adopt home position (optionally opens hands too)
    * @return true/false on success/failure
    */
   virtual bool goHome(const bool hands = 0);
   /**
-   * Calibrates the table height: \n
+   * Calibrates the table height through ARE: \n
+   * @param calib . True performs calibration, false gets stored data.
    * @returns true
    */
   virtual bool findTable(const bool calib = 1);
   /**
-   * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
-   * The trial consist on locating the object and executing the slide action
+   * Performs a slide action along the diameter of the circle of given radius and center on the object, from theta to -theta. \n
    * @return true/false on success/failure to do Action
    */
   virtual bool slide(const double thetha = 0, const double radius = 0);
   /**
-   * Performs a drag action from the object to the direction indicated by theta and radius. \n
-   * The trial consist on locating the object and executing the slide action
+   * Performs a drag action from the object in the direction indicated by theta and radius. \n
    * @return true/false on success/failure to do Action
    */
   virtual bool drag(const double thetha = 0, const double radius = 0, const double tilt = -15);
   /**
-   * Performs a drag action from the object to the direction indicated by theta and radius. \n
+   * Performs a drag action from the given 3D coords in the direction indicated by theta and radius. \n
    * The trial consist on locating the object and executing the slide action
    * @return true/false on success/failure to do Action
    */
   virtual bool drag3D(const double x, const double y, const double z, const double thetha = 0, const double radius = 0, const double tilt = -15, const bool useTool = 1);
   /**
-   * (Re)Initializes object tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
+   * (Re)Initializes object template for tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
    * @return true/false on success/failure to set the template and (re)start tracking
    */
   virtual bool trackObj();
@@ -127,7 +126,7 @@ public:
    */
   virtual bool runToolOr(const int32_t toolI, const double graspOr = 0, const int32_t numAct = 8);
   /**
-   * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
+   * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
    * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
    * @return true/false on success/failure to perfomr all actions on all toolPoses
    */
@@ -148,11 +147,6 @@ public:
    * @return true/false on success/failure to perform actions selections
    */
   virtual bool predExp(const int32_t goal = 1);
-  /**
-   * Sets segmentation to 2D (true) or 3D (false)
-   * @return true/false on success/failure to toggle segmentation method.
-   */
-  virtual bool setSeg(const bool seg = 0);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

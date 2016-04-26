@@ -21,8 +21,16 @@ service tool3DManager_IDLServer
     bool quit();
 
     /**
+     * Sets segmentation to 2D (true) or 3D (false)
+     * @return true/false on success/failure to toggle segmentation method.
+     */
+    bool setSeg(1: bool seg = false);
+
+    /****************************** TOOL LOADING AND INFORMATION **************************************/
+
+    /**
      * Set the tool name on objects3DExplorer
-     * @return true/false on success/failure
+     * @return true/false on success/failure on setting name
      */
     bool setToolName(1: string tool);
 
@@ -37,12 +45,12 @@ service tool3DManager_IDLServer
 
     /**
      * Performs the sequence to get the tool: \n
-     * - Grasp action
-     * - Load tool in objects3Dexplorer
-     * - Find pose and tooltip
+     * - Grasp (through ARE)
+     * - Load tool in objects3Dexplorer (by setToolName)
+     * - Find pose and tooltip with align method (by findPose)
      * @return true/false on success/failure of grasping and loading the named tool
      */
-    bool getToolByName(1:string tool);
+    bool getTool(1:string tool);
 
     /**
      * Communicates with ARE and KM to grasp a tool and move it to the center.
@@ -50,11 +58,6 @@ service tool3DManager_IDLServer
      */
     bool graspTool();
 
-    /**
-     * Communicates with KM  move the tool to the center.
-     * @return true/false on success/failure
-     */
-    bool lookTool();
 
     /**
      * Move tool in hand (sim) and change kinematic extension (sim and real).
@@ -78,33 +81,32 @@ service tool3DManager_IDLServer
     /****************************** ACTIONS **************************************/
 
     /**
-     * Adopt home position
+     * Adopt home position (optionally opens hands too)
      * @return true/false on success/failure
      */
     bool goHome(1:bool hands = false);
 
     /**
-     * Calibrates the table height: \n
+     * Calibrates the table height through ARE: \n
+     * @param calib . True performs calibration, false gets stored data.
      * @returns true
      */
     bool findTable(1:bool calib = true);
 
     /**
-     * Performs a slide action along the diameter of the circle of radius and center on the object, from theta to -theta. \n
-     * The trial consist on locating the object and executing the slide action
+     * Performs a slide action along the diameter of the circle of given radius and center on the object, from theta to -theta. \n
      * @return true/false on success/failure to do Action
      */
     bool slide(1:double thetha = 0.0, 2:double radius = 0.0);
 
     /**
-     * Performs a drag action from the object to the direction indicated by theta and radius. \n
-     * The trial consist on locating the object and executing the slide action
+     * Performs a drag action from the object in the direction indicated by theta and radius. \n
      * @return true/false on success/failure to do Action
      */
     bool drag(1:double thetha = 0.0, 2:double radius = 0.0,  3:double tilt = -15.0);
 
     /**
-     * Performs a drag action from the object to the direction indicated by theta and radius. \n
+     * Performs a drag action from the given 3D coords in the direction indicated by theta and radius. \n
      * The trial consist on locating the object and executing the slide action
      * @return true/false on success/failure to do Action
      */
@@ -112,7 +114,7 @@ service tool3DManager_IDLServer
 
 
     /**
-     * (Re)Initializes object tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
+     * (Re)Initializes object template for tracking. The user has to click on the upper left and lower right corners of the object to be tracked (in that order).\n
      * @return true/false on success/failure to set the template and (re)start tracking
      */
     bool trackObj();
@@ -144,7 +146,7 @@ service tool3DManager_IDLServer
     bool runToolOr(1: i32 toolI, 2: double graspOr = 0.0, 3: i32 numAct = 8);
 
     /**
-     * For the given tool, performs N actions for each toolpose. Tries all toolposes as combinations
+     * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
      * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
      * @return true/false on success/failure to perfomr all actions on all toolPoses
      */
@@ -169,14 +171,4 @@ service tool3DManager_IDLServer
      */
     bool predExp(1: i32 goal = 1);
 
-    /*********************** EXPERIMENT ROUTINES ************************************/
-    /**
-     * Sets segmentation to 2D (true) or 3D (false)
-     * @return true/false on success/failure to toggle segmentation method.
-     */
-    bool setSeg(1: bool seg = false);
-
 }
-
-
-

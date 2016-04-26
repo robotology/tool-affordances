@@ -51,11 +51,6 @@
 //for the thrift server interface
 #include <tool3DManager_IDLServer.h>
 
-// for thrift connection with toolFeatExt XXX
-// #include <tool3DFeat_IDLServer.h>
-// #include <Point3D.h>
-
-//YARP_DECLARE_DEVICES(icubmod)
 
 /**********************************************************/
 class Tool3DManager : public yarp::os::RFModule, public tool3DManager_IDLServer
@@ -93,13 +88,9 @@ protected:
     /* class variables */
 	// Flags
 	bool						running;
-    /*
-    bool                        actionDone;
-    bool						objCoords3DLoc;	
-	bool 						tipOnView;
-    */
 
-    //yarp::sig::Vector			toolTipPix;             // Keeps the tool position in 2D for looking at it
+
+
     yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D before the action
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D after the action
     yarp::sig::Vector			target3DrotIni;         // Keeps the target rotation in 3D before the action
@@ -125,7 +116,7 @@ protected:
     bool                        load3Dmodel(const std::string& tool);
     bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        loadToolPose(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
-    bool                        loadToolName(const std::string& tool);
+    bool                        getToolExe(const std::string& tool);
 
     bool                        findPoseExe(const std::string& tool, Point3D &ttip);
     bool                        regraspExe(Point3D &newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
@@ -158,18 +149,16 @@ public:
     bool						attach(yarp::os::RpcServer &source);
 	bool						start();
 	bool						quit();
+    bool                        setSeg(bool);
 
     // tool load and information
     bool                        setToolName(const std::string &tool);
     bool                        getToolByPose(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
-    bool                        getToolByName(const std::string &tool);
+    bool                        getTool(const std::string &tool);
     bool                        graspTool();
-    bool                        lookTool();
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();
-    bool                        setSeg(bool);
-
 
     // actions
     bool                        goHome(bool hands = false);

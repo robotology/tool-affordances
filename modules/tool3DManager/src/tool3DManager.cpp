@@ -16,114 +16,6 @@
  * Public License for more details
 */
 
-/** 
-\defgroup affManager Manager for the tool-pose dependent affordance Experiment
- 
-Manager which controls the rest of the modules of the tool-pose dependent affordance Experiment
-and enables user control.
-
-\section intro_sec Description 
-This modules relies user commands to the rest of the modules in the tool-pose dependent affordance 
-Experiment, in order to allow for the required feature extraction, action performance and effect observation. \n
-It also executes basic motor actions to observe the tool. \n
-It works with minor differences on the real robot and the simulator, save the necessary ones to grab the tool. 
- 
-\section lib_sec Libraries 
-- YARP libraries. 
-- icubmod library.
-
-\section parameters_sec Parameters 
---robot \e robot
-- Select the robot to connect to.
-
---name \e name
-- Select the stem-name of the module used to open up ports. 
-  By default \e name is <i>affManager</i>.
-
---camera \e camera
-- Select the eye camera to use. 
-  By default \e camera is <i>left</i>.
-
---hand \e hand
-- Select the arm which will grasp the tool and do the actions. 
-  By default \e name is <i>right</i>.
-  
-\section portsa_sec Ports Accessed
-Assume that iCubInterface (with ICartesianControl interface
-implemented) is running. 
- 
-\section portsc_sec Ports Created 
-- \e /affManager/rpc:i receives the information to execute the different possible tasks as a Bottle. 
-It manages the following commands through thrift interface:
-    -# <b>start</b>:  Start the module \n
-     return true/false on success/failure.
-
-    -# <b>start</b>: Quit the module \n
-     return true/false on success/failure
-    
-    -# <b>reset</b>: Sets the experiment flow flags to false (action done, object located, tip on view).\n
-     return true/false on success/failure      
-
-    -# <b>goHome</b>: Adopt home position, true to open also hands (and thus release tool) and false (default), to keep hands as they are \n
-    return true/false on success/failure
-    
-    -# <b>findToolDims</b>: Uses active exploration and non-linear optimization to compute the tool dimensions (only on real robot) \n
-     Makes use of KarmaMotor, KarmaToolProjection and KarmaToolFinder \n
-     return true/false on success/failure 
-
-
-    -# <b>observeTool</b>: Finds tool in hand and does Feature Extraction. \n
-     return true/false on success/failure finding and extracting feats from tool
-     
-    -# <b>trackObj</b>: Gets the bounding box of the object from the user, and uses the template to train the particle filter tracker. \n
-    return true/false on success/failure of finding/looking at object
-    
-    -# <b>getTool</b>: <i>tool deg</i> (default tool = 5, deg = 0).Performs the sequence to get the tool: \n
-    On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i> and uses magnet to hold it to hand.\n
-    On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i> and <i> deg</i> should correspond to the way in which the tool is given \n    
-    return true/false on success/failure holding a tool
-    
-    -# <b>doAction</b>: <i>approach</i> (default approach = 0). Performs an drag trial on <i>approach</i> cm wrt the object. \n
-    The trial consist on locating the object, executing the drag, locating the potentially displaced object and computing the effect.\n
-    return true/false on success/failure 
-    
-    -# <b>trainDraw</b>:  Performs several drag trials with approaches from -5 to 5 cm to learn the mapping: \n
-    return true/false on success/failure 
-    
-    -# <b>trainObserve</b>: <i>tool deg</i> (default tool = 5 deg = 0). Performs  feature extraction on the given tool 5 times from slighlty different prespectives \n
-     return true/false on success/failure 
-
-    -# <b>observeAndDo</b>: <i>tool deg trials</i> (default tool = 5, deg = 0, trials = 1). Performs the whole routine a given number of trials with the given tool in the given orientation:  looking at the tool, feature extraction, perform a drag action, and compute the effect. \n
-    return true/false on success/failure 
-   
-    -# <b>predictDo</b>: <i>tool deg</i> (default tool = 5, deg = 0). Gets a tool, observes it (feature extraction), reads the predicted affordance from MATLAB and perform the best predicted action.
-   Needs matlab script running prediction based on the model. 
-   return true/false on success/failure 
-     
-    -# <b>testPredict</b>: <i>tool</i> (default tool = 5). Performs the prediction and action (predictDo routine) 5 times on each orientation with the given tool.
-    return true/false on success/failure 
-    
-- \e /affManager/matlab:i   Receives the affordance vector prediction from matlab to select te max effect and perfomr an action.
-- \e /affManager/user:i     Port for user input. Can be used for user selection of the tooltip, tool dimensions or other data. 
- 
-- \e /affManager/are:rpc            Send commands to the Actions Rendering Engine module. \n
-- \e /affManager/sim:rpc            Send commands to the Simulator. \n
-- \e /affManager/karmaMotor:rpc     Send commands to the Karma motor for tool use related actions. \n
-- \e /affManager/karmaFinder:rpc    Send commands to the finder part of the KARMA application in order to display and locate the tooltip. \n
-- \e /affManager/featExt:rpc        Send commands to the Feature Extraction Module. \n
-- \e /affManager/affLearn:rpc       Send commands to the affordance Learning Module. \n
-- \e /affManager/objFind:rpc        Send commands to the objectFinder Module. \n
-- \e /affManager/toolBlob:rpc       Send commands to the toolBlobber Module.\n
-
-- \e /affManager/data:o             Outputs affordance data for recording (action parameters, effect, etc) .\n
- 
-\section tested_os_sec Tested OS
-Windows, Linux
-
-\author Tanis Mar
-*/ 
-
-
 #include "tool3DManager.h"
 
 using namespace std;
@@ -160,23 +52,8 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
     // Attach server port to read RPC commands via thrift
     attach(rpcCmd);
-    running = true;
-    toolLoadedIdx = -1;
-    trackingObj = false;
-    toolname = "";
-    seg2D = true;
 
-    // XXX old variables which may be useful
-    /*
-    actionDone = false;
-    objCoords3DLoc = false;
-    tipOnView = false;
-    toolDim.resize(3, 0.0);
-    toolTipPix.resize(2,0.0);
-    toolPoseName = "undef";
-    */
-
-    // Read the Models configurations
+    // Read and load the tool's models
     Bottle temp;
     string modelName = "obj";
 
@@ -204,6 +81,13 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     cout << "Loaded " << numberObjs << " objects. " << endl;
 
 
+    // Module flow parameters
+    running = true;
+    toolLoadedIdx = -1;
+    trackingObj = false;
+    toolname = "";
+    seg2D = true;
+
     // Initialize effect measuring vectors
     target3DcoordsIni.resize(3, 0.0);
     target3DcoordsAfter.resize(3, 0.0);
@@ -213,27 +97,28 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 
 	//ports
 	bool ret = true;  
+    ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                     // port to receive data from MATLAB processing
     ret = ret && effDataPort.open(("/"+name+"/effData:o").c_str());                   // port to send data of computed effect out for recording
     ret = ret && actDataPort.open(("/"+name+"/actData:o").c_str());                   // port to send data of action parameters out for recording
-    ret = ret && graspDataPort.open(("/"+name+"/graspData:o").c_str());                   // port to send data of action parameters out for recording
-    ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                  // port to receive data from MATLAB processing
+    ret = ret && graspDataPort.open(("/"+name+"/graspData:o").c_str());               // port to send data of grasp parameters out for recording
+
     if (!ret){
 		printf("Problems opening ports\n");
 		return false;
 	}
+
     //rpc
     bool retRPC = true; 
-    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   //rpc client to interact with the affManager
-    retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); //rpc client to interact with simtooloader module
-    retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         //rpc client to interact with simulator
-    retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                //rpc server to query ARE
-    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       //rpc server to query Karma Motor    
-    retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     //rpc server to query Karma Finder    
-    retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             //rpc server to query tool Feat Extraction module
-    retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());             //rpc server to query tool Feat Extraction module
-    //retRPC = retRPC && rpcToolShow.open(("/"+name+"/tool3Dshow:rpc").c_str());	   //rpc server to query toolExplorer Module
+    retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   // rpc in client to receive commands
+    retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                // rpc server to query ARE
+    retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
+    retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
+    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       // rpc server to query Karma Motor
+    retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     // rpc server to query Karma Finder
+    retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             // rpc server to query tool Feat Extraction module
+    retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
+    retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
 
-    retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());         //rpc server to query objectFinder
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
 		return false;
@@ -345,13 +230,13 @@ bool Tool3DManager::getToolByPose(int toolI, double deg, double disp, double til
     return ok;
 }
 
-bool Tool3DManager::getToolByName(const string &tool){
+bool Tool3DManager::getTool(const string &tool){
     bool ok;
     if (robot=="icubSim"){
          cout << "Grasp params need to be given to grasp on simulator. Try getToolByPose." << endl;
     }else{
         toolname = tool;
-        ok = loadToolName(tool);
+        ok = getToolExe(tool);
     }
     return ok;
 }
@@ -364,12 +249,6 @@ bool Tool3DManager::graspTool(){
     }else{
         ok = graspToolExe();
     }
-    return ok;
-}
-
-bool Tool3DManager::lookTool(){
-    bool ok;
-    ok = lookToolExe();
     return ok;
 }
 
@@ -777,68 +656,6 @@ bool Tool3DManager::graspToolExe()
 
 
 /**********************************************************/
-bool Tool3DManager::lookToolExe()
-{
-    Bottle cmdKM,replyKM;               // bottles for Karma Motor
-    Bottle cmdARE, replyARE;            // bottles for actionsRenderingEngine
-
-    // Remove any end effector extension that might be.
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("remove");
-    rpcKarmaMotor.write(cmdKM, replyKM);
-
-    // Close hand on tool grasp
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("look");
-    cmdARE.addString("hand");
-    cmdARE.addString(hand);
-    cmdARE.addString("fixate");
-    cmdARE.addString("block_eyes");
-    cmdARE.addDouble(5.0);
-    rpcMotorAre.write(cmdARE, replyARE);
-    //Time::delay(0.5);
-
-    // Move hand to central position to check tool extension and perform regrasp easily.
-    cout << "Moving arm to a central position" << endl;
-    double dispY = (hand=="right")?0.15:-0.15;
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.2);
-    cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.0);
-    cmdKM.addDouble(0.0);       // No angle
-    cmdKM.addDouble(0.0);       // No radius
-    rpcKarmaMotor.write(cmdKM, replyKM);
-
-    // Stop head moving for further visual processing
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("idle");
-    rpcMotorAre.write(cmdARE, replyARE);
-
-    // Attach the new tooltip to the "body schema"
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("attach");
-    cmdKM.addString(hand.c_str());
-    cmdKM.addDouble(tooltip.x);
-    cmdKM.addDouble(tooltip.y);
-    cmdKM.addDouble(tooltip.z);
-    cout << "RPC command to KarmaMotor: " << cmdKM.toString() << endl;
-    rpcKarmaMotor.write(cmdKM, replyKM);
-    cout << "RPC reply from KarmaMotor: " << replyKM.toString() << endl;
-    if (!(replyKM.toString() == "[ack]")){
-        cout <<  "Karma Motor could not add the tooltip " << endl;
-        return false;
-    }
-
-    return true;
-}
-
-
-/**********************************************************/
 bool Tool3DManager::load3Dmodel(const string &cloudName)
 {
     //string ack = "[ack]";
@@ -1054,7 +871,7 @@ bool Tool3DManager::loadToolPose(const int toolI, const double graspOr, const do
 }
 
 /**********************************************************/
-bool Tool3DManager::loadToolName(const string& tool)
+bool Tool3DManager::getToolExe(const string& tool)
 {
     bool ok;
     cout << endl << "Getting " << tool << endl;

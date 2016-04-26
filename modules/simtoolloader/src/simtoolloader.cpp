@@ -394,7 +394,7 @@ void CtrlThread::run() {
                 //printf("Hand to tool rotation matrix:\n %s \n", H2T.toString().c_str());
                 T2H(2,3) = 0.03;                    // This accounts for the traslation of 3 cm in the Z axis in the hand coord system.
                 T2H(1,3) = -toolDisp /100;   // This accounts for the traslation of 'toolDisp' in the -Y axis in the hand coord system along the extended thumb).
-                printf("Tool to Hand transformatoin matrix (T2H):\n %s \n", T2H.toString().c_str());
+                printf("Tool to Hand transformation matrix (T2H):\n %s \n", T2H.toString().c_str());
                 Vector T2Hrpy = dcm2rpy(T2H);  // from rot Matrix to roll pitch yaw
                 //Vector T2HrpyDeg = T2Hrpy *(180.0/M_PI);
                 //printf("Orientation of tool wrt to the hand, in degrees:\n %s \n",T2HrpyDeg.toString().c_str());

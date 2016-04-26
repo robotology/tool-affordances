@@ -11,14 +11,12 @@
     <description-long>
     This modules relies user commands to the rest of the modules in the tool-pose dependent affordance 
     Experiment, in order to allow for the required feature extraction, action performance and effect observation. \n
-    It also executes basic motor actions to observe the tool. \n
     It works with minor differences on the real robot and the simulator, save the necessary ones to grab the tool. 
-     
-        </description-long>
+    </description-long>
 
     <!-- <arguments> can have multiple <param> tags-->
     <arguments>    
-    <param desc="Name of the module" default="affManager"> name</param>
+    <param desc="Name of the module" default="tool3DManager"> name</param>
     <param desc="Robot used" default="icub"> robot</param>
     <param desc="Hand/arm used" default="right"> hand</param>
     <param desc="Camera used" default="left"> camera</param>   
@@ -35,7 +33,7 @@
         <input port_type="service">
             <type>rpc</type>
             <port carrier="tcp">/tool3DManager/rpc:i</port>
-            <description>takes RPC commands from Human, stateMachine or other modules</description>
+            <description>takes RPC commands </description>
         </input>
         <input>
             <type>Bottle</type>
@@ -64,15 +62,15 @@
             <port>/tool3DManager/karmaMotor:rpc</port>
             <description> Send commands to the Karma motor for tool use related actions</description>
         </output>
-        <output port_type="service">
-            <type>rpc</type>
-            <port>/tool3DManager/obj3Dexp:rpc</port>
-            <description> Send commands to the object3Dexplorer for cloud pose estimation.</description>
-        </output>
          <output port_type="service">
             <type>rpc</type>
             <port>/tool3DManager/karmaFinder:rpc</port>
             <description> Send commands to the finder part of the KARMA application in order to display and locate the tooltip.</description>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/tool3DManager/obj3Dexp:rpc</port>
+            <description> Send commands to the object3Dexplorer for tool pose estimation.</description>
+        </output>
         </output>
         <output port_type="service">
             <type>rpc</type>
@@ -86,25 +84,30 @@
         </output>
         <output>
             <type>Bottle</type>
-            <port>/tool3DManager/data:o</port>
-            <description> Outputs affordance data for recording (action parameters, effect, etc)</description>
+            <port>/tool3DManager/effData:o</port>
+            <description> Port to send data of computed effect out for recording </description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port>/tool3DManager/effData:o</port>
+            <description> Port to send data of action effect out for recording </description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port>/tool3DManager/effData:o</port>
+            <description> Port to send data of grasp effect out for recording </description>
         </output>
     </data>
     
     <services>
-    <!--
-         <server>
-            <type>IRpcServer</type>
-            <idl>affManager.thrift</idl>
-            <port>/rpcIdl/server</port>
-            <description>Command port</description>
-        </server>
-        -->
     </services>
 
     <dependencies>
         <computer>
-        Assume that robotInterface (with ICartesianControl interface implemented) is running. 
+	        Assume that robotInterface (with ICartesianControl interface implemented) is running.
+		For tool use communicates with KarmaMotor, KarmaToolFinder and objects3DExplorer.
+		For simulation needs simulator running and simtoolloader to load and place tools.
+		For experimental recording needs a tracker (obj3Dexp or other) and featExt.			
         </computer>
     </dependencies>
 
