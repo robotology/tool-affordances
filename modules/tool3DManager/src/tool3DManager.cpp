@@ -252,6 +252,27 @@ bool Tool3DManager::graspTool(){
     return ok;
 }
 
+bool Tool3DManager::explore(){
+    bool ok;
+    ok = exploreTool(tooltip);
+
+    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
+
+    ok = addToolTip(tooltip);
+    if (!ok){
+        cout << "Tool tip could not be attached." << endl;
+        return false;
+    }
+    cout <<  "Tooltip attached, ready to perform action!" << endl;
+    return ok;
+}
+
+bool Tool3DManager::lookTool(){
+    bool ok;
+    ok = lookToolExe();
+    return ok;
+}
+
 bool Tool3DManager::regrasp(double deg, double disp, double tilt, double Z){
     bool ok;
     if (toolLoadedIdx<0){
@@ -620,6 +641,24 @@ bool Tool3DManager::graspToolExe()
     if(!replyARE.get(0).asBool())
         return false;
 
+    lookToolExe();
+
+    return true;
+}
+
+
+/**********************************************************/
+bool Tool3DManager::lookToolExe()
+{
+    Bottle cmdKM,replyKM;               // bottles for Karma Motor
+    Bottle cmdARE, replyARE;            // bottles for actionsRenderingEngine
+
+    // Remove any end effector extension that might be.
+    cmdKM.clear();replyKM.clear();
+    cmdKM.addString("tool");
+    cmdKM.addString("remove");
+    rpcKarmaMotor.write(cmdKM, replyKM);
+
     // Close hand on tool grasp
     cmdARE.clear();
     replyARE.clear();
@@ -637,14 +676,13 @@ bool Tool3DManager::graspToolExe()
     double dispY = (hand=="right")?0.15:-0.15;
     cmdKM.clear();replyKM.clear();
     cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.25);          //  X
-    cmdKM.addDouble(dispY);         //  Y
-    cmdKM.addDouble(0.05);           //  Z
-    cmdKM.addDouble(0.0);           // No angle
-    cmdKM.addDouble(0.0);           // No radius -> no displacement, just move arm to that positon
+    cmdKM.addDouble(-0.2);
+    cmdKM.addDouble(dispY);
+    cmdKM.addDouble(0.0);
+    cmdKM.addDouble(0.0);       // No angle
+    cmdKM.addDouble(0.0);       // No radius
     rpcKarmaMotor.write(cmdKM, replyKM);
 
-    //Time::delay(1.0);
     // Stop head moving for further visual processing
     cmdARE.clear();
     replyARE.clear();
@@ -657,8 +695,7 @@ bool Tool3DManager::graspToolExe()
 
 /**********************************************************/
 bool Tool3DManager::load3Dmodel(const string &cloudName)
-{
-    //string ack = "[ack]";
+{    
     // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
     Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
     cmd3DE.clear();   reply3DE.clear();
@@ -666,8 +703,6 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
     cmd3DE.addString(cloudName);
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;    
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.get(0).asString() << "."<< endl;
 
     if (reply3DE.get(0).asString() != "[ack]" ){
         cout << "objects3DExplorer coudln't load the tool." << endl;
@@ -1047,6 +1082,40 @@ bool Tool3DManager::findTipFromParam( Point3D &ttip, const double graspOr, const
     return true;
 }
 
+
+/**********************************************************/
+bool Tool3DManager::exploreTool(Point3D &ttip)
+{
+    // Query object3DExplorer to find the tooltip
+    cout << "Finding out tooltoltip by exploration and symmetry" << endl;
+    Bottle cmd3DE, reply3DE;
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("exploreTool");
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "There was some error exploring the tool." << endl;
+        return false;
+    }
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("findTooltipSym");
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "There was some estimating the tooltip." << endl;
+        return false;
+    }
+
+    ttip.x = reply3DE.get(1).asDouble();
+    ttip.y = reply3DE.get(2).asDouble();
+    ttip.z = reply3DE.get(3).asDouble();
+
+    return true;
+}
 
 /**********************************************************/
 bool Tool3DManager::addToolTip(const Point3D ttip)

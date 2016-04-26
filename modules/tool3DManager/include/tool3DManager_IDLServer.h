@@ -59,6 +59,16 @@ public:
    */
   virtual bool graspTool();
   /**
+   * Communicates with O3DE to explore the tool and get the tooltip without a model
+   * @return true/false on success/failure
+   */
+  virtual bool explore();
+  /**
+   * Communicates with KM  move the tool to the center.
+   * @return true/false on success/failure
+   */
+  virtual bool lookTool();
+  /**
    * Move tool in hand (sim) and change kinematic extension (sim and real).
    * @return true/false on success/failure of regrasping the tool
    */
