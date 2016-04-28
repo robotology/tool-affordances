@@ -2,170 +2,233 @@
     <name>Xperience_toolAff_APP</name>
     <module>
         <name>actionsRenderingEngine</name>
-        <parameters></parameters>
-        <node>console</node>
+        <parameters>--motor::block_eyes 5.0</parameters>
+        <node>icub21</node>
         <prefix></prefix>
-        <geometry>(Pos (x 1392) (y 246.9))</geometry>
-    </module>
-    <module>
-        <name>drop-away.lua</name>
-        <parameters></parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <deployer>lua</deployer>
-        <geometry>(Pos (x 890.9) (y 114.9))</geometry>
-    </module>
-    <module>
-        <name>karmaMotor</name>
-        <parameters>--movTime 0.4</parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 683) (y 244.9))</geometry>
-    </module>
-    <module>
-        <name>karmaToolFinder</name>
-        <parameters></parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 897.51) (y 410.231))</geometry>
-    </module>
-    <module>
-        <name>lbpExtract</name>
-        <parameters></parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 900) (y 519.9))</geometry>
+        <geometry>(Pos (x 1018) (y 1.44329e-15))</geometry>
     </module>
     <module>
         <name>objects3DExplorer</name>
         <parameters></parameters>
-        <node>console</node>
+        <node>icub22</node>
         <prefix></prefix>
-        <geometry>(Pos (x 350) (y 387.9))</geometry>
-    </module>
-    <module>
-        <name>show3D</name>
-        <parameters></parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 613) (y 398.9))</geometry>
+        <geometry>(Pos (x 614) (y 73.9))</geometry>
     </module>
     <module>
         <name>tool3DManager</name>
         <parameters>--from realTools.ini</parameters>
-        <node>console</node>
-        <prefix>icub21</prefix>
-        <geometry>(Pos (x 123.874) (y 168.46))</geometry>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 0) (y -3.33067e-16))</geometry>
+    </module>
+    <module>
+        <name>karmaMotor</name>
+        <parameters>--movTime 0.4</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 381) (y 20.9))</geometry>
+    </module>
+    <module>
+        <name>karmaToolFinder</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 220) (y 204.9))</geometry>
+    </module>
+    <module>
+       <name>SFM</name>
+       <node>icub-cuda</node>
+    </module>
+    <module>
+       <name>obj3Drec</name>
+       <parameters></parameters>
+       <node>icub22</node>
+    </module>
+    <module>
+        <name>lbpExtract</name>
+         <node>icub21</node>
+    </module>
+    <module>
+            <name>iSpeak</name>
+            <parameters>--package acapela-tts</parameters>
+            <node>icub-win1</node>
+    </module>
+    <module>
+        <name>show3D</name>
+        <parameters></parameters>
+        <node>icub22</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 867) (y 82.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 380 --y 700</parameters>
-        <node>console</node>
+        <parameters>--x 0 --y 0</parameters>
+        <node>icub22</node>
         <prefix>/toolFinder</prefix>
-        <geometry>(Pos (x 1093.67) (y 271.149))</geometry>
+        <geometry>(Pos (x 437) (y 158.9))</geometry>
     </module>
     <module>
-        <name>yarpview</name>
-        <parameters>--name /iolViewer/lbpExtracted/view --x 380 --y 350 --p 50 --compact</parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1206) (y 590.9))</geometry>
+       <name>yarpview</name>
+       <parameters>--name /disp --out /disp/out --p 33 --x 350 --y 0</parameters>
+       <node>icub22</node>
+    </module>
+
+    <module>
+       <name>yarpview</name>
+       <parameters>--name /segView --p 33 --out /seg/out --x 700 --y 0</parameters>
+       <node>icub22</node>
     </module>
     <module>
-        <name>yarpview</name>
-        <parameters>--name /iolViewer/lbpSegmented/view --x 380 --y 0 --p 50 --compact</parameters>
-        <node>console</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1204) (y 634.9))</geometry>
+        <name>drop-away.lua</name>
+        <deployer>lua</deployer>
+        <node>icub21</node>
     </module>
-    <connection persist="true">
-        <from>icub21/tool3DManager/are:rpc</from>
+
+
+
+    <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/SFM/left:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/camcalib/right/out</from>
+        <to>/SFM/right:i</to>
+        <protocol>tcp</protocol>
+    </connection>        
+
+    <connection>
+        <from>/tool3DManager/are:rpc</from>
         <to>/actionsRenderingEngine/cmd:io</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 842.5) (y 225)) ((x 313) (y 185)) ((x 1393) (y 265))  )</geometry>
-    </connection>
-    <connection persist="true">
-        <from>icub21/tool3DManager/karmaFinder:rpc</from>
-        <to>/karmaToolFinder/rpc</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 313) (y 310)) ((x 897) (y 427))  )</geometry>
+        <geometry>(Pos ((x 593.5) (y 17.5)) ((x 189) (y 17)) ((x 1019) (y 18))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/obj3Drec/pnt:o</from>
-        <to>/objects3DExplorer/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 246.5) (y 465)) ((x 163) (y 474)) ((x 351) (y 456))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/clouds:o</from>
-        <to>/show3D/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 584.5) (y 424)) ((x 576) (y 406)) ((x 614) (y 442))  )</geometry>
-    </connection>
-    <connection persist="true">
-        <from>icub21/tool3DManager/karmaMotor:rpc</from>
+        <from>/tool3DManager/karmaMotor:rpc</from>
         <to>/karmaMotor/rpc</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 487.5) (y 261)) ((x 313) (y 260)) ((x 683) (y 262))  )</geometry>
+        <geometry>(Pos ((x 274.5) (y 65)) ((x 189) (y 92)) ((x 381) (y 38))  )</geometry>
     </connection>
     <connection>
-        <from>/lbpExtract/segmentedlbp:o</from>
-        <to>/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 1127) (y 645.5)) ((x 1070) (y 638)) ((x 1205) (y 653))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/objrec:rpc</from>
-        <to external="true">/obj3Drec/rpc:i</to>
+        <from>/tool3DManager/karmaFinder:rpc</from>
+        <to>/karmaToolFinder/rpc</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 589) (y 454)) ((x 571) (y 430)) ((x 628) (y 478))  )</geometry>
-    </connection>
-    <connection>
-        <from>/lbpExtract/blobs:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_take</protocol>
-        <geometry>(Pos ((x 1035.5) (y 464)) ((x 1070) (y 663)) ((x 1393) (y 265))  )</geometry>
-    </connection>
-    <connection>
-        <from>/karmaToolFinder/img:o</from>
-        <to>/toolFinder/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 665.142) (y 500.596)) ((x 1107) (y 465)) ((x 1094) (y 289))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/actionsRenderingEngine/wbd:rpc</from>
-        <to external="true">/wholeBodyDynamics/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 1624) (y 643)) ((x 1736) (y 624)) ((x 1533) (y 662))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/visualizer:rpc</from>
-        <to>/show3D/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 581.5) (y 435.5)) ((x 571) (y 455)) ((x 613) (y 416))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/drop-away/cmd:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_drop</protocol>
-        <geometry>(Pos ((x 1024.5) (y 215)) ((x 1048) (y 165)) ((x 1393) (y 265))  )</geometry>
-    </connection>
-    <connection persist="true">
-        <from>icub21/tool3DManager/obj3Dexp:rpc</from>
-        <to>/objects3DExplorer/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>
-    </connection>
-    <connection>
-        <from>/lbpExtract/extractedlbp:o</from>
-        <to>/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 1128) (y 611)) ((x 1070) (y 613)) ((x 1207) (y 609))  )</geometry>
+        <geometry>(Pos ((x 194) (y 182)) ((x 189) (y 142)) ((x 220) (y 222))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/karmaToolFinder/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 604.5) (y 564)) ((x 332) (y 650)) ((x 898) (y 478))  )</geometry>
+        <geometry>(Pos ((x 196) (y 294.5)) ((x 192) (y 316)) ((x 221) (y 273))  )</geometry>
     </connection>
+    <connection>
+        <from>/karmaToolFinder/img:o</from>
+        <to>/toolFinder/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 423.5) (y 218.5)) ((x 430) (y 260)) ((x 438) (y 177))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/obj3Dexp:rpc</from>
+        <to>/objects3DExplorer/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 391) (y 116.5)) ((x 189) (y 117)) ((x 614) (y 116))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/show3D/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 854) (y 109)) ((x 840) (y 92)) ((x 868) (y 126))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/visualizer:rpc</from>
+        <to>/show3D/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 840.5) (y 120.5)) ((x 835) (y 141)) ((x 867) (y 100))  )</geometry>
+    </connection>
+    <connection>
+        <from>/obj3Drec/pnt:o</from>
+        <to>/objects3DExplorer/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 718) (y 279)) ((x 842) (y 416)) ((x 615) (y 142))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/objrec:rpc</from>
+        <to>/obj3Drec/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 751) (y 259.5)) ((x 835) (y 116)) ((x 688) (y 403))  )</geometry>
+    </connection>
+
+    <connection>
+            <from>/icub/camcalib/left/out</from>
+            <to>/lbpExtract/image:i</to>
+            <protocol>udp</protocol>
+    </connection>
+    <connection>
+            <from>/lbpExtract/segmentedlbp:o</from>
+            <to>/segView</to>
+            <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+            <from>/actionsRenderingEngine/wbd:rpc</from>
+            <to>/wholeBodyDynamics/rpc:i</to>
+            <protocol>tcp</protocol>
+    </connection>
+
+       <connection>
+            <from>/SFM/disp:o</from>
+            <to>/obj3Drec/disp:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/obj3Drec/SFM:rpc</from>
+            <to>/SFM/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>
+        
+        <connection>
+            <from>/obj3Drec/seg:rpc</from>
+            <to>/lbpExtract/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 549.5) (y 189)) ((x 552) (y 226)) ((x 568) (y 152))  )</geometry>
+        </connection>
+
+        <connection>
+            <from>/icub/camcalib/left/out</from>
+            <to>/obj3Drec/img:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/obj3Drec/disp:o</from>
+            <to>/disp</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/disp/out</from>
+            <to>/obj3Drec/seed:i</to>
+            <protocol>tcp</protocol>
+        </connection>   
+        <connection>
+            <from>/seg/out</from>
+            <to>/obj3Drec/seed:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x 822.5) (y 173.5)) ((x 833) (y 139)) ((x 833) (y 208))  )</geometry>
+        </connection>
+
+
+    <connection>
+            <from>/drop-away/cmd:o</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_drop</protocol>
+    </connection>
+
+    <connection>
+            <from>/lbpExtract/blobs:o</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp+recv.portmonitor+context.table-cleaning+file.pm_take</protocol>
+    </connection>
+
 </application>
