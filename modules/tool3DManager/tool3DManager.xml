@@ -59,18 +59,13 @@
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/tool3DManager/karmaMotor:rpc</port>
-            <description> Send commands to the Karma motor for tool use related actions</description>
+            <port>/tool3DManager/affMotor:rpc</port>
+            <description> Send commands to the Affordance Motor Module for tool use related actions</description>
         </output>
-         <output port_type="service">
-            <type>rpc</type>
-            <port>/tool3DManager/karmaFinder:rpc</port>
-            <description> Send commands to the finder part of the KARMA application in order to display and locate the tooltip.</description>
         <output port_type="service">
             <type>rpc</type>
             <port>/tool3DManager/obj3Dexp:rpc</port>
-            <description> Send commands to the object3Dexplorer for tool pose estimation.</description>
-        </output>
+            <description> Send commands to the object3Dexplorer for tool pose estimation.</description>        
         </output>
         <output port_type="service">
             <type>rpc</type>
@@ -105,7 +100,7 @@
     <dependencies>
         <computer>
 	        Assume that robotInterface (with ICartesianControl interface implemented) is running.
-		For tool use communicates with KarmaMotor, KarmaToolFinder and objects3DExplorer.
+		For tool use communicates with affMotorcd  and objects3DExplorer.
 		For simulation needs simulator running and simtoolloader to load and place tools.
 		For experimental recording needs a tracker (obj3Dexp or other) and featExt.			
         </computer>

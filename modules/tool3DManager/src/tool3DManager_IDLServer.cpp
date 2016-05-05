@@ -1709,7 +1709,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("bool getToolByPose(const int32_t tool = 0, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0) ");
       helpString.push_back("Performs the sequence to get the tool: \n ");
       helpString.push_back("- On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand. ");
-      helpString.push_back("- Moreover, the tool end effector is located and attached to the kinematic chain with karmaMotor and shown with karmaToolFinder. ");
+      helpString.push_back("- Moreover, the tool end effector is located and attached to the kinematic chain with affMotor and shown on the viewer ");
       helpString.push_back("- On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given ");
       helpString.push_back("@return true/false on success/failure of loading the tool with correct pose ");
     }

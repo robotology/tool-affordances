@@ -113,8 +113,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                // rpc server to query ARE
     retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
     retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
-    retRPC = retRPC && rpcKarmaMotor.open(("/"+name+"/karmaMotor:rpc").c_str());       // rpc server to query Karma Motor
-    retRPC = retRPC && rpcKarmaFinder.open(("/"+name+"/karmaFinder:rpc").c_str());     // rpc server to query Karma Finder
+    retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
     retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             // rpc server to query tool Feat Extraction module
     retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
@@ -150,8 +149,7 @@ bool Tool3DManager::interruptModule()
     rpcSimToolLoader.interrupt();
     rpcSimulator.interrupt();
     rpcMotorAre.interrupt();
-    rpcKarmaMotor.interrupt();
-    rpcKarmaFinder.interrupt();
+    rpcAffMotor.interrupt();
 
     rpcFeatExt.interrupt();
     rpcObjFinder.interrupt();
@@ -171,8 +169,7 @@ bool Tool3DManager::close()
     rpcSimToolLoader.close();
     rpcSimulator.close();
     rpcMotorAre.close();
-    rpcKarmaMotor.close();
-    rpcKarmaFinder.close();
+    rpcAffMotor.close();
 
     rpcFeatExt.close();
     rpcObjFinder.close();
@@ -606,14 +603,14 @@ bool Tool3DManager::setSeg(bool seg){
 /**********************************************************/
 bool Tool3DManager::graspToolExe()
 {
-    Bottle cmdKM,replyKM;               // bottles for Karma Motor
-    Bottle cmdARE, replyARE;            // bottles for actionsRenderingEngine
+    Bottle cmdAMM, replyAMM;               // bottles for Affordance Motor Module
+    Bottle cmdARE, replyARE;               // bottles for actionsRenderingEngine
 
     // Remove any end effector extension that might be.
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("remove");
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("tool");
+    cmdAMM.addString("remove");
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Send commands to ARE to get the tool, close the hand and go to central position
     fprintf(stdout,"Reach me a tool please.\n");
@@ -650,14 +647,14 @@ bool Tool3DManager::graspToolExe()
 /**********************************************************/
 bool Tool3DManager::lookToolExe()
 {
-    Bottle cmdKM,replyKM;               // bottles for Karma Motor
-    Bottle cmdARE, replyARE;            // bottles for actionsRenderingEngine
+    Bottle cmdAMM,replyAMM;               // bottles for the Affordance Motor Module
+    Bottle cmdARE, replyARE;              // bottles for actionsRenderingEngine
 
     // Remove any end effector extension that might be.
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("remove");
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("tool");
+    cmdAMM.addString("remove");
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Close hand on tool grasp
     cmdARE.clear();
@@ -674,14 +671,14 @@ bool Tool3DManager::lookToolExe()
     // Move hand to central position to check tool extension and perform regrasp easily.
     cout << "Moving arm to a central position" << endl;
     double dispY = (hand=="right")?0.15:-0.15;
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.2);
-    cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.0);
-    cmdKM.addDouble(0.0);       // No angle
-    cmdKM.addDouble(0.0);       // No radius
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("push");            // Set a position in the center in front of the robot
+    cmdAMM.addDouble(-0.2);
+    cmdAMM.addDouble(dispY);
+    cmdAMM.addDouble(0.0);
+    cmdAMM.addDouble(0.0);       // No angle
+    cmdAMM.addDouble(0.0);       // No radius
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Stop head moving for further visual processing
     cmdARE.clear();
@@ -723,27 +720,27 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     cout << endl<<"Getting tool " << toolI <<" with orientation: "<< graspOr << ", displacement: " << graspDisp << "and tilt: " << graspTilt << endl;
     cout << "Tool present: " << toolLoadedIdx <<"."<< endl;
 
-    Bottle cmdKM,replyKM;               // bottles for Karma Motor
-    Bottle cmdSim,replySim;             // bottles for Simulator    
-    Bottle cmd3DE,reply3DE;             // bottles for toolFeatExt
+    Bottle cmdAMM,replyAMM;               // bottles for the Affordance Motor Module
+    Bottle cmdSim,replySim;               // bottles for Simulator
+    Bottle cmd3DE,reply3DE;               // bottles for toolFeatExt
 
     // Remove any end effector extension that might be.
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("remove");    
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("tool");
+    cmdAMM.addString("remove");
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
     cout << "Moving "<< hand << " arm to a central position" << endl;
     double dispY = (hand=="right")?0.15:-0.15;
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("push");            // Set a position in the center in front of the robot
-    cmdKM.addDouble(-0.25);
-    cmdKM.addDouble(dispY);
-    cmdKM.addDouble(0.05);
-    cmdKM.addDouble(0.0);       // No angle
-    cmdKM.addDouble(0.0);       // No radius
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("push");            // Set a position in the center in front of the robot
+    cmdAMM.addDouble(-0.25);
+    cmdAMM.addDouble(dispY);
+    cmdAMM.addDouble(0.05);
+    cmdAMM.addDouble(0.0);       // No angle
+    cmdAMM.addDouble(0.0);       // No radius
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     if (toolI != toolLoadedIdx)
     {
@@ -812,7 +809,7 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     // Get the tooltip canonical coordinates wrt the hand coordinate frame from its bounding box.
     cout << "Getting tooltip coordinates." << endl;
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findTooltip");
+    cmd3DE.addString("findTooltipParam");
     cmd3DE.addDouble(graspOr);
     cmd3DE.addDouble(graspDisp);
     cmd3DE.addDouble(tiltValid);
@@ -824,9 +821,10 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
     }
     cout << " Received reply: " << reply3DE.toString() << endl;
 
-    tooltip.x = reply3DE.get(0).asDouble();
-    tooltip.y = reply3DE.get(1).asDouble();
-    tooltip.z = reply3DE.get(2).asDouble();
+    Bottle tooltipBot = reply3DE.tail();
+    tooltip.x = tooltipBot.get(0).asDouble();
+    tooltip.y = tooltipBot.get(1).asDouble();
+    tooltip.z = tooltipBot.get(2).asDouble();
 
     cout << "Tooltip of tool in positon: x= " << tooltip.x << ", y = " << tooltip.y << ", z = " << tooltip.z <<endl;
 
@@ -983,11 +981,10 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
         cout << "Objects3Dexplorer couldn't estimate the tip." << endl;
         return false;
     }
-
-    ttip.x = reply3DE.get(1).asDouble();
-    ttip.y = reply3DE.get(2).asDouble();
-    ttip.z = reply3DE.get(3).asDouble();
-
+    Bottle tooltipBot = reply3DE.tail();
+    ttip.x = tooltipBot.get(0).asDouble();
+    ttip.y = tooltipBot.get(1).asDouble();
+    ttip.z = tooltipBot.get(2).asDouble();
 
     return true;
 }
@@ -1063,7 +1060,7 @@ bool Tool3DManager::findTipFromParam( Point3D &ttip, const double graspOr, const
     Bottle cmd3DE, reply3DE;
 
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findTooltip");
+    cmd3DE.addString("findTooltipParam");
     cmd3DE.addDouble(graspOr);
     cmd3DE.addDouble(graspDisp);
     cmd3DE.addDouble(graspTilt);
@@ -1075,9 +1072,11 @@ bool Tool3DManager::findTipFromParam( Point3D &ttip, const double graspOr, const
         cout << "Objects3Dexplorer couldn't estimate the tip." << endl;
         return false;
     }
-    ttip.x = reply3DE.get(1).asDouble();
-    ttip.y = reply3DE.get(2).asDouble();
-    ttip.z = reply3DE.get(3).asDouble();
+    Bottle ttBot = reply3DE.tail();
+
+    ttip.x = ttBot.get(0).asDouble();
+    ttip.y = ttBot.get(1).asDouble();
+    ttip.z = ttBot.get(2).asDouble();
 
     return true;
 }
@@ -1110,9 +1109,11 @@ bool Tool3DManager::exploreTool(Point3D &ttip)
         return false;
     }
 
-    ttip.x = reply3DE.get(1).asDouble();
-    ttip.y = reply3DE.get(2).asDouble();
-    ttip.z = reply3DE.get(3).asDouble();
+    Bottle ttBot = reply3DE.tail();
+
+    ttip.x = ttBot.get(0).asDouble();
+    ttip.y = ttBot.get(1).asDouble();
+    ttip.z = ttBot.get(2).asDouble();
 
     return true;
 }
@@ -1120,36 +1121,21 @@ bool Tool3DManager::exploreTool(Point3D &ttip)
 /**********************************************************/
 bool Tool3DManager::addToolTip(const Point3D ttip)
 {
-    Bottle cmdKF, replyKF;
-    Bottle cmdKM, replyKM;
-
-    // Send the coordinates to Karmafinder to display it and get the tip pixel
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(ttip.x);
-    cmdKF.addDouble(ttip.y);
-    cmdKF.addDouble(ttip.z);
-    cout << "RPC command to KarmaToolFinder: " << cmdKF.toString() << endl;
-    rpcKarmaFinder.write(cmdKF, replyKF);
-    cout << "RPC reply from KarmaToolFinder: " << replyKF.toString() << endl;
-    if (!(replyKF.toString() == "[ack]")){
-        cout <<  "Karma Finder could not project the tooltip " << endl;
-        return false;
-    }
+    Bottle cmdAMM, replyAMM;
 
     // Attach the new tooltip to the "body schema"
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("tool");
-    cmdKM.addString("attach");
-    cmdKM.addString(hand.c_str());
-    cmdKM.addDouble(ttip.x);
-    cmdKM.addDouble(ttip.y);
-    cmdKM.addDouble(ttip.z);
-    cout << "RPC command to KarmaMotor: " << cmdKM.toString() << endl;
-    rpcKarmaMotor.write(cmdKM, replyKM);
-    cout << "RPC reply from KarmaMotor: " << replyKM.toString() << endl;
-    if (!(replyKM.toString() == "[ack]")){
-        cout <<  "Karma Motor could not add the tooltip " << endl;
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("tool");
+    cmdAMM.addString("attach");
+    cmdAMM.addString(hand.c_str());
+    cmdAMM.addDouble(ttip.x);
+    cmdAMM.addDouble(ttip.y);
+    cmdAMM.addDouble(ttip.z);
+    cout << "RPC command to affMotor: " << cmdAMM.toString() << endl;
+    rpcAffMotor.write(cmdAMM, replyAMM);
+    cout << "RPC reply from affMotor: " << replyAMM.toString() << endl;
+    if (!(replyAMM.toString() == "[ack]")){
+        cout <<  "Affordance Motor Module could not add the tooltip " << endl;
         return false;
     }
 
@@ -1268,6 +1254,8 @@ bool Tool3DManager::trackObjExe()
 /**********************************************************/
 bool Tool3DManager::getObjLoc(Vector &coords3D)
 {
+    // XXX Tracking has to be modified so coordinates can be directly asked to LBP extract or any other 3D tracker
+
     if (robot=="icubSim"){
         Bottle cmdSim,replySim;
         cout << endl <<"Getting 3D coords of object." <<endl;
@@ -1488,40 +1476,29 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
     }
     getObjRot(target3DrotIni);               // Get the initial rotation of the object
 
-    // Action during Karma execution transforms the end-effector from the hand to the tip pf the tool,
+    // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    rpcKarmaFinder.write(cmdKF, replyKF);
-    //cout << " Received reply: " << replyKF.toString() << endl;
+    Point3D tooltip_tmp= tooltip;
+    tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
 
 
     cout << "Approaching to coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[2] << ", "<< target3DcoordsIni[2] << "). " <<endl;
-    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("slide");                 // Set a position in the center in front of the robot
-    cmdKM.addDouble(target3DcoordsIni[0]);
-    cmdKM.addDouble(target3DcoordsIni[1]);
-    cmdKM.addDouble(target3DcoordsIni[2] + 0.03);   // Approach the center of the object, not its lower part.
-    cmdKM.addDouble(theta);
-    cmdKM.addDouble(radius);
-    //fprintf(stdout,"RPC to KarmaMotor: %s\n",cmdKM.toString().c_str());
-    rpcKarmaMotor.write(cmdKM, replyKM);
-    //fprintf(stdout,"  Reply from KarmaMotor: %s\n",replyKM.toString().c_str());
+    Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("slide");                 // Set a position in the center in front of the robot
+    cmdAMM.addDouble(target3DcoordsIni[0]);
+    cmdAMM.addDouble(target3DcoordsIni[1]);
+    cmdAMM.addDouble(target3DcoordsIni[2] + 0.03);   // Approach the center of the object, not its lower part.
+    cmdAMM.addDouble(theta);
+    cmdAMM.addDouble(radius);
+    //fprintf(stdout,"RPC to affMotor: %s\n",cmdAMM.toString().c_str());
+    rpcAffMotor.write(cmdAMM, replyAMM);
+    //fprintf(stdout,"  Reply from affMotor: %s\n",replyAMM.toString().c_str());
 
 
     // Restore show tool coordinates
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(tooltip.x);
-    cmdKF.addDouble(tooltip.y);
-    cmdKF.addDouble(tooltip.z);
-    rpcKarmaFinder.write(cmdKF, replyKF);
+    tooltip = tooltip_tmp;
 
     // Put action parameters on a port so they can be read
     actVec[0] = theta;
@@ -1554,38 +1531,27 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     getObjRot(target3DrotIni);               // Get the initial rotation of the object
 
 
-    // Action during Karma execution transforms the end-effector from the hand to the tip pf the tool,
+    // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    rpcKarmaFinder.write(cmdKF, replyKF);
-    //cout << " Received reply: " << replyKF.toString() << endl;
+    Point3D tooltip_tmp = tooltip;
+    tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
+
 
     cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
-    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("drag");                 // Set a position in the center in front of the robot
-    cmdKM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly
-    cmdKM.addDouble(target3DcoordsIni[1]);
-    cmdKM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
-    cmdKM.addDouble(theta);
-    cmdKM.addDouble(radius);
-    cmdKM.addDouble(tilt);
-    rpcKarmaMotor.write(cmdKM, replyKM);
-
+    Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("drag");                 // Set a position in the center in front of the robot
+    cmdAMM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly
+    cmdAMM.addDouble(target3DcoordsIni[1]);
+    cmdAMM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
+    cmdAMM.addDouble(theta);
+    cmdAMM.addDouble(radius);
+    cmdAMM.addDouble(tilt);
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Restore show tool coordinates
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(tooltip.x);
-    cmdKF.addDouble(tooltip.y);
-    cmdKF.addDouble(tooltip.z);
-    rpcKarmaFinder.write(cmdKF, replyKF);
+    tooltip = tooltip_tmp;
 
     goHomeExe();
 
@@ -1598,29 +1564,23 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
 bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double radius, double tilt, bool useTool)
 {
     cout << endl<< "Performing drag3D action from angle " << theta <<" and radius "<< radius  <<", tilt:"<< tilt <<endl;
-    Bottle cmdKM,replyKM;                    // bottles for Karma Motor
-    Bottle cmdKF,replyKF;       // bottles for Karma Tool Finder
+    Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
     Bottle cmdARE,replyARE;
 
     if (!useTool){
          yInfo()<<"Removing tool";
         // Remove any end effector so that action is carried wrt hand reference frame.
-        cmdKM.clear();replyKM.clear();
-        cmdKM.addString("tool");
-        cmdKM.addString("remove");
-        rpcKarmaMotor.write(cmdKM, replyKM);
+        cmdAMM.clear();replyAMM.clear();
+        cmdAMM.addString("tool");
+        cmdAMM.addString("remove");
+        rpcAffMotor.write(cmdAMM, replyAMM);
     }
 
-    // Action during Karma execution transforms the end-effector from the hand to the tip pf the tool,
+    // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    cmdKF.addDouble(0.0);
-    rpcKarmaFinder.write(cmdKF, replyKF);
-    //cout << " Received reply: " << replyKF.toString() << endl;
+    Point3D tooltip_tmp = tooltip;
+    tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
 
     cout << "Approaching to object on coords: (" << x << ", " << y << ", "<< z << "). " <<endl;
 
@@ -1635,15 +1595,15 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     cmdARE.addDouble(5.0);
     rpcMotorAre.write(cmdARE, replyARE);
 
-    cmdKM.clear();replyKM.clear();
-    cmdKM.addString("drag");                 // Set a position in the center in front of the robot
-    cmdKM.addDouble(x);   // Approach the end effector slightly behind the object to grab it properly
-    cmdKM.addDouble(y);
-    cmdKM.addDouble(z);   // Approach the center of the object, not its lower part.
-    cmdKM.addDouble(theta);
-    cmdKM.addDouble(radius);
-    cmdKM.addDouble(tilt);
-    rpcKarmaMotor.write(cmdKM, replyKM);
+    cmdAMM.clear();replyAMM.clear();
+    cmdAMM.addString("drag");                 // Set a position in the center in front of the robot
+    cmdAMM.addDouble(x);   // Approach the end effector slightly behind the object to grab it properly
+    cmdAMM.addDouble(y);
+    cmdAMM.addDouble(z);   // Approach the center of the object, not its lower part.
+    cmdAMM.addDouble(theta);
+    cmdAMM.addDouble(radius);
+    cmdAMM.addDouble(tilt);
+    rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Stop head moving for further visual processing
     cmdARE.clear();
@@ -1652,25 +1612,20 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     rpcMotorAre.write(cmdARE, replyARE);
 
     // Restore show tool coordinates
-    cmdKF.clear();replyKF.clear();
-    cmdKF.addString("show");
-    cmdKF.addDouble(tooltip.x);
-    cmdKF.addDouble(tooltip.y);
-    cmdKF.addDouble(tooltip.z);
-    rpcKarmaFinder.write(cmdKF, replyKF);
+    tooltip= tooltip_tmp;
 
     // Re-attach the tooltip for further actions
     if (!useTool){
-        cmdKM.clear();replyKM.clear();
-        cmdKM.addString("tool");
-        cmdKM.addString("attach");
-        cmdKM.addString(hand.c_str());
-        cmdKM.addDouble(tooltip.x);
-        cmdKM.addDouble(tooltip.y);
-        cmdKM.addDouble(tooltip.z);
-        rpcKarmaMotor.write(cmdKM, replyKM);
-        if (!(replyKM.toString() == "[ack]")){
-            cout <<  "Karma Motor could not re-attach the tooltip " << endl;
+        cmdAMM.clear();replyAMM.clear();
+        cmdAMM.addString("tool");
+        cmdAMM.addString("attach");
+        cmdAMM.addString(hand.c_str());
+        cmdAMM.addDouble(tooltip.x);
+        cmdAMM.addDouble(tooltip.y);
+        cmdAMM.addDouble(tooltip.z);
+        rpcAffMotor.write(cmdAMM, replyAMM);
+        if (!(replyAMM.toString() == "[ack]")){
+            cout <<  "Aff Motor Module could not re-attach the tooltip " << endl;
             return false;
         }
     }

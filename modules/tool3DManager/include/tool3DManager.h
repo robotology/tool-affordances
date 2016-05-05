@@ -65,19 +65,18 @@ protected:
     double                          tableHeight;        // height of the table with respect to the robot frame
     std::vector<yarp::os::Bottle>   models;             // Vector to contain all models considered in the experiment.
 
-    yarp::os::RpcServer         rpcCmd;				//human rpc port (receive commands via rpc)
+    yarp::os::RpcServer         rpcCmd;                 //human rpc port (receive commands via rpc)
 
-    yarp::os::RpcClient         rpcSimToolLoader;           //rpc for the simulator tool loader
+    yarp::os::RpcClient         rpcSimToolLoader;       //rpc for the simulator tool loader
     yarp::os::RpcClient         rpcSimulator;           //rpc for the simulator tool loader
-	yarp::os::RpcClient         rpcMotorAre;        //rpc motor port ARE
-    yarp::os::RpcClient         rpcKarmaMotor;      //rpc motor port KARMA
-    yarp::os::RpcClient         rpcKarmaFinder;     //rpc finder port KARMA
+    yarp::os::RpcClient         rpcMotorAre;            //rpc motor port ARE
+    yarp::os::RpcClient         rpcAffMotor;            //rpc port to affMotor Module
 
-    yarp::os::RpcClient         rpcFeatExt;	        //rpc connection to toolFeatExt to extract features from cloud
-    yarp::os::RpcClient         rpc3Dexp;	        //rpc connection to toolFeatExt to extract features from cloud
 
-    yarp::os::RpcClient         rpcObjFinder;       //rpc connecting to object finder
-    //yarp::os::RpcClient         rpcToolShow;        //rpc connecting to pointcloud 3D visualizer
+    yarp::os::RpcClient         rpcFeatExt;             //rpc connection to toolFeatExt to extract features from cloud
+    yarp::os::RpcClient         rpc3Dexp;               //rpc connection to toolFeatExt to extract features from cloud
+
+    yarp::os::RpcClient         rpcObjFinder;           //rpc connecting to object finder
 
 
     yarp::os::Port                             effDataPort;   // port to send out data of computed effect
