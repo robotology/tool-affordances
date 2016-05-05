@@ -638,7 +638,8 @@ bool Tool3DManager::graspToolExe()
     if(!replyARE.get(0).asBool())
         return false;
 
-    lookToolExe();
+    //lookToolExe();
+    goHomeExe();
 
     return true;
 }
@@ -961,12 +962,21 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     cout << "Finding out tool pose from 3D partial view." << endl;
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("findPoseAlign");
+    cmd3DE.addInt(5);
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.get(0).asString() == "[nack]" ){
-        cout << "Objects3Dexplorer couldn't find out the pose." << endl;
-        return false;
+    if (reply3DE.get(0).asString() == "[nack]" ){        
+        cout << "Objects3Dexplorer couldn't align properly, trying from another pose." << endl;
+        lookToolExe();
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("findPoseAlign");
+        cmd3DE.addInt(5);
+        rpc3Dexp.write(cmd3DE, reply3DE);
+        if (reply3DE.get(0).asString() == "[nack]" ){
+            cout << "Objects3Dexplorer couldn't find out the pose." << endl;
+            return false;
+        }
     }
     //Matrix pose = reply3DE.get(0).asList();
 
@@ -1096,6 +1106,16 @@ bool Tool3DManager::exploreTool(Point3D &ttip)
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() != "[ack]" ){
         cout << "There was some error exploring the tool." << endl;
+        return false;
+    }
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("findPlanes");
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "Main planes could not be computed." << endl;
         return false;
     }
 
