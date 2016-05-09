@@ -10,16 +10,11 @@ input images.</description>
     <description-long>The module exploits the pyramidal Lucas-Kanade algorithm to detect independent moving points over a selectable grid of nodes. The algorithm is designed in such a way that it works also - and especially - with moving cameras. 
         <note>The name motionCUT stands for <i>motion Cover/Uncover rick</i> and refers to its working principle that is detailed in the paper: Ciliberto C., Pattacini U., Natale L., Nori F. and Metta G., "Reexamining Lucas-Kanade Method for Real-Time Independent Motion Detection: Application to the iCub Humanoid Robot", <i>IEEE/RSJ International Conference on Intelligent Robots and Systems</i>, San Francisco, CA, USA, 2011. </note>
         
-        <note><b>If you're going to use the motionCUT for your work, 
-      please quote it within any resulting publication</b>.<\note>
+    <note><b>If you're going to use the motionCUT for your work, please quote it within any resulting publication</b>.</note>
  
-<note> We warmly suggest to use OpenCV in conjunction with 
-      multi-threading layers such as OpenMP and TBB in order to
-      achieve high performances for motion detection. Refer to
-      the OpenCV documentation for the details.<\note>
+    <note> We warmly suggest to use OpenCV in conjunction with multi-threading layers such as OpenMP and TBB in order to achieve high performances for motion detection. Refer to the OpenCV documentation for the details.</note>
  
-<note> A video on iCub employing \e motionCUT can be seen <a
-      href="http://www.youtube.com/watch?v=Ql8Qe0oxHaY">here</a>. <\note>
+    <note> A video on iCub employing \e motionCUT can be seen <a> href="http://www.youtube.com/watch?v=Ql8Qe0oxHaY">here</a>. </note>
         
         
     </description-long>
