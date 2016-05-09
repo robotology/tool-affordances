@@ -36,7 +36,7 @@
         <geometry>(Pos (x 652.455) (y 304.087))</geometry>
     </module>
     <module>
-        <name>seg2cloud</name>
+        <name>seg2cloud</name>lbpE
         <parameters></parameters>
         <node>console</node>
         <prefix></prefix>
@@ -65,14 +65,14 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 350 --out /disp/out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 350 --out /out --y 0 --p 50 --compact</parameters>
         <node>console</node>
         <prefix>/disp</prefix>
         <geometry>(Pos (x 968.411) (y 515.022))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 700 --out /seg/out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 700 --out /out --y 0 --p 50 --compact</parameters>
         <node>console</node>
         <prefix>/seg</prefix>
         <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
@@ -121,7 +121,7 @@
     <connection>
         <from>/SFM/disp:o</from>
         <to>/seg2cloud/disp:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 69) (y -48)) ((x -86) (y -16))  )</geometry>
     </connection>
     <connection>
@@ -149,6 +149,21 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
     </connection>
     <connection>
+        <from>/seg/out</from>
+        <to>/seg2cloud/seed:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/disp/out</from>
+        <to>/seg2cloud/seed:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/seg2cloud/seg:rpc</from>
+        <to>/lbpExtract/rpc:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
         <from>/lbpExtract/segmentedlbp:o</from>
         <to>/seg/yarpview/img:i</to>
         <protocol>udp</protocol>
@@ -167,8 +182,20 @@
         <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
     </connection>
     <connection>
+        <from>/actionsRenderingEngine/wbd:rpc</from>
+        <to>/wholeBodyDynamics/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
+    </connection>
+    <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/objects3DExplorer/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/lbpExtract/image:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
     </connection>
