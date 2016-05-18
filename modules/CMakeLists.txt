@@ -8,6 +8,7 @@ add_subdirectory(affManager)
 
 # 3D specific modules
 add_subdirectory(tool3DManager)
+add_subdirectory(drop-away)
 add_subdirectory(affMotor)
 add_subdirectory(simtoolloader) #Use only in simulation
 

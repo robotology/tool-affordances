@@ -7,7 +7,7 @@
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
 XOFFSET         = 0.0       -- m
-YOFFSET         = -0.02       -- m
+YOFFSET         = -0.03       -- m
 ZOFFSET         = 0.0       -- m
 
 REACHABLE_ZONE_X  = {min=-0.38, max=-0.10}    -- meter
