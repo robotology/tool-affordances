@@ -87,6 +87,12 @@
         <geometry>(Pos ((x 885.033) (y 533.872)) ((x 119) (y -48)) ((x -79) (y 16))  )</geometry>
     </connection>
     <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/toolFeatExt/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 885.033) (y 533.872)) ((x 119) (y -48)) ((x -79) (y 16))  )</geometry>
+    </connection>
+    <connection>
         <from>/toolFeatExt/clouds:o</from>
         <to>/show3D/clouds:i</to>
         <protocol></protocol>
