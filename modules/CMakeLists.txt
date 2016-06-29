@@ -2,6 +2,8 @@
 # Author: Tanis Mar
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
+add_subdirectory(affCollector)
+
 # 2D Specific module
 add_subdirectory(affManager)
 #add_subdirectory(feat2DExt)	
