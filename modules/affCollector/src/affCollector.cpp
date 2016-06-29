@@ -86,10 +86,10 @@ bool  AffCollector::updateModule()
 
     // Stream affordances of active label
 
-    if (activeLabel >0) {
+    if (activeLabel >=0) {
         std::vector<double> activeAffs = getAffs();
         Bottle &affBotOut = affOutPort.prepare();
-        affBotOut.addList();
+        affBotOut.clear();
         for (int a = 0; a < numAct ; a++){
             affBotOut.addDouble(activeAffs[a]);
         }
@@ -192,6 +192,11 @@ double AffCollector::updateAff(const int act, const double eff, const int labI)
         label = labI;
     }
 
+    if (act > numAct-1){
+        cout << "action index out of limits. (Max = " << numAct -1 << ")." << endl;
+        return -1;
+    }
+
     // If the affordances are binary, round to 0 or 1
     if (binAff){
         double effBin;
@@ -211,7 +216,7 @@ double AffCollector::updateAff(const int act, const double eff, const int labI)
     double succRate  = vecAvg(affHist[label][act]);      // XXX Eventually do sth better than avg (decay, forget,etc)
     knownAffs[label][act] = succRate;
 
-    cout << "updated Aff of label '" << knownLabels[label] << "', and action " << act < " to " << succRate << endl;
+    cout << "Updated Aff of label '" << knownLabels[label] << "', and action " << act << " to " << succRate << endl;
 
     return succRate;
 }
