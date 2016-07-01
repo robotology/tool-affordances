@@ -7,20 +7,38 @@
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
 XOFFSET         = 0.0       -- m
-YOFFSET         = -0.03       -- m
+YOFFSET         = -0.03     -- m
 ZOFFSET         = 0.0       -- m
 
-REACHABLE_ZONE_X  = {min=-0.38, max=-0.10}    -- meter
-REACHABLE_ZONE_Y  = {min=-0.40, max=0.0}    -- meter
+--                  -0.4                   0.0                       0.4     Y ->
+--             min ___________________________________________________ max
+--            -0.6 |                        |                        |
+--                 |                        |                        |
+--                 |         UPLEFT         |        UPRIGHT         |
+--                 |                        |                        |
+--           -0.41 |________________________|________________________|  (orig -0.38)
+--                 |                        |                        |
+--                 |                        |                        |
+--                 |       BOTTOMLEFT       |      BOTTOMRIGHT       |
+--                 |                        |                        |
+--            -0.1 |________________________|________________________|
+--              X  V
+--                 max
+-- UPRIGHT
+UPRIGHT_ZONE_X = {min=-0.60, max=-0.38}
+UPRIGHT_ZONE_Y = {min=0.0, max=0.40}
 
-UPRIGHRT_ZONE_X = {min=-0.60, max=-0.38}
-UPRIGHRT_ZONE_Y = {min=0.0, max=0.40}
-
+-- UPLEFT
 UPLEFT_ZONE_X = {min=-0.60, max=-0.38}
 UPLEFT_ZONE_Y = {min=-0.40, max=0.0}
 
-BOTOMMRIGHRT_ZONE_X = {min=-0.38, max=-0.10}
-BOTOMMRIGHRT_ZONE_Y = {min=0.0, max=0.40}
+--BOTTOMRIGHT
+BOTTOMRIGHT_ZONE_X = {min=-0.38, max=-0.10}
+BOTTOMRIGHT_ZONE_Y = {min=0.0, max=0.40}
+
+--BOTTOMLEFT
+REACHABLE_ZONE_X  = {min=-0.38, max=-0.10}    -- meter 
+REACHABLE_ZONE_Y  = {min=-0.40, max=0.0}      -- meter
 
 --
 -- helper functions
@@ -150,7 +168,7 @@ function get_object_in_zone(objects, ZONE_X, ZONE_Y)
     return objects[closest_id]
 end
 
-
+-- XXX Change this to call affCollector
 function get_tool_affordance() 
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
@@ -167,6 +185,7 @@ function reset_wholebody()
 end
 
 
+-- XXX Add actions to push and push left the object
 
 function select_action(reply, zone_name) 
    tool = reply:get(0):asString()
@@ -195,7 +214,7 @@ function perform_action(action, object)
         cmd:addDouble(object.y)
         cmd:addDouble(object.z + 0.00)
         cmd:addDouble(270)
-        cmd:addDouble(math.abs(object.x -(BOTOMMRIGHRT_ZONE_X.min + 0.05)))
+        cmd:addDouble(math.abs(object.x -(BOTTOMRIGHT_ZONE_X.min + 0.05)))
         tmanager_rpc:write(cmd, rep)
         return
     end
@@ -227,7 +246,7 @@ function perform_action(action, object)
         tmanager_rpc:write(cmd, rep)
         return
     end
-    if action == "drag_diagr" then
+    if action == "drag_down_right" then
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
@@ -235,8 +254,36 @@ function perform_action(action, object)
         cmd:addDouble(object.y - 0.02)
         cmd:addDouble(object.z + 0.01)
         cmd:addDouble(315)
-        local a = math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10))
-        local b = math.abs(object.x - (BOTOMMRIGHRT_ZONE_X.min + 0.05))
+        local a = math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.13))
+        local b = math.abs(object.x - (BOTTOMRIGHT_ZONE_X.min + 0.05))
+        cmd:addDouble(math.sqrt(a*a + b*b))
+        pm_print(cmd:toString())
+        tmanager_rpc:write(cmd, rep)
+        return
+    end
+    if action == "drag_up" then
+        local cmd = yarp.Bottle()    
+        local rep = yarp.Bottle()
+        cmd:addString("drag3D")
+        cmd:addDouble(object.x + 0.03)
+        cmd:addDouble(object.y)
+        cmd:addDouble(object.z)
+        cmd:addDouble(90)
+        cmd:addDouble(math.abs(object.x -(UPRIGHT_ZONE_X.max - 0.07)))        
+        pm_print(cmd:toString())
+        tmanager_rpc:write(cmd, rep)
+        return
+    end
+    if action == "drag_up_left" then
+        local cmd = yarp.Bottle()    
+        local rep = yarp.Bottle()
+        cmd:addString("drag3D")
+        cmd:addDouble(object.x + 0.03)
+        cmd:addDouble(object.y + 0.02)
+        cmd:addDouble(object.z)
+        cmd:addDouble(135)
+        local a = math.abs(object.y - (UPLEFT_ZONE_Y.max - 0.07))
+        local b = math.abs(object.x - (UPLEFT_ZONE_X.max - 0.07))
         cmd:addDouble(math.sqrt(a*a + b*b))
         pm_print(cmd:toString())
         tmanager_rpc:write(cmd, rep)

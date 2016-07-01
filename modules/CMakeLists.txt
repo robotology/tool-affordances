@@ -3,6 +3,8 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 add_subdirectory(affCollector)
+add_subdirectory(aff-explorer)
+
 
 # 2D Specific module
 add_subdirectory(affManager)
