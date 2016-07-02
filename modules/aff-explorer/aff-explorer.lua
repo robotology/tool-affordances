@@ -110,7 +110,7 @@ tmanager_rpc:open("/affExplorer/t3dm:rpc")
 ispeak_rpc:open("/affExplorer/ispeak:rpc")
 affcollect_rpc:open("/affExplorer/affcol:rpc")
 
--- XXX this should be deleted when module works:
+-- XXX this should be deleted when module works (connectiosn should go through yarpmanager):
 
 ret = yarp.NetworkBase_connect(port_acteff:getName(), "/affCollector/aff:i")
 if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
@@ -121,6 +121,8 @@ if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
 ret = yarp.NetworkBase_connect(affcollect_rpc:getName(), "/affCollector/rpc:i")
 if ret == false then print("cannot connect to /affCollector/rpc:i") end
 
+-- XXX till here
+
 -- Before exploring, check if it has a tool (received by rpc as label) 
 -- If it doesnt, 
     --> ask for tool from list (so it can load the model)
@@ -130,71 +132,91 @@ if ret == false then print("cannot connect to /affCollector/rpc:i") end
     -- >xx find objects at blobs
     --> xx decide action (random based on zone)
     --> xx perform action
-    -- obeserve effect (success/fail) -> update affCollector (action , effect)
-    -- Do around 60 times, until each action is done about 10 times (more or less)
-    -- Ask to change tool(-pose) and repeat
+    --> observe effect (success/fail) -> update affCollector (action , effect)
+    --> Do around 60 times, until each action is done about 10 times (more or less)
+    --> Ask to change tool(-pose) and repeat
 
 
+---------------- Modifiable variables for module flow:: 
+
+bin_aff = false
+trials_x_tp = 30
+
+--for key,value in pairs(ACTION_LIST) do print(key,value) end
+
+ ------------------------------ Initialization -----------------------------
+print("Module running ... ")
 t0 = yarp.Time_now()
 math.randomseed( os.time() )
 state = "no_tool"
 object_list = {}                        -- for keeping the memory of objects
 object = {}
-trials_x_tp = 60
 tp_trial_count = 0
-bin_aff = false
-
-
---for key,value in pairs(ACTION_LIST) do print(key,value) end
-
-print("Module running ... ")
 
 -- -- -- -- -- -- -- -- -- -- -- updateModule -- -- -- -- -- -- -- -- -- -- -- 
 while state ~= "exit" do
+
+    print("")
     -- Get a tool
     if state == "no_tool" then
+        print("State = ",state)
         tool_name = select_tool(TOOL_LIST, 0)
         print("Tool Selected:", tool_name)
         if tool_name  ~= " " then 
---            tool_pose = ask_for_tool(tool_name)
+            --  tool_pose = ask_for_tool(tool_name)
             tool_pose = load_tool(tool_name)                           
-            set_tool_label(tool_pose)         
-            print("Tool-Pose:",tool_pose)
-            state = "do_action"
+            if tool_pose ~= "invalid" then
+                set_tool_label(tool_pose)         
+                print("Tool-Pose:",tool_pose)
+                state = "do_action"
+            end
        end
     end
 
     -- Find object, perform action      
     if state ==  "do_action" then
-        ----- TEST BEGIN
+        print("State = ",state)
+
+        ----- TEST BEGIN  
         act_i = aff_generator(0) -- generate act_i
+        print("Action Generated: ", act_i)
         if act_i >= 0 then 
             state = "comp_effect"
         end
         ----- TEST END
+
+
         local blobs = port_blobs:read(false)
         if blobs ~= nil and blobs:size() >= 0 then    
             if update_objects(blobs) == true then       -- updates the global variable objects (objects in memory)
                 local object = object_list[1]           -- for exploring we assume there is only on object on the table
                 act_i = explore(object)
+                print("Action Performed: ", act_i)
                 if act_i >= 0 then 
-                    state = "comp_effect"
-                else 
-                    go_home()                           -- If no action has been exectured XXX check right place to call go_home?
+                    state = "comp_effect"                    
                 end
+                go_home()
             end
         end        
     end
 
     --  Observe and save effect  
     if state == "comp_effect" then
+        print("State = ",state)
+        print("Action Generated: ", act_i)
+
         ----- TEST BEGIN
-        eff = aff_generator(1) -- generate act_i
+        print("Computing effect for tritrial: ", tp_trial_count)
+        local eff = aff_generator(1) -- generate act_i
+        print("Effect Generated: ", eff)
         save_effect(act_i, eff)
         tp_trial_count = tp_trial_count + 1
+
         if tp_trial_count > trials_x_tp then        -- after a number of trial with tool-pose, change tool
             state = "no_tool"                
             tp_trial_count = 0
+            print("Performed enough actions for tool-pose: ", tool_pose)
+            save_affordances()
         else
             state = "do_action"                                    
         end
@@ -206,12 +228,14 @@ while state ~= "exit" do
             if update_objects(blobs) == true then           -- updates the global variable objects (objects in memory)
                 object = object_list[1]
                 local eff = comp_effect(object, object_prev, bin_aff)
+                print("Effect Computed: ", eff)
                 save_effect(act_i, eff)
 
                 tp_trial_count = tp_trial_count + 1
                 if tp_trial_count > trials_x_tp then        -- after a number of trial with tool-pose, change tool
                     state = "no_tool"                
                     tp_trial_count = 0
+                    save_affordances()
                 else
                     state = "do_action"                                    
                 end

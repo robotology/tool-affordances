@@ -22,6 +22,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class affCollector_IDLServer_setnumact : public yarp::os::Portable {
+public:
+  int32_t numAct;
+  bool _return;
+  void init(const int32_t numAct);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class affCollector_IDLServer_setlabel : public yarp::os::Portable {
 public:
   std::string label;
@@ -53,7 +62,7 @@ public:
 class affCollector_IDLServer_getAffs : public yarp::os::Portable {
 public:
   std::string label;
-  std::vector<double>  _return;
+  yarp::os::Bottle _return;
   void init(const std::string& label);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
@@ -78,7 +87,16 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class affCollector_IDLServer_clear : public yarp::os::Portable {
+class affCollector_IDLServer_reset : public yarp::os::Portable {
+public:
+  std::string label;
+  bool _return;
+  void init(const std::string& label);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class affCollector_IDLServer_clearAll : public yarp::os::Portable {
 public:
   bool _return;
   void init();
@@ -86,7 +104,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class affCollector_IDLServer_clearAll : public yarp::os::Portable {
+class affCollector_IDLServer_savetofile : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class affCollector_IDLServer_readfile : public yarp::os::Portable {
 public:
   bool _return;
   void init();
@@ -143,6 +169,29 @@ bool affCollector_IDLServer_quit::read(yarp::os::ConnectionReader& connection) {
 
 void affCollector_IDLServer_quit::init() {
   _return = false;
+}
+
+bool affCollector_IDLServer_setnumact::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setnumact",1,1)) return false;
+  if (!writer.writeI32(numAct)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_setnumact::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_setnumact::init(const int32_t numAct) {
+  _return = false;
+  this->numAct = numAct;
 }
 
 bool affCollector_IDLServer_setlabel::write(yarp::os::ConnectionWriter& connection) {
@@ -227,21 +276,9 @@ bool affCollector_IDLServer_getAffs::write(yarp::os::ConnectionWriter& connectio
 bool affCollector_IDLServer_getAffs::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  {
-    _return.clear();
-    uint32_t _size0;
-    yarp::os::idl::WireState _etype3;
-    reader.readListBegin(_etype3, _size0);
-    _return.resize(_size0);
-    uint32_t _i4;
-    for (_i4 = 0; _i4 < _size0; ++_i4)
-    {
-      if (!reader.readDouble(_return[_i4])) {
-        reader.fail();
-        return false;
-      }
-    }
-    reader.readListEnd();
+  if (!reader.read(_return)) {
+    reader.fail();
+    return false;
   }
   return true;
 }
@@ -264,14 +301,14 @@ bool affCollector_IDLServer_getAffHist::read(yarp::os::ConnectionReader& connect
   if (!reader.readListReturn()) return false;
   {
     _return.clear();
-    uint32_t _size5;
-    yarp::os::idl::WireState _etype8;
-    reader.readListBegin(_etype8, _size5);
-    _return.resize(_size5);
-    uint32_t _i9;
-    for (_i9 = 0; _i9 < _size5; ++_i9)
+    uint32_t _size0;
+    yarp::os::idl::WireState _etype3;
+    reader.readListBegin(_etype3, _size0);
+    _return.resize(_size0);
+    uint32_t _i4;
+    for (_i4 = 0; _i4 < _size0; ++_i4)
     {
-      if (!reader.readDouble(_return[_i9])) {
+      if (!reader.readDouble(_return[_i4])) {
         reader.fail();
         return false;
       }
@@ -309,14 +346,15 @@ void affCollector_IDLServer_selectTool::init(const int32_t action) {
   this->action = action;
 }
 
-bool affCollector_IDLServer_clear::write(yarp::os::ConnectionWriter& connection) {
+bool affCollector_IDLServer_reset::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(1)) return false;
-  if (!writer.writeTag("clear",1,1)) return false;
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("reset",1,1)) return false;
+  if (!writer.writeString(label)) return false;
   return true;
 }
 
-bool affCollector_IDLServer_clear::read(yarp::os::ConnectionReader& connection) {
+bool affCollector_IDLServer_reset::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -326,8 +364,9 @@ bool affCollector_IDLServer_clear::read(yarp::os::ConnectionReader& connection) 
   return true;
 }
 
-void affCollector_IDLServer_clear::init() {
+void affCollector_IDLServer_reset::init(const std::string& label) {
   _return = false;
+  this->label = label;
 }
 
 bool affCollector_IDLServer_clearAll::write(yarp::os::ConnectionWriter& connection) {
@@ -348,6 +387,48 @@ bool affCollector_IDLServer_clearAll::read(yarp::os::ConnectionReader& connectio
 }
 
 void affCollector_IDLServer_clearAll::init() {
+  _return = false;
+}
+
+bool affCollector_IDLServer_savetofile::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("savetofile",1,1)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_savetofile::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_savetofile::init() {
+  _return = false;
+}
+
+bool affCollector_IDLServer_readfile::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("readfile",1,1)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_readfile::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_readfile::init() {
   _return = false;
 }
 
@@ -397,6 +478,16 @@ bool affCollector_IDLServer::quit() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool affCollector_IDLServer::setnumact(const int32_t numAct) {
+  bool _return = false;
+  affCollector_IDLServer_setnumact helper;
+  helper.init(numAct);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::setnumact(const int32_t numAct)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 int32_t affCollector_IDLServer::setlabel(const std::string& label) {
   int32_t _return = 0;
   affCollector_IDLServer_setlabel helper;
@@ -427,12 +518,12 @@ double affCollector_IDLServer::updateAff(const int32_t act, const double eff, co
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-std::vector<double>  affCollector_IDLServer::getAffs(const std::string& label) {
-  std::vector<double>  _return;
+yarp::os::Bottle affCollector_IDLServer::getAffs(const std::string& label) {
+  yarp::os::Bottle _return;
   affCollector_IDLServer_getAffs helper;
   helper.init(label);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","std::vector<double>  affCollector_IDLServer::getAffs(const std::string& label)");
+    yError("Missing server method '%s'?","yarp::os::Bottle affCollector_IDLServer::getAffs(const std::string& label)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -457,12 +548,12 @@ std::string affCollector_IDLServer::selectTool(const int32_t action) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affCollector_IDLServer::clear() {
+bool affCollector_IDLServer::reset(const std::string& label) {
   bool _return = false;
-  affCollector_IDLServer_clear helper;
-  helper.init();
+  affCollector_IDLServer_reset helper;
+  helper.init(label);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool affCollector_IDLServer::clear()");
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::reset(const std::string& label)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -473,6 +564,26 @@ bool affCollector_IDLServer::clearAll() {
   helper.init();
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool affCollector_IDLServer::clearAll()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affCollector_IDLServer::savetofile() {
+  bool _return = false;
+  affCollector_IDLServer_savetofile helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::savetofile()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool affCollector_IDLServer::readfile() {
+  bool _return = false;
+  affCollector_IDLServer_readfile helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::readfile()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -511,6 +622,22 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "quit") {
       bool _return;
       _return = quit();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "setnumact") {
+      int32_t numAct;
+      if (!reader.readI32(numAct)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = setnumact(numAct);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -576,20 +703,12 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       if (!reader.readString(label)) {
         label = "active";
       }
-      std::vector<double>  _return;
+      yarp::os::Bottle _return;
       _return = getAffs(label);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        {
-          if (!writer.writeListBegin(BOTTLE_TAG_DOUBLE, static_cast<uint32_t>(_return.size()))) return false;
-          std::vector<double> ::iterator _iter10;
-          for (_iter10 = _return.begin(); _iter10 != _return.end(); ++_iter10)
-          {
-            if (!writer.writeDouble((*_iter10))) return false;
-          }
-          if (!writer.writeListEnd()) return false;
-        }
+        if (!writer.write(_return)) return false;
       }
       reader.accept();
       return true;
@@ -611,10 +730,10 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
         if (!writer.writeListHeader(1)) return false;
         {
           if (!writer.writeListBegin(BOTTLE_TAG_DOUBLE, static_cast<uint32_t>(_return.size()))) return false;
-          std::vector<double> ::iterator _iter11;
-          for (_iter11 = _return.begin(); _iter11 != _return.end(); ++_iter11)
+          std::vector<double> ::iterator _iter5;
+          for (_iter5 = _return.begin(); _iter5 != _return.end(); ++_iter5)
           {
-            if (!writer.writeDouble((*_iter11))) return false;
+            if (!writer.writeDouble((*_iter5))) return false;
           }
           if (!writer.writeListEnd()) return false;
         }
@@ -638,9 +757,13 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "clear") {
+    if (tag == "reset") {
+      std::string label;
+      if (!reader.readString(label)) {
+        label = "active";
+      }
       bool _return;
-      _return = clear();
+      _return = reset(label);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -652,6 +775,28 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "clearAll") {
       bool _return;
       _return = clearAll();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "savetofile") {
+      bool _return;
+      _return = savetofile();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "readfile") {
+      bool _return;
+      _return = readfile();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -712,14 +857,17 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     helpString.push_back("*** Available commands:");
     helpString.push_back("start");
     helpString.push_back("quit");
+    helpString.push_back("setnumact");
     helpString.push_back("setlabel");
     helpString.push_back("getlabel");
     helpString.push_back("updateAff");
     helpString.push_back("getAffs");
     helpString.push_back("getAffHist");
     helpString.push_back("selectTool");
-    helpString.push_back("clear");
+    helpString.push_back("reset");
     helpString.push_back("clearAll");
+    helpString.push_back("savetofile");
+    helpString.push_back("readfile");
     helpString.push_back("verbose");
     helpString.push_back("help");
   }
@@ -732,6 +880,11 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     if (functionName=="quit") {
       helpString.push_back("bool quit() ");
       helpString.push_back("Quit the module ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="setnumact") {
+      helpString.push_back("bool setnumact(const int32_t numAct) ");
+      helpString.push_back("Allows to modify online the number of possible actions ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="setlabel") {
@@ -749,7 +902,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
       helpString.push_back("@returns the updated success rate for that action and label ");
     }
     if (functionName=="getAffs") {
-      helpString.push_back("std::vector<double>  getAffs(const std::string& label = \"active\") ");
+      helpString.push_back("yarp::os::Bottle getAffs(const std::string& label = \"active\") ");
       helpString.push_back("Returns the success rate for all actions in the repertoire for a given known label (the active one by default). ");
       helpString.push_back("if label == 'all', returns a concatenated vector with all konwn affordances. ");
     }
@@ -762,14 +915,24 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
       helpString.push_back(" Based on the previously learnt affordances, returns the best label for a given action/task. ");
       helpString.push_back("@return true/false on success/failure ");
     }
-    if (functionName=="clear") {
-      helpString.push_back("bool clear() ");
+    if (functionName=="reset") {
+      helpString.push_back("bool reset(const std::string& label = \"active\") ");
       helpString.push_back("Clears all the learnt affordances of the active label, and sets it to unknown. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="clearAll") {
       helpString.push_back("bool clearAll() ");
       helpString.push_back("Clears all the learnt affordances all labels, and sets them to unknown. ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="savetofile") {
+      helpString.push_back("bool savetofile() ");
+      helpString.push_back("Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt' ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="readfile") {
+      helpString.push_back("bool readfile() ");
+      helpString.push_back("Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt' ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="verbose") {

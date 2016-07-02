@@ -21,6 +21,9 @@
 
 // Includes
 #include <iostream>
+#include <iterator>
+#include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <math.h>
 #include <vector>
@@ -65,28 +68,29 @@ protected:
 
     /* functions*/    
 
-    // bool                        updateAffordance(const int labI,const int act,const double eff);
-    // double                      getAffordance(const int labI,const int act);                  // returns success rate of action act on/with entity I.
 
-
+    // Helper functions
+    double                      vecAvg(const std::vector<double>& vec);
+    bool                        compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector <double> >& affs);
 
 public:
     
     // RPC Accesible methods
+    bool                        setnumact(const int numAct);
     int                         setlabel(const std::string& label = "tool");
     std::string                 getlabel();
 
     double                      updateAff(const int act,const double eff, const int labI = -1);
-    std::vector<double>         getAffs(const std::string& label = "active");
+    yarp::os::Bottle            getAffs(const std::string& label = "active");
     std::vector<double>         getAffHist(const int act, const std::string& label = "active");
 
     std::string                 selectTool(const int act);
 
-    bool                        clear();
+    bool                        reset(const std::string& label = "active");
     bool                        clearAll();
 
-    // Helper functions
-    double                      vecAvg(const std::vector<double>& vec);
+    bool                        savetofile();
+    bool                        readfile();
     
     // module control //
     bool						attach(yarp::os::RpcServer &source);

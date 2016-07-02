@@ -291,7 +291,7 @@ function explore(obj)
 
     print("[object] in zone ", zone ,":", obj.x, obj.y, obj.z)
 
-    pring("Performin action ", act)
+    print("Performing action ", act)
     perform_action(act, obj)
 
     return  ACTIONS_LIST[act]       -- return the action index (0 index, for c++)
@@ -308,11 +308,9 @@ function go_home()
 end
 
 --/---------------------------------------------------------------------/
-function comp_effect(obj, obj_prev, bin_flag)
-    --if binF == true, effect is binary (success/fail), where success is considered if the object changed its ZONE
-    --if binF == false, effect is euclidean, measured as the 2D distance displaced in plane XY
-
+function comp_effect(obj, obj_prev, bin_flag)    
     local eff
+    --if binF == true, effect is binary (success/fail), where success is if the object changed its ZONE
     if bin_flag == true then
         local zone = get_object_zone(obj)
         local zone_prev = get_object_zone(obj_prev)
@@ -322,7 +320,9 @@ function comp_effect(obj, obj_prev, bin_flag)
             eff = 1                 -- different zone: success
         end
     else
-        eff = math.sqrt((obj.x-obj_prev.x)*(obj.x-obj_prev.x) + (obj.y-obj_prev.y)*(obj.y-obj_prev.y))  -- euclidean distance displaced
+
+    --if binF == false, effect is euclidean, measured as the 2D distance displaced in plane XY
+        eff = math.sqrt((obj.x-obj_prev.x)*(obj.x-obj_prev.x) + (obj.y-obj_prev.y)*(obj.y-obj_prev.y)) 
     end
 
     return eff
@@ -331,16 +331,20 @@ end
 function save_effect(act_i, eff)
     local bot = yarp.Bottle()    
     bot:clear()
-    bot:addString(act_i)
-    bot:addString(eff)
+    bot:addInt(act_i)
+    bot:addDouble(eff)
+    
+    print("Sending: acteff_bot ", bot:toString())
     port_acteff:write(bot)
 end
 
 
-function aff_generator()
-    local act_i = math.random(-1,5)
-    local eff = math.random(0, 2)
-    return act_i, eff
+function aff_generator(click)
+    if click == 0 then                  -- return generated act_i
+        return math.random(-1,5)
+    else
+        return math.random(0, 1)        -- return generated eff
+   end
 end
 
 --/---------------------------------------------------------------------/
@@ -359,20 +363,23 @@ end
 
 --/---------------------------------------------------------------------/
 function deg2ori(deg)
-    if (deg > 45.0) and (deg < 135.0) then    -- oriented left
+    if (deg > 45.0) and (deg < 135.0) then        -- oriented left
         ori = "left"
     elseif ((deg < 45.0) and (deg > -45.0)) then  -- oriented front
-        ori = "front";
-    elseif (deg > -135.0) and (deg < -45.0) then -- oriented right
-        ori = "right";
+        ori = "frnt";
+    elseif (deg > -135.0) and (deg < -45.0) then  -- oriented right
+        ori = "rght";
     else 
-        return "out";
+        return "outx";
     end
     return ori
 end
 
 --/---------------------------------------------------------------------/
 function ask_for_tool(tool_name)
+
+    say("Give me the tool" .. tool_name)
+
     print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
@@ -401,10 +408,15 @@ function ask_for_tool(tool_name)
     local deg = rep:get(1):asDouble()
     print("Deg", deg)
     local pose = deg2ori(deg)
-    print("Pose", pose)
+    if pose == "out" then
+        return "invalid"       
+    end 
+
+    say("I have the tool in pose " .. pose)
 
     tool_pose = tool_name .. "_" .. pose
 
+    print("Deg: ", deg, " -> Pose", pose)
     print("Tool", tool_name , " oriented ", pose, " -> tool-pose " , tool_pose)
 
     return tool_pose
@@ -432,6 +444,10 @@ function load_tool(tool_name)
     o3de_rpc:write(cmd, rep) 
 
     local pose = deg2ori(deg)
+    if pose == "out" then
+        return "invalid"       
+    end 
+
     tool_pose = tool_name .. "_" .. pose
 
     print("Deg: ", deg, " -> Pose", pose)
@@ -451,6 +467,17 @@ function set_tool_label(tool_pose)
     affcollect_rpc:write(cmd, rep)
     --print("Received:", rep:toString())
     print("label ", tool_pose, "set in affCollector")
+    return true
+end
+
+--/---------------------------------------------------------------------/
+function save_affordances()
+    --print("Sending label to affCollector")
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:addString("savetofile")
+    affcollect_rpc:write(cmd, rep)
+    print("Affordance knowledge saved to file")
     return true
 end
 

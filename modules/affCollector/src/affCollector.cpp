@@ -35,7 +35,7 @@ bool  AffCollector::configure(ResourceFinder &rf)
 
 
     verb = rf.check("verbose",Value(true)).asBool();
-    numAct = rf.check("numAct",Value(5)).asInt();
+    numAct = rf.check("numAct",Value(6)).asInt();
     binAff = rf.check("binary",Value(false)).asBool();
 
     //open ports
@@ -85,14 +85,10 @@ bool  AffCollector::updateModule()
     }
 
     // Stream affordances of active label
-
     if (activeLabel >=0) {
-        std::vector<double> activeAffs = getAffs();
         Bottle &affBotOut = affOutPort.prepare();
         affBotOut.clear();
-        for (int a = 0; a < numAct ; a++){
-            affBotOut.addDouble(activeAffs[a]);
-        }
+        affBotOut = getAffs();
         affOutPort.write();
     }
 
@@ -138,6 +134,16 @@ bool  AffCollector::attach(RpcServer &source)
 
 // RPC Accesible via trhift.
 /**********************************************************/
+bool AffCollector::setnumact(const int num)
+{
+    if (num < 1 ) {
+        return false;
+    }
+
+    numAct = num;
+    return true;
+}
+
 int AffCollector::setlabel(const std::string& label)
 {
     // Look for label in known labels vector.
@@ -222,31 +228,31 @@ double AffCollector::updateAff(const int act, const double eff, const int labI)
 }
 
 /**********************************************************/
-std::vector<double>  AffCollector::getAffs(const std::string& label)
+Bottle  AffCollector::getAffs(const std::string& label)
 {
+    Bottle affs;
     // Check the case where its called before any affordances are learnt
     if (knownAffs.size() <1){
         cout << "No affordance have been learnt yet" << endl;
-        vector<double> noAffVec(numAct,-1.0);
-        return noAffVec;
+        return affs;
     }
 
-    //return all known affordances in a concatenated vector
-    if (label == "all"){
-        cout << "Concatenating all known affordances " << endl;
-        vector<double> allAffs;
-        for (int l =0; l < knownAffs.size(); l++){
-            //cout << "Affordances of label '" << knownLabels[l] << "' are: "<< knownAffs[l] <<endl;
+    //if param 'all'return all known affordances in a concatenated vector
+    if (label == "all"){        
+        for (int l =0; l < knownLabels.size(); l++){
+            cout << "LABEL: " << knownLabels[l] << endl << "Affordances: ";
+            affs.addString(knownLabels[l]);
+            Bottle& affLab = affs.addList();
             for (int a =0; a < knownAffs[l].size(); a++){
-                cout << "Aff " << knownLabels[l] <<  ", " << a << " = "<< knownAffs[l][a] << endl;
-
-                allAffs.push_back(knownAffs[l][a]);
+                affLab.addDouble(knownAffs[l][a]);
+                cout << knownAffs[l][a]<< " ";
             }
+            cout << " " << endl;
         }
-        return allAffs;
+        return affs;
     }
 
-    // Find the label
+    // Find the label (active or given)
     int labI;
     if (label == "active"){
         labI = activeLabel;
@@ -254,14 +260,18 @@ std::vector<double>  AffCollector::getAffs(const std::string& label)
         vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
         if ( it == knownLabels.end() ) { //Not found
             cout << "Given label not found" << endl;
-            vector<double> noAffVec(numAct,-1.0);
-            return noAffVec;
+            return affs;
         }else{                          // Found
             labI = std::distance(knownLabels.begin(), it);                  // return position of found element
         }
     }
+    affs.addString(knownLabels[labI]);
+    Bottle& affLab = affs.addList();
+    for (int a =0; a < knownAffs[labI].size(); a++){
+        affLab.addDouble(knownAffs[labI][a]);
+    }
 
-    return knownAffs[labI];
+    return affs;
 }
 
 
@@ -269,23 +279,34 @@ std::vector<double>  AffCollector::getAffs(const std::string& label)
 /**********************************************************/
 std::vector<double>  AffCollector::getAffHist(const int act, const std::string& label)
 {
+    vector<double> noAffVec;
+    //noAffVec.push_back(-1.0);
+
+    if (act >= numAct)    {
+        cout << "Action index over number of available actions. Try 0 - " << numAct-1 << endl;
+        return noAffVec;
+    }
     // Check the case where its called before any affordances are learnt
     if (activeLabel <0){
         cout << "No effect observed yet. " << endl;
-        vector<double> noAffVec;
-        noAffVec.push_back(-1.0);
         return noAffVec;
     }
 
-    // Find the label
-    int labI;
-    if (label == "active"){
+    // Find the label    
+    int labI =-1;
+    if (label == "active"){        
         labI = activeLabel;
     }else {
+        cout << "Iterating through vector. " << endl;
         vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
-        labI = std::distance(knownLabels.begin(), it);                  // return position of found element
+        if (it == knownLabels.end()){
+            cout << "Label not found. Couldnt reset" << endl;
+            return noAffVec;
+        }else{
+            labI = std::distance(knownLabels.begin(), it);                  // return position of found element
+        }
     }
-
+    cout << "Returning history of act" << act <<  "For label " << knownLabels[labI] << endl;
     return affHist[labI][act];
 }
 
@@ -315,7 +336,7 @@ string AffCollector::selectTool(const int act)
 }
 
 /**********************************************************/
-bool AffCollector::clear()
+bool AffCollector::reset(const std::string& label)
 {
     // Check the case where its called before any affordances are learnt
     if (activeLabel <0){
@@ -323,10 +344,24 @@ bool AffCollector::clear()
         return false;
     }
 
-    for (int a = 0; a <numAct; a++){
-        knownAffs[activeLabel][a] = -1;
+    // Find the label
+    int labI = -1;
+    if (label == "active"){
+        labI = activeLabel;
+    }else {
+        vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
+        labI = std::distance(knownLabels.begin(), it);                  // return position of found element
     }
-    cout << "Affordance knowledge of label '" << knownLabels[activeLabel] << "' forgotten" << endl;
+    if (labI < 0) {
+        cout << "Label not found. Couldnt reset" << endl;
+        return false;
+    }
+
+
+    for (int a = 0; a <numAct; a++){
+        knownAffs[labI][a] = -1;
+    }
+    cout << "Affordance knowledge of label '" << knownLabels[labI] << "' forgotten (set to -1)" << endl;
 
     return true;
 }
@@ -340,6 +375,87 @@ bool AffCollector::clearAll()
     activeLabel = -1;
     return true;
 
+}
+
+
+/**********************************************************/
+bool AffCollector::savetofile()
+{
+    // Put file in the proper context path
+    ofstream fileLabels;
+    fileLabels.open("fileLabels.txt");
+    ostream_iterator<string> fileLabels_it( fileLabels, "\n" );
+    copy( knownLabels.begin( ), knownLabels.end( ), fileLabels_it );
+    //fileLabels << knownLabels;
+    fileLabels.close();
+
+    ofstream fileHist;
+    fileHist.open ("fileHist.txt");
+    for (int l=0; l<knownAffs.size();l++){      // along labels
+        for (int a=0; a<numAct;a++){
+            for (int e=0; e<affHist[l][a].size();e++){
+                fileHist << affHist[l][a][e];
+                fileHist << " ";
+            }
+            fileHist << "\n";
+        }
+    }
+    fileHist.close();
+    return true;
+}
+
+
+/**********************************************************/
+bool AffCollector::readfile()
+{
+    // Read the labels
+    knownLabels.clear();
+    ifstream fileLabels("fileLabels.txt");
+    string readLabel;
+    while ( fileLabels >> readLabel )
+    {
+        knownLabels.push_back(readLabel);
+    }
+    cout <<  "Read " << knownLabels.size() << " labels from file: " << endl;
+
+    // Read the affHist
+    affHist.clear();
+    int cnt = 0;
+    affHist.push_back(vector<vector<double> >(0));      // Initialize the matrix (vec<vec>>) for first action data
+
+    ifstream fileHist("fileHist.txt");
+    std::string line;
+    while (getline(fileHist, line))          //read line by line (action-wise)
+    {
+        vector<double> actVec;
+        std::istringstream iss(line);
+        double read_eff;
+        while (iss >> read_eff){
+            actVec.push_back(read_eff);
+        }
+        if (actVec.size() == 0){
+            actVec.push_back(-1.0);
+        }
+
+        affHist.back().push_back(actVec);
+        //cout << "Read line : " << line << "     - Saved #effects: " << actVec.size() <<endl;
+
+        // After each numAct lines read, intialize space for a new label with numAct actions
+        cnt++;
+        if (cnt == numAct){
+            cnt = 0;
+            if (affHist.size() == knownLabels.size()){      // Have already reached the number of known labels
+                break;}
+            affHist.push_back(vector<vector<double> >(0));
+        }
+    }
+    cout << "Read data from " << affHist.size() << " labels" <<endl;
+
+    knownAffs.clear();
+    compRateFromHist(affHist,knownAffs);
+
+    activeLabel = knownLabels.size()-1;
+    return true;
 }
 
 /**********************************************************/
@@ -367,6 +483,20 @@ double AffCollector::vecAvg (const vector<double>& vec )
 
         return ( return_value / n);
 }
+
+bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)
+{
+    for(int l = 0; l<hist.size(); l++)
+    {
+        vector<double> affInit(numAct,-1.0);
+        affs.push_back(affInit);           // Add aff Vector corresponding to that label
+
+        for(int a= 0; a<numAct; a++){
+            affs[l][a] = vecAvg(hist[l][a]);
+        }
+    }
+}
+
 
 /************************************************************************/
 /************************************************************************/

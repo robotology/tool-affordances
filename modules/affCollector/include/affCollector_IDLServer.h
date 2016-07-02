@@ -6,14 +6,11 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
+#include <yarp/os/Bottle.h>
 
 class affCollector_IDLServer;
 
 
-/**
- * affCollector_IDLServer
- * Interface.
- */
 class affCollector_IDLServer : public yarp::os::Wire {
 public:
   affCollector_IDLServer();
@@ -27,6 +24,11 @@ public:
    * @return true/false on success/failure
    */
   virtual bool quit();
+  /**
+   * Allows to modify online the number of possible actions
+   * @return true/false on success/failure
+   */
+  virtual bool setnumact(const int32_t numAct);
   /**
    * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.
    * @return the index of the active (new or not) label
@@ -45,7 +47,7 @@ public:
    * Returns the success rate for all actions in the repertoire for a given known label (the active one by default).
    * if label == 'all', returns a concatenated vector with all konwn affordances.
    */
-  virtual std::vector<double>  getAffs(const std::string& label = "active");
+  virtual yarp::os::Bottle getAffs(const std::string& label = "active");
   /**
    * Returns the history of effects for a given action and known label (the active one by default).
    */
@@ -59,12 +61,22 @@ public:
    * Clears all the learnt affordances of the active label, and sets it to unknown.
    * @return true/false on success/failure
    */
-  virtual bool clear();
+  virtual bool reset(const std::string& label = "active");
   /**
    * Clears all the learnt affordances all labels, and sets them to unknown.
    * @return true/false on success/failure
    */
   virtual bool clearAll();
+  /**
+   * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
+   * @return true/false on success/failure
+   */
+  virtual bool savetofile();
+  /**
+   * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
+   * @return true/false on success/failure
+   */
+  virtual bool readfile();
   /**
    * Activates/Deactivates more verbose execution of the module.
    * @return true/false on success/failure

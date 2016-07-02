@@ -6,6 +6,12 @@
 * Interface. 
 */
 
+struct Bottle{}
+(
+    yarp.name = "yarp::os::Bottle"
+    yarp.includefile="yarp/os/Bottle.h"
+)
+
 service affCollector_IDLServer
 {
     /**
@@ -19,6 +25,12 @@ service affCollector_IDLServer
      * @return true/false on success/failure
      */
     bool quit();
+
+    /**
+     * Allows to modify online the number of possible actions
+     * @return true/false on success/failure
+     */
+    bool setnumact(1: i32 numAct);
 
     /**
      * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.
@@ -41,7 +53,7 @@ service affCollector_IDLServer
      * Returns the success rate for all actions in the repertoire for a given known label (the active one by default).
      * if label == 'all', returns a concatenated vector with all konwn affordances.
      */
-    list<double> getAffs(1: string label = "active");
+    Bottle getAffs(1: string label = "active");
 
     /**
      * Returns the history of effects for a given action and known label (the active one by default).
@@ -58,13 +70,25 @@ service affCollector_IDLServer
      * Clears all the learnt affordances of the active label, and sets it to unknown.
      * @return true/false on success/failure 
      */
-    bool clear();
+    bool reset(1:string label = "active");
 
     /**
      * Clears all the learnt affordances all labels, and sets them to unknown.
      * @return true/false on success/failure 
      */
     bool clearAll();
+
+    /**
+     * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
+     * @return true/false on success/failure
+     */
+    bool savetofile();
+
+    /**
+     * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
+     * @return true/false on success/failure
+     */
+    bool readfile();
 
     /**
      * Activates/Deactivates more verbose execution of the module.
