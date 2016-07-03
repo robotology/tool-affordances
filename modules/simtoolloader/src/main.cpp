@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("AffordancesProject");
-    rf.setDefaultConfigFile("realTools.ini");
+    rf.setDefaultConfigFile("50tools.ini");
     rf.configure(argc, argv);
     module.runModule(rf);
 

@@ -161,7 +161,7 @@ PortMonitor.accept = function(thing)
 
     local object_out_of_zone = true
 
-    local btright_obj = get_object_in_zone(objects, BOTOMMRIGHRT_ZONE_X, BOTOMMRIGHRT_ZONE_Y)
+    local btright_obj = get_object_in_zone(objects, BOTTOMRIGHT_ZONE_X, BOTTOMRIGHT_ZONE_Y)
     if btright_obj ~= nil then
         object_out_of_zone = false
         print("[pm_take] btright:", btright_obj.x, btright_obj.y, btright_obj.z) 
@@ -186,7 +186,7 @@ PortMonitor.accept = function(thing)
         end
     end
     
-    local upright_obj = get_object_in_zone(objects, UPRIGHRT_ZONE_X, UPRIGHRT_ZONE_Y)
+    local upright_obj = get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y)
     if upright_obj ~= nil then
         object_out_of_zone = false
         print("[pm_take] upright:", upright_obj.x, upright_obj.y, upright_obj.z) 
@@ -209,6 +209,7 @@ PortMonitor.accept = function(thing)
     if get_object_in_zone(objects, UPRIGHRT_ZONE_X, UPRIGHRT_ZONE_Y) ~= nil then 
         say("I need a tool. Give me the shovel, please!")
         ask_tool("real/shovelYellow")
+
         --say("I need a tool. Give me the rake, please!")
         --ask_tool("real/rakeBlue")
     else
