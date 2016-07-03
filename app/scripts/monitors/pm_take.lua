@@ -206,9 +206,10 @@ PortMonitor.accept = function(thing)
     end
 
     pm_print("I need a tool")
-    if get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y) ~= nil then 
-        say("I need a tool. Give me the stick, please!")
-        ask_tool("real/realStick3")
+    if get_object_in_zone(objects, UPRIGHRT_ZONE_X, UPRIGHRT_ZONE_Y) ~= nil then 
+        say("I need a tool. Give me the shovel, please!")
+        ask_tool("real/shovelYellow")
+
         --say("I need a tool. Give me the rake, please!")
         --ask_tool("real/rakeBlue")
     else
