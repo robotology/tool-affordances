@@ -381,31 +381,53 @@ function ask_for_tool(tool_name)
     say("Give me the " .. tool_name)
 
     tool_file = "real/" .. tool_name
+    print("Tool file: ", tool_file)
 
     print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
+    print("Sending", cmd:toString())
     tmanager_rpc:write(cmd, rep)
+    print("Reply", rep:get(0):asString())
+    local reply = rep:get(0):asString()
+    if reply ~= "ok" then  return "invalid"   end 
+ 
   
     print("set the tool name")
     cmd:clear()
     rep:clear()
     cmd:addString("setToolName")
     cmd:addString(tool_file)
+    print("Sending", cmd:toString())
     tmanager_rpc:write(cmd, rep)
+    print("Reply", rep:get(0):asString())    
+    local reply = rep:get(0):asString()
+    if reply ~= "ok" then return "invalid"   end 
  
     print("find the tool pose")
     cmd:clear()
-    rep:clear()
+    rep:clear()    
     cmd:addString("findPose")
-    tmanager_rpc:write(cmd, rep) 
+    print("Sending", cmd:toString())
+    tmanager_rpc:write(cmd, rep)
+    print("Reply", rep:toString())
+    local reply = rep:get(0):asString()
+    if reply ~= "ok" then  
+        say("I could not find the pose" )
+        return "invalid"   
+    end 
 
     print("get orientation")
     cmd:clear()
     rep:clear()
     cmd:addString("getOri")
+    print("Sending", cmd:toString())
     o3de_rpc:write(cmd, rep) 
+    print("Reply", rep:toString())
+    local reply = rep:get(0):asString()
+    if reply ~= "ack" then  return "invalid"   end 
+ 
 
     local deg = rep:get(1):asDouble()
     print("Deg", deg)

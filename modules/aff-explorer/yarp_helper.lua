@@ -44,9 +44,10 @@ end
 
 --/---------------------------------------------------------------------/
 function say(msg)
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
+    local rep = yarp.Bottle()        
     cmd:addString(msg)
-    ispeak_rpc:write(cmd)
+    ispeak_rpc:write(cmd,rep)
 end
 
 

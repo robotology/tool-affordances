@@ -9,7 +9,7 @@ file(GLOB modules ${CMAKE_CURRENT_SOURCE_DIR}/aff-explorer.xml)
 file(GLOB helpers ${CMAKE_CURRENT_SOURCE_DIR}/aff-explorer_helper.lua   
                   ${CMAKE_CURRENT_SOURCE_DIR}/yarp_helper.lua     )
 
-install(PROGRAMS ${modules} DESTINATION bin)
+install(PROGRAMS ${lua_bin} DESTINATION bin)
          
 ### create a single target that installs all applications at once
 yarp_install(FILES ${modules} DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})

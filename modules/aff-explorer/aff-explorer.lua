@@ -54,7 +54,15 @@ REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}
 REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}      
 
 -- TOOL LIST
-TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
+--TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
+TOOL_LIST = {"RAK2"}
+--rakeBlue = RAK2
+--rakeGreen = RAK3 
+--shovelGreen = SHO1
+--shovelOrange = SHO2
+--shovelYellow = SHO3
+
+
 
 -- ACTION LIST
 ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_down_right"] = 1, ["drag_left"] = 2, ["drag_down"] = 3 , ["drag_up"] = 4 , ["drag_up_left"] = 5}
@@ -163,6 +171,7 @@ state = "no_tool"
 object_list = {}                        -- for keeping the memory of objects
 object = {}
 tp_trial_count = 0
+go_home()
 
 -- -- -- -- -- -- -- -- -- -- -- updateModule -- -- -- -- -- -- -- -- -- -- -- 
 while state ~= "exit" do
@@ -174,12 +183,13 @@ while state ~= "exit" do
         tool_name = select_tool(TOOL_LIST, 0)
         print("Tool Selected:", tool_name)
         if tool_name  ~= " " then 
-            --  tool_pose = ask_for_tool(tool_name)
-            tool_pose = load_tool(tool_name)                           
+            tool_pose = ask_for_tool(tool_name)            
+            --  tool_pose = load_tool(tool_name)                           
             if tool_pose ~= "invalid" then
                 set_tool_label(tool_pose)         
                 print("Tool-Pose:",tool_pose)
                 state = "do_action"
+                go_home()
             end
        end
     end
@@ -188,6 +198,7 @@ while state ~= "exit" do
     if state ==  "do_action" then
         print("State = ",state)
 
+--[[
         ----- TEST BEGIN  
         act_i = aff_generator(0) -- generate act_i
         print("Action Generated: ", act_i)
@@ -195,7 +206,7 @@ while state ~= "exit" do
             state = "comp_effect"
         end
         ----- TEST END
-
+]]--
 
         local blobs = port_blobs:read(false)
         if blobs ~= nil and blobs:size() >= 0 then    
@@ -215,7 +226,7 @@ while state ~= "exit" do
     if state == "comp_effect" then
         print("State = ",state)
         print("Action Generated: ", act_i)
-
+--[[
         ----- TEST BEGIN
         print("Computing effect for tritrial: ", tp_trial_count)
         local eff = aff_generator(1) -- generate act_i
@@ -232,6 +243,7 @@ while state ~= "exit" do
             state = "do_action"                                    
         end
         ----- TEST END
+]]--
 
         local blobs = port_blobs:read(false);
         if blobs ~= nil and blobs:size() >= 0 then    
@@ -259,13 +271,13 @@ end
    
 -- close ports
 port_blobs:close()
-port_affout:close()
+port_acteff:close()
 
 -- close rpcs
 ar_rpc_io:close()
 o3de_rpc:close()
 tmanager_rpc:close()
-ispeak_port:close()
+ispeak_rpc:close()
 affcollect_rpc:close()
 
 -- close YARP connection

@@ -1,14 +1,5 @@
 <application>
-    <name>Xperience_toolAff_APP</name>
-<application>
-    <name>Xperience_toolAff_APP</name>
-    <module>
-        <name>tool3DManager</name>
-        <parameters>--from realTools.ini</parameters>
-        <node>icub21</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 311.542) (y 179.392))</geometry>
-    </module>
+    <name>Xperience_learn_APP</name>
     <module>
         <name>aff-explorer.lua</name>
         <parameters></parameters>
@@ -16,6 +7,13 @@
         <prefix></prefix>
         <deployer>lua</deployer>
         <geometry>(Pos (x 1223.88) (y 697.435))</geometry>
+    </module>
+    <module>
+        <name>tool3DManager</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 311.542) (y 179.392))</geometry>
     </module>
     <module>
         <name>affCollector</name>
@@ -225,18 +223,4 @@
         <protocol>udp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 324.572) (y 500.127)) ((x -69) (y -16))  )</geometry>
     </connection>
-
-    <connection>
-        <from external="true">/drop-away/cmd:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop</protocol>
-        <geometry>(Pos ((x 1105.57) (y 77.0148)) ((x 1217.19) (y 116.719)) ((x -134) (y -176))  )</geometry>
-    </connection>
-    <connection>
-        <from>/lbpExtract/blobs:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_take</protocol>
-        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
-    </connection>
-</application>
 </application>
