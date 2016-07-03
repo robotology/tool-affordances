@@ -380,6 +380,8 @@ function ask_for_tool(tool_name)
 
     say("Give me the " .. tool_name)
 
+    tool_file = "real/" .. tool_name
+
     print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
@@ -390,7 +392,7 @@ function ask_for_tool(tool_name)
     cmd:clear()
     rep:clear()
     cmd:addString("setToolName")
-    cmd:addString(tool_name)
+    cmd:addString(tool_file)
     tmanager_rpc:write(cmd, rep)
  
     print("find the tool pose")
@@ -428,7 +430,8 @@ function load_tool(tool_name)
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
 
-    --print("load the tool")    
+    --print("load the tool")
+    tool_file = "real/" .. tool_name
     cmd:addString("loadCloud")
     cmd:addString(tool_file)
     o3de_rpc:write(cmd, rep)
