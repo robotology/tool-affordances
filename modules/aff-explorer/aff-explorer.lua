@@ -4,6 +4,8 @@
 -- Authors: Tanis Mar <tanis.mar@iit.it>
 -- Copy Policy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 
+
+-- XXX All these consts could be set by ini file
 -- -- -- DEclare consts.
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
@@ -112,6 +114,9 @@ affcollect_rpc:open("/affExplorer/affcol:rpc")
 
 -- XXX this should be deleted when module works (connectiosn should go through yarpmanager):
 
+ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
+if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
+
 ret = yarp.NetworkBase_connect(port_acteff:getName(), "/affCollector/aff:i")
 if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
 
@@ -120,6 +125,12 @@ if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
 
 ret = yarp.NetworkBase_connect(affcollect_rpc:getName(), "/affCollector/rpc:i")
 if ret == false then print("cannot connect to /affCollector/rpc:i") end
+
+ret = yarp.NetworkBase_connect(tmanager_rpc:getName(), "/tool3DManager/rpc:i")
+if ret == false then print("cannot connect to /tool3DManager/rpc:i") end
+
+ret = yarp.NetworkBase_connect(ar_rpc_io:getName(), "/actionsRenderingEngine/cmd:io")
+if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") end
 
 -- XXX till here
 

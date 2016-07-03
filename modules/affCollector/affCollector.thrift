@@ -58,7 +58,7 @@ service affCollector_IDLServer
     /**
      * Returns the history of effects for a given action and known label (the active one by default).
      */
-    list<double> getAffHist(1: i32 act, 2:string label = "active");
+    Bottle getAffHist(1: string label = "active", i32 act = -1);
 
     /**
      *  Based on the previously learnt affordances, returns the best label for a given action/task.
@@ -78,17 +78,24 @@ service affCollector_IDLServer
      */
     bool clearAll();
 
+
+    /**
+     * Removes all teh content from the memory file. Use with precaution (requires confirmation)
+     * @return true/false on success/failure
+     */
+    string forgetAll();
+
     /**
      * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
      * @return true/false on success/failure
      */
-    bool savetofile();
+    bool savetofile(1:string label = "affFile.txt");
 
     /**
      * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
      * @return true/false on success/failure
      */
-    bool readfile();
+    bool readfile(1:string label = "affFile.txt");
 
     /**
      * Activates/Deactivates more verbose execution of the module.

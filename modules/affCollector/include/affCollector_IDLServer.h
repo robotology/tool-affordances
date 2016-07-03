@@ -51,7 +51,7 @@ public:
   /**
    * Returns the history of effects for a given action and known label (the active one by default).
    */
-  virtual std::vector<double>  getAffHist(const int32_t act, const std::string& label = "active");
+  virtual yarp::os::Bottle getAffHist(const std::string& label = "active", const int32_t act = -1);
   /**
    *  Based on the previously learnt affordances, returns the best label for a given action/task.
    * @return true/false on success/failure
@@ -68,15 +68,20 @@ public:
    */
   virtual bool clearAll();
   /**
+   * Removes all teh content from the memory file. Use with precaution (requires confirmation)
+   * @return true/false on success/failure
+   */
+  virtual std::string forgetAll();
+  /**
    * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
    * @return true/false on success/failure
    */
-  virtual bool savetofile();
+  virtual bool savetofile(const std::string& label = "affFile.txt");
   /**
    * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
    * @return true/false on success/failure
    */
-  virtual bool readfile();
+  virtual bool readfile(const std::string& label = "affFile.txt");
   /**
    * Activates/Deactivates more verbose execution of the module.
    * @return true/false on success/failure

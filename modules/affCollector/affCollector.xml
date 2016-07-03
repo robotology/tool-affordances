@@ -13,7 +13,7 @@
         <param desc="Name of the module" default="affCollector"> name</param>
         <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="AffordancesProject"> context </param>
         <param desc="Configuration file" default="affCollector.ini"> from </param> 
-        <param desc="number of actions in the repertoire" default="5"> numAct</param>
+        <param desc="number of actions in the repertoire" default="6"> numAct</param>
         <param desc="Selects whether effects are defined as binary (success/fail) or with a real number (for regression)" default="true"> binary</param>  
     </arguments>
 

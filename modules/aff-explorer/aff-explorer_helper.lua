@@ -378,7 +378,7 @@ end
 --/---------------------------------------------------------------------/
 function ask_for_tool(tool_name)
 
-    say("Give me the tool" .. tool_name)
+    say("Give me the " .. tool_name)
 
     print("grasp the tool")
     local cmd = yarp.Bottle()    
@@ -428,8 +428,7 @@ function load_tool(tool_name)
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
 
-    --print("load the tool")
-    tool_file = "real/" .. tool_name
+    --print("load the tool")    
     cmd:addString("loadCloud")
     cmd:addString(tool_file)
     o3de_rpc:write(cmd, rep)

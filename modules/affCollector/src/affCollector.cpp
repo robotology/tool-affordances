@@ -32,7 +32,12 @@ bool  AffCollector::configure(ResourceFinder &rf)
 {
     // add and initialize the port to send out the features via thrift.
     string name = rf.check("name",Value("affCollector")).asString().c_str();
+    filename = rf.check("filename",Value("affFile.txt")).asString().c_str();
+    rf.setDefaultContext("AffordancesProject");
 
+    string contextPath = "/share/ICUBcontrib/contexts/AffordancesProject/";
+    string icubContribEnvPath = yarp::os::getenv("ICUBcontrib_DIR");
+    filepath  = icubContribEnvPath + contextPath;
 
     verb = rf.check("verbose",Value(true)).asBool();
     numAct = rf.check("numAct",Value(6)).asInt();
@@ -57,12 +62,28 @@ bool  AffCollector::configure(ResourceFinder &rf)
     }
     attach(rpcInPort);
 
+
     /* Module rpc parameters */
     closing = false;
+    forgetFlag = true;
 
     /*Init variables*/
     activeLabel = -1;
     cout << endl << "Configuring done."<<endl;
+
+
+    // If a file has been found, load its contents
+    string filefound =rf.findFile(filename.c_str());
+    if (filefound !=""){
+        cout << "File found at " << filefound << endl;
+        readfile(filename);
+    }else{
+        cout << "File not found at " << filefound << endl;
+        cout << "No previous memory file found. Initializing values. " << endl;
+    }
+
+
+    cout << "Memory file location on PATH: " << filepath << endl;
 
     return true;
 }
@@ -277,37 +298,79 @@ Bottle  AffCollector::getAffs(const std::string& label)
 
 
 /**********************************************************/
-std::vector<double>  AffCollector::getAffHist(const int act, const std::string& label)
+Bottle  AffCollector::getAffHist(const std::string& label, const int act )
 {
-    vector<double> noAffVec;
-    //noAffVec.push_back(-1.0);
-
-    if (act >= numAct)    {
+    Bottle history;
+    if (act >= numAct){
         cout << "Action index over number of available actions. Try 0 - " << numAct-1 << endl;
-        return noAffVec;
+        return history;
     }
     // Check the case where its called before any affordances are learnt
     if (activeLabel <0){
         cout << "No effect observed yet. " << endl;
-        return noAffVec;
+        return history;
     }
 
-    // Find the label    
+    //if label 'all'return history of all toolposes used
+    if (label == "all"){
+        for (int l=0; l<knownLabels.size();l++){      // along labels
+            history.addString(knownLabels[l]);
+            cout << knownLabels[l] <<endl;
+            Bottle& histLab = history.addList();
+            histLab.clear();
+            for (int a =0; a < affHist[l].size(); a++){
+                Bottle& histAct = histLab.addList();
+                histAct.clear();
+                for (int e =0; e < affHist[l][a].size(); e++){
+                    histAct.addDouble(affHist[l][a][e]);
+                    cout << affHist[l][a][e] << " ";
+                }
+                cout << endl;
+            }
+        }
+    }
+
+    // Find the label
     int labI =-1;
     if (label == "active"){        
         labI = activeLabel;
     }else {
-        cout << "Iterating through vector. " << endl;
         vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
         if (it == knownLabels.end()){
-            cout << "Label not found. Couldnt reset" << endl;
-            return noAffVec;
+            return history;
         }else{
             labI = std::distance(knownLabels.begin(), it);                  // return position of found element
         }
     }
-    cout << "Returning history of act" << act <<  "For label " << knownLabels[labI] << endl;
-    return affHist[labI][act];
+
+    cout << knownLabels[labI] << endl;
+
+    // Fill the bottle
+    history.addString(knownLabels[labI]);
+    if (act < 0){           // act < 0 means all actions in given label
+        Bottle& histLab = history.addList();
+        for (int a =0; a < affHist[labI].size(); a++){
+            Bottle& histAct = histLab.addList();
+            histAct.clear();
+            for (int e =0; e < affHist[labI][a].size(); e++){
+                histAct.addDouble(affHist[labI][a][e]);
+                cout << affHist[labI][a][e] << " ";
+            }
+            cout << endl;
+        }
+    }else{
+        cout << "Action " << act <<  endl;
+        Bottle& histLab = history.addList();
+        for (int e =0; e < affHist[labI][act].size(); e++){
+            histLab.addDouble(affHist[labI][act][e]);
+            cout << affHist[labI][act][e] << " ";
+        }
+        cout << endl;
+    }
+
+
+    return history;
+
 }
 
 
@@ -374,24 +437,48 @@ bool AffCollector::clearAll()
     affHist.clear();
     activeLabel = -1;
     return true;
+}
+
+
+/**********************************************************/
+string AffCollector::forgetAll()
+{
+    if (forgetFlag == false){
+        knownLabels.clear();
+        knownAffs.clear();
+        affHist.clear();
+        activeLabel = -1;
+        savetofile(filename);       //overwrite all the information with empty
+        return "All has been forgotten";
+    } else {
+        cout << "WARNING" << endl;
+        cout << "This will destroy and delete all the previous learned information, also from the file." << endl;
+        forgetFlag = false;
+        return "WARNING! Irreversible action: Call command again command for confirmation";
+    }
+
 
 }
 
 
 /**********************************************************/
-bool AffCollector::savetofile()
+bool AffCollector::savetofile(const std::string& filename)
 {
     // Put file in the proper context path
+    /*
     ofstream fileLabels;
-    fileLabels.open("fileLabels.txt");
+    fileLabels.open((filepath  + filename).c_str());
     ostream_iterator<string> fileLabels_it( fileLabels, "\n" );
     copy( knownLabels.begin( ), knownLabels.end( ), fileLabels_it );
     //fileLabels << knownLabels;
     fileLabels.close();
+    */
 
     ofstream fileHist;
-    fileHist.open ("fileHist.txt");
-    for (int l=0; l<knownAffs.size();l++){      // along labels
+    fileHist.open ((filepath  + filename).c_str());
+    for (int l=0; l<knownLabels.size();l++){      // along labels
+        fileHist << knownLabels[l];
+        fileHist << "\n";
         for (int a=0; a<numAct;a++){
             for (int e=0; e<affHist[l][a].size();e++){
                 fileHist << affHist[l][a][e];
@@ -401,32 +488,37 @@ bool AffCollector::savetofile()
         }
     }
     fileHist.close();
+
+    cout << "Labels saved to file " << (filepath  + filename) << endl;
     return true;
 }
 
 
 /**********************************************************/
-bool AffCollector::readfile()
+bool AffCollector::readfile(const std::string& filename)
 {
-    // Read the labels
-    knownLabels.clear();
-    ifstream fileLabels("fileLabels.txt");
-    string readLabel;
-    while ( fileLabels >> readLabel )
-    {
-        knownLabels.push_back(readLabel);
-    }
-    cout <<  "Read " << knownLabels.size() << " labels from file: " << endl;
-
-    // Read the affHist
-    affHist.clear();
-    int cnt = 0;
-    affHist.push_back(vector<vector<double> >(0));      // Initialize the matrix (vec<vec>>) for first action data
-
-    ifstream fileHist("fileHist.txt");
+    // Read the affordance history
+    ifstream fileHist((filepath + filename).c_str());
     std::string line;
+
+    int cnt = 0;
+    affHist.clear();
+    knownLabels.clear();
     while (getline(fileHist, line))          //read line by line (action-wise)
     {
+        if(fileHist.eof()){
+            std::cout << "EOF\n";
+            break;
+        }
+
+        //cout << "Read line : " << line << endl;
+        if (cnt == 0){                        // Read the name first
+            knownLabels.push_back(line);
+            affHist.push_back(vector<vector<double> >(0));      // Initialize the matrix (vec<vec>>) for first action data
+            cnt++;
+            continue;
+        }
+
         vector<double> actVec;
         std::istringstream iss(line);
         double read_eff;
@@ -438,15 +530,12 @@ bool AffCollector::readfile()
         }
 
         affHist.back().push_back(actVec);
-        //cout << "Read line : " << line << "     - Saved #effects: " << actVec.size() <<endl;
 
-        // After each numAct lines read, intialize space for a new label with numAct actions
+        //cout << " - Saved #effects: " << actVec.size() <<endl;
+
         cnt++;
-        if (cnt == numAct){
-            cnt = 0;
-            if (affHist.size() == knownLabels.size()){      // Have already reached the number of known labels
-                break;}
-            affHist.push_back(vector<vector<double> >(0));
+        if (cnt == numAct+1){ // Read hist of all action repertoire -> next label
+            cnt = 0;            
         }
     }
     cout << "Read data from " << affHist.size() << " labels" <<endl;

@@ -58,9 +58,12 @@ protected:
     bool verb;
     bool closing;
     bool binAff;
+    bool forgetFlag;       // Flag to ask for confirmation before forgetting
 
     int activeLabel;        // Indicates index of the active label
     int numAct;             // Number of actions in teh ation repertoire
+    std::string filepath;   // path for the memory file
+    std::string filename;    // name for the memory file
 
     std::vector < std::string>  knownLabels;                        // maps string labels to index in affordance matrix
     std::vector < std::vector < std::vector <double> > > affHist;   // Keeps track of all effects, for all acts and all labels: affHist[labI][act].push_back(eff)
@@ -82,15 +85,16 @@ public:
 
     double                      updateAff(const int act,const double eff, const int labI = -1);
     yarp::os::Bottle            getAffs(const std::string& label = "active");
-    std::vector<double>         getAffHist(const int act, const std::string& label = "active");
+    yarp::os::Bottle            getAffHist(const std::string& label = "active", const int act = -1);
 
     std::string                 selectTool(const int act);
 
     bool                        reset(const std::string& label = "active");
     bool                        clearAll();
+    std::string                 forgetAll();
 
-    bool                        savetofile();
-    bool                        readfile();
+    bool                        savetofile(const std::string& label = "affFile.txt");
+    bool                        readfile(const std::string& label = "affFile.txt");
     
     // module control //
     bool						attach(yarp::os::RpcServer &source);
