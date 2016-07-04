@@ -6,6 +6,13 @@
 * Interface. 
 */
 
+struct Vector{}
+(
+    yarp.name = "yarp::sig::Vector"
+    yarp.includefile="yarp/sig/Vector.h"
+)
+
+
 service tool3DManager_IDLServer
 {
     /**
@@ -41,7 +48,7 @@ service tool3DManager_IDLServer
      * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
      * @return true/false on success/failure of loading the tool with correct pose
      */
-    bool getToolByPose(1:i32 tool = 0, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0,  5:double shift = 0.0);
+    bool getToolByPose(1:string tool, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0,  5:double shift = 0.0);
 
     /**
      * Performs the sequence to get the tool: \n
@@ -88,6 +95,18 @@ service tool3DManager_IDLServer
      * @return true/false on success/failure to extract features
      */
     bool getToolFeats();
+
+    /**
+     * Finds out the location of the object and returns its coordinates \n
+     * @return Vector bottle with object coordinates in 3D X Y Z
+     */
+    Vector objLoc();
+
+    /**
+     * Finds out the rotation of the object and returns its rotation values \n
+     * @return Vector bottle with object rotation
+     */
+    Vector objRot();
 
     /****************************** ACTIONS **************************************/
 
@@ -148,26 +167,26 @@ service tool3DManager_IDLServer
      * Runs numAct actions with the given tool on the given pose and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runToolPose(1: i32 toolI, 2: double deg = 0.0, 3: double disp = 0.0, 4: double tilt = 45.0, 5: i32 numAct = 8);
+    bool runToolPose(1:string tool, 2: double deg = 0.0, 3: double disp = 0.0, 4: double tilt = 45.0, 5: i32 numAct = 8);
 
     /**
      * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runToolOr(1: i32 toolI, 2: double graspOr = 0.0, 3: i32 numAct = 8);
+    bool runToolOr(1:string tool, 2: double graspOr = 0.0, 3: i32 numAct = 8);
 
     /**
      * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
      * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
      * @return true/false on success/failure to perfomr all actions on all toolPoses
      */
-    bool runToolTrial(1: i32 toolI, 2: i32 numAct = 8);
+    bool runToolTrial(1:string tool, 2: i32 numAct = 8);
 
     /**
      * Runs full trials for all tool with indices between toolini and toolEnd. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runExp(1: i32 toolIni = 1, 2: i32 toolEnd = 54);
+    bool runExp(1:string tool, 2: i32 toolEnd = 54);
 
     /**
      * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action

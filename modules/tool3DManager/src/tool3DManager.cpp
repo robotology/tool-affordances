@@ -68,9 +68,14 @@ bool Tool3DManager::configure(ResourceFinder &rf)
         temp = rf.findGroup("objects").findGroup(objNameNum);
 
         if(!temp.isNull()) {
-            cout << "model " << n << ", id: " << objNameNum;
-            cout << ", model: " << temp.get(2).asString() << endl;
-            models.push_back(temp);
+            cout << "model " << n << ", id: " << objNameNum;            
+            string modelx = temp.get(2).asString();         // retrieve model name with format
+            string::size_type idx;                          // remove format (.x) to save only tool name
+            idx = modelx.rfind('.');                        // ..
+            string model = modelx.substr(0,idx);            // format removed.
+            cout << ", model: " << model << endl;
+
+            models.push_back(model);
             temp.clear();
             n++;
         }else {
@@ -217,12 +222,13 @@ bool Tool3DManager::setToolName(const string &tool){
     return ok;
 }
 
-bool Tool3DManager::getToolByPose(int toolI, double deg, double disp, double tilt, double shift){
+bool Tool3DManager::getToolByPose(const string &tool, double deg, double disp, double tilt, double shift){
     bool ok;
     if (robot=="icubSim"){
-        ok = loadToolSim(toolI, deg, disp, tilt);
+        cout << "Loading tool " << tool << " in simulation" << endl;
+        ok = loadToolSim(tool, deg, disp, tilt);
     }else{
-        ok = loadToolPose(toolI, deg, disp, tilt, shift);
+        ok = loadToolPose(tool, deg, disp, tilt, shift);
     }
     return ok;
 }
@@ -347,17 +353,38 @@ bool Tool3DManager::compEff(){
 }
 
 /***********************************************************************************/
-// Functions to run experiment:
-bool Tool3DManager::runToolPose(int toolI, double graspOr, double graspDisp, double graspTilt, int numAct){
+//  ======================== Functions to get object info:
+Vector Tool3DManager::objLoc(){
+    Vector loc;
+    loc.clear();         // Clear to make space for new rotation values
+    loc.resize(3);
+    getObjLoc(loc);
+
+    return loc;
+}
+
+Vector Tool3DManager::objRot(){
+    Vector rot;
+    rot.clear();         // Clear to make space for new rotation values
+    rot.resize(3);
+    getObjRot(rot);
+
+    return rot;
+}
+
+
+/***********************************************************************************/
+//  ======================== Functions to run experiment:
+bool Tool3DManager::runToolPose(const string &tool, double graspOr, double graspDisp, double graspTilt, int numAct){
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
 
     int tilt = 0;
     if (robot=="icubSim"){
-        getToolByPose(toolI, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
+        getToolByPose(tool, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
         extractFeats();
     } else {
-        tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
+        tilt = -15; // Action on the real robot need some tilt to not crash the hand on the table
     }
 
     // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
@@ -398,13 +425,15 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
 
 
     int toolI_prev = round(randG.scalar(1,52));
-    for (int p=1 ; p<=numPoses ; p++){
+    for (int p=1 ; p <= numPoses ; p++){
         bool toolOK = false;
         int toolI;
         while (!toolOK){                // Prevent known non-working tools to stop the run
             toolI = round(randG.scalar(1,52));
-            if ((toolI == 8) || (toolI == 42) || (toolI == 43) || (toolI == 44) || (toolI == 45) ||(toolI == 50)||(toolI == toolI_prev)){
-                cout << "unvalid tool" <<endl;}
+            // toolIs are the official number of the tool + 1 =>
+            //((toolI == 6) || (toolI == 16) || (toolI == 19) || (toolI == 40) || (toolI == 41) || (toolI == 42) || (toolI == 43) || (toolI == 49) || (toolI == 51)
+            if ((toolI == 7) || (toolI == 17) || (toolI == 20) || (toolI == 41) || (toolI == 42) || (toolI == 43) || (toolI == 44) || (toolI == 50) || (toolI == 52) ||(toolI == toolI_prev)){
+                cout << "invalid tool" <<endl;}
             else{
                 toolOK = true;
             }
@@ -416,7 +445,8 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
 
         cout << "Starting trial with orientation "<< graspOr <<", displacement "<<  graspDisp << " and tilt " << graspTilt << "." << endl;
 
-        getToolByPose(toolI, graspOr, graspDisp, graspTilt);  // re-grasp the tool with the given grasp parameters
+        string tool = models[toolI];
+        getToolByPose(tool, graspOr, graspDisp, graspTilt);  // re-grasp the tool with the given grasp parameters
         extractFeats();
 
         for (int i=1 ; i<=numAct ; i++){
@@ -429,19 +459,19 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
     return true;
 }
 
-bool Tool3DManager::runToolOr(int toolI, double graspOr, int numAct){
+bool Tool3DManager::runToolOr(const string& tool, double graspOr, int numAct){
 
     // For each tool with an orientation, run all displacements (-2, 0, +2) cm
     for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
         cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
-        cout << "Running trial with tool: " << toolI << " grasped at orientation "<< graspOr << ", and displacement "<< disp <<"."<< endl;
-        runToolPose(toolI, graspOr, disp);
+        cout << "Running trial with tool: " << tool << " grasped at orientation "<< graspOr << ", and displacement "<< disp <<"."<< endl;
+        runToolPose(tool, graspOr, disp);
     }
 
     return true;
 }
 
-bool Tool3DManager::runToolTrial(int toolI, int numAct){
+bool Tool3DManager::runToolTrial(const string& tool, int numAct){
 
     // For each tool, run all combinations of
     // x 3 Grasps: left front right
@@ -451,8 +481,8 @@ bool Tool3DManager::runToolTrial(int toolI, int numAct){
     for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
         for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
             cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
-            cout << "Running trial with tool: " << toolI << " grasped at orientation "<< ori << ", and displacement "<< disp <<"."<< endl;
-            runToolPose(toolI, ori, disp);
+            cout << "Running trial with tool: " << tool << " grasped at orientation "<< ori << ", and displacement "<< disp <<"."<< endl;
+            runToolPose(tool, ori, disp);
         }
     }
     return true;
@@ -462,8 +492,10 @@ bool Tool3DManager::runExp(int toolIni, int toolEnd)
 {
     for (int toolI=toolIni ; toolI<= toolEnd ; toolI++)
     {
-        if (toolI != 8)             // XXX For some strange reason, loading tool 8 chrashes the simulator
-            runToolTrial(toolI);
+        if (toolI != 7){             // XXX For some strange reason, loading tool 8 chrashes the simulator
+            string tool = models[toolI];
+            runToolTrial(tool);
+        }
     }
     return true;
 }
@@ -535,16 +567,17 @@ bool Tool3DManager::predExp(int goal)
 
     // List the tools to use for testing:
     if (robot == "icubSim"){
-        int testTools[14] = {   1,  4,  8,       // hoe0, hoe3, hoe7
-                               14, 18,      // hook3, hook6
-                               25, 28, 30,  // rake4, rake7, rake9
-                               33, 36, 39,  // stick2, stick5, stick8
-                               48, 50,      // shovel8, shovel9
+        int testTools[14] = {   0,  3,  7,       // hoe0, hoe3, hoe7
+                               13, 16,      // hook3, hook6
+                               24, 27, 29,  // rake4, rake7, rake9
+                               32, 35, 38,  // stick2, stick5, stick8
+                               48, 49,      // shovel8, shovel9
                                53 };        // star
         for (int testToolI = 0; testToolI < 14; testToolI++ ){
             for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
                 for (int disp=0  ; disp<2 ; disp++ ){                 // This is a loop for disp {0,1}
-                    if (getToolByPose(testTools[testToolI], ori, disp)){
+                    string tool = models[testTools[testToolI]];
+                    if (getToolByPose(tool, ori, disp)){
                         cout << "Tool loaded, selecting best action for goal " << goal << endl;
                         selectAction(goal);
                     }else{
@@ -713,8 +746,19 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
 
 
 /**********************************************************/
-bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const double graspDisp, const double graspTilt)
+bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const double graspDisp, const double graspTilt)
 {    
+    int toolI;
+    vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
+    if ( it == models.end() ) { //Not found
+        cout << "Tool label not found" << endl;
+        return false;
+    }else{                          // Found
+        toolI = std::distance(models.begin(), it);                  // return position of found element
+        cout << "Tool found with index" << toolI << endl;
+    }
+
+
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
     if (graspTilt < 0.0)  {   tiltValid  = 0.0; }
@@ -772,12 +816,12 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
 
         // Get tool name from simtooloader response.
         // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
-        cout << "Retrieving tool name." << endl;
-        string meshName = replySim.get(2).asString();
-        string::size_type idx;
-        idx = meshName.rfind('.');
-        string cloudName = meshName.substr(0,idx);
-        cloudName = "sim/"+ cloudName;
+        // cout << "Retrieving tool name." << endl;
+        // string meshName = replySim.get(2).asString();
+        // string::size_type idx;
+        // idx = meshName.rfind('.');
+        // string cloudName = meshName.substr(0,idx);
+        string cloudName = "sim/"+ tool;
         cout << "cloud model: " << cloudName << endl;
 
         // Query toolFeatExt to load model to load 3D Pointcloud.
@@ -847,9 +891,20 @@ bool Tool3DManager::loadToolSim(const int toolI, const double graspOr,const doub
 
 
 /**********************************************************/
-bool Tool3DManager::loadToolPose(const int toolI, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
+bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
-    cout << endl<<"Getting tool " << toolI << " with orientation: "<< graspOr << ", displacement: " << graspDisp << ", tilt: " << graspTilt << "and shift: " << graspTilt << endl;
+    // XXX test this
+    int toolI;
+    vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
+    if ( it == models.end() ) { //Not found
+        cout << "Tool label not found" << endl;
+        return false;
+    }else{                          // Found
+        toolI = std::distance(models.begin(), it);                  // return position of found element
+    }
+
+
+    cout << endl<<"Getting tool " << tool << " with orientation: "<< graspOr << ", displacement: " << graspDisp << ", tilt: " << graspTilt << "and shift: " << graspTilt << endl;
     toolLoadedIdx = toolI;
 
     bool ok;
@@ -861,12 +916,13 @@ bool Tool3DManager::loadToolPose(const int toolI, const double graspOr, const do
     }
 
     // Get tool name in order to load its 3D model
-    cout << "Retrieving tool name." << endl;
-    string meshName = models[toolI].get(2).asString();
-    string::size_type idx;
-    idx = meshName.rfind('.');
-    string cloudName = meshName.substr(0,idx);  //remove format
-    cloudName = "real/"+ cloudName;
+    //cout << "Retrieving tool name." << endl;
+    //string meshName = models[toolI].get(2).asString();
+    //string::size_type idx;
+    //idx = meshName.rfind('.');
+    //string cloudName = meshName.substr(0,idx);  //remove format
+    //cloudName = "real/"+ cloudName;
+    string cloudName = "real/"+ tool;
     cout << "cloud model: " << cloudName << endl;
 
     ok = load3Dmodel(cloudName);

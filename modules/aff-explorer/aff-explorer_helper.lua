@@ -109,16 +109,23 @@ function update_objects(blobs)
 end
 
 
+--/---------------------------------------------------------------------/
 function perform_action(action, object)
     if action == "drag_down" then
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.10)
-        cmd:addDouble(object.y)
-        cmd:addDouble(object.z + 0.00)
+        if SIM then
+            cmd:addDouble(object.x - 0.04)
+            cmd:addDouble(object.y)
+            cmd:addDouble(object.z)
+        else
+            cmd:addDouble(object.x - 0.10)
+            cmd:addDouble(object.y)
+            cmd:addDouble(object.z + 0.00)
+        end
         cmd:addDouble(270)
-        cmd:addDouble(math.abs(object.x -(CENTER_X + 0.05)))
+        cmd:addDouble(math.abs(object.x -(CENTER_X + 0.07)))
         print(cmd:toString())
         tmanager_rpc:write(cmd, rep)
         return
@@ -127,9 +134,15 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.05)
-        cmd:addDouble(object.y + 0.07)
-        cmd:addDouble(object.z + 0.01)
+        if SIM then
+            cmd:addDouble(object.x - 0.04)
+            cmd:addDouble(object.y + 0.04)
+            cmd:addDouble(object.z + 0.01)
+        else
+            cmd:addDouble(object.x - 0.05)
+            cmd:addDouble(object.y + 0.07)
+            cmd:addDouble(object.z + 0.01)
+        end
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (CENTER_Y - 0.10)))
         print(cmd:toString())
@@ -140,9 +153,15 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.06)
-        cmd:addDouble(object.y - 0.02)
-        cmd:addDouble(object.z + 0.01)
+        if SIM then
+            cmd:addDouble(object.x - 0.04)
+            cmd:addDouble(object.y - 0.04)
+            cmd:addDouble(object.z + 0.01)
+        else
+            cmd:addDouble(object.x - 0.06)
+            cmd:addDouble(object.y - 0.02)
+            cmd:addDouble(object.z + 0.01)
+        end
         cmd:addDouble(0)
         cmd:addDouble(math.abs(object.y - (CENTER_Y + 0.10)))
         print(cmd:toString())
@@ -153,9 +172,15 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.06)
-        cmd:addDouble(object.y - 0.02)
-        cmd:addDouble(object.z + 0.01)
+        if SIM then
+            cmd:addDouble(object.x - 0.04)
+            cmd:addDouble(object.y - 0.04)
+            cmd:addDouble(object.z + 0.01)
+        else
+            cmd:addDouble(object.x - 0.06)
+            cmd:addDouble(object.y - 0.02)
+            cmd:addDouble(object.z + 0.01)
+        end
         cmd:addDouble(315)
         local a = math.abs(object.y - (CENTER_Y + 0.10))
         local b = math.abs(object.x - (CENTER_X + 0.05))
@@ -168,9 +193,15 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x + 0.03)
-        cmd:addDouble(object.y)
-        cmd:addDouble(object.z)
+        if SIM then 
+            cmd:addDouble(object.x + 0.04)
+            cmd:addDouble(object.y)
+            cmd:addDouble(object.z)
+        else
+            cmd:addDouble(object.x + 0.04)
+            cmd:addDouble(object.y)
+            cmd:addDouble(object.z)
+        end
         cmd:addDouble(90)
         cmd:addDouble(math.abs(object.x -(CENTER_X - 0.07)))        
         print(cmd:toString())
@@ -181,9 +212,15 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x + 0.03)
-        cmd:addDouble(object.y + 0.02)
-        cmd:addDouble(object.z)
+        if SIM then
+            cmd:addDouble(object.x + 0.04)
+            cmd:addDouble(object.y + 0.04)
+            cmd:addDouble(object.z)
+        else
+            cmd:addDouble(object.x + 0.03)
+            cmd:addDouble(object.y + 0.02)
+            cmd:addDouble(object.z)
+        end
         cmd:addDouble(135)
         local a = math.abs(object.y - (CENTER_Y - 0.07))
         local b = math.abs(object.x - (CENTER_X - 0.07))
@@ -211,6 +248,23 @@ function perform_action(action, object)
 ]]--
 end
 
+
+--/---------------------------------------------------------------------/
+function localize_object()
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:addString("objLoc")
+    print("Cmd: ", cmd:toString())
+    tmanager_rpc:write(cmd, rep)
+    print("Rep: ", rep:toString())
+
+    local obj = {}
+    obj.x = rep:get(0):asList():get(0):asDouble()
+    obj.y = rep:get(0):asList():get(1):asDouble()
+    obj.z = rep:get(0):asList():get(2):asDouble()
+    print("Object located at x: ", obj.x, ", y: ", obj.y, ", z: ", obj.z)
+    return obj
+end
 
 --/---------------------------------------------------------------------/
 function get_objects_in_zone(object_list, ZONE_X, ZONE_Y)
@@ -262,11 +316,23 @@ function explore(obj)
     local zone = get_object_zone(obj)
     local act = "no_act"
     -- based on the positon, choose action at random among the 2 possible on each zone
-    if zone == "OUT" then
-        say("Object out of reach!")
-        print("Objects out of limits!!")
-        return -1
+    if SIM then
+        if zone == "OUT" or zone == "BOTTOMLEFT"  then
+            local cmd = yarp.Bottle()    
+            local rep = yarp.Bottle()
+            cmd:addString("compEff")
+            tmanager_rpc:write(cmd, rep)
+            print("Objects out of limits, reseted!!")
+            return -1
+        end        
+    else
+        if zone == "OUT" or zone == "BOTTOMLEFT"  then
+            say("Object out of reach!")
+            print("Objects out of limits!!")
+            return -1
+        end
     end
+
     if zone == "UPLEFT" then
         if (math.random() >= 0.5) then 
             act = "drag_right"
@@ -291,10 +357,7 @@ function explore(obj)
 
     print("[object] in zone ", zone ,":", obj.x, obj.y, obj.z)
 
-    print("Performing action ", act)
-    perform_action(act, obj)
-
-    return  ACTIONS_LIST[act]       -- return the action index (0 index, for c++)
+    return  ACTION_LIST[act]       -- return the action index (0 index, for c++)
 end
 
 function go_home()   
@@ -452,20 +515,21 @@ function load_tool(tool_name)
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
 
-    --print("load the tool")
-    tool_file = "real/" .. tool_name
-    cmd:addString("loadCloud")
-    cmd:addString(tool_file)
-    o3de_rpc:write(cmd, rep)
-  
+    print("load the tool")
+    tool_file = "sim/" .. tool_name
+    local deg =  math.random(-1, 1)
+    deg = 80 *deg; -- (-80, 0, 80)
+    cmd:addString("getToolByPose")
+    cmd:addString(tool_name)
+    cmd:addDouble(deg)
+    tmanager_rpc:write(cmd, rep)
 
-    --print("set the tool pose")
-    local deg =  math.random(-90, 90)
+    print("set the tool pose")
     cmd:clear()
     rep:clear()
     cmd:addString("setPoseParam")
     cmd:addDouble(deg)
-    o3de_rpc:write(cmd, rep) 
+    tmanager_rpc:write(cmd, rep) 
 
     local pose = deg2ori(deg)
     if pose == "out" then
@@ -505,5 +569,12 @@ function save_affordances()
     return true
 end
 
+
+function find_key( list, value )
+  for k,v in pairs(list) do
+    if v==value then return k end
+  end
+  return nil
+end
 
 

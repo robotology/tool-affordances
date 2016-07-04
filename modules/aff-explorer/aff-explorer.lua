@@ -53,20 +53,18 @@ BOTTOMRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
 REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}    
 REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}      
 
+-- ACTION LIST
+ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_down_right"] = 1, ["drag_left"] = 2, ["drag_down"] = 3 , ["drag_up"] = 4 , ["drag_up_left"] = 5}
+
 -- TOOL LIST
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
-TOOL_LIST = {"RAK2"}
+TOOL_LIST_SIM = {"rak1", "rak2", "rak3", "hoe1", "hoe2","hoe3","hoe1","hoe2","hoe3","sti1","sti2","sti3","sho1","sho2","sho3"}
+--TOOL_LIST = {"RAK2"}
 --rakeBlue = RAK2
 --rakeGreen = RAK3 
 --shovelGreen = SHO1
 --shovelOrange = SHO2
 --shovelYellow = SHO3
-
-
-
--- ACTION LIST
-ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_down_right"] = 1, ["drag_left"] = 2, ["drag_down"] = 3 , ["drag_up"] = 4 , ["drag_up_left"] = 5}
-
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 local signal = require("posix.signal")
@@ -76,6 +74,8 @@ rf = yarp.ResourceFinder()
 rf:setVerbose(false)
 rf:configure(arg)
 rf:setDefaultContext("AffordancesProject")
+
+--robot = rf:check("robot",Value("icub")).asString()
 
 explore_helper_file = rf:findFile("aff-explorer_helper.lua")
 if explore_helper_file == "" then
@@ -108,7 +108,6 @@ tmanager_rpc = yarp.RpcClient()
 ispeak_rpc = yarp.RpcClient()
 affcollect_rpc = yarp.RpcClient()
 
-
 -- Open ports
 port_blobs:open("/affExplorer/blobs:i")
 port_acteff:open("/affExplorer/act_eff:o")
@@ -121,12 +120,16 @@ ispeak_rpc:open("/affExplorer/ispeak:rpc")
 affcollect_rpc:open("/affExplorer/affcol:rpc")
 
 -- XXX this should be deleted when module works (connectiosn should go through yarpmanager):
-
-ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
-if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
+if robot == "icub" then
+    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
+    if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
+else
+    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
+    if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
+end
 
 ret = yarp.NetworkBase_connect(port_acteff:getName(), "/affCollector/aff:i")
-if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
+if ret == false then print("cannot connect to /affCollector/aff:i") end
 
 ret = yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
 if ret == false then print("cannot connect to /objects3DExplorer/rpc:i") end
@@ -159,7 +162,9 @@ if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") e
 ---------------- Modifiable variables for module flow:: 
 
 bin_aff = false
-trials_x_tp = 30
+trials_x_tp = 5
+SIM = true
+
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 
@@ -180,11 +185,19 @@ while state ~= "exit" do
     -- Get a tool
     if state == "no_tool" then
         print("State = ",state)
-        tool_name = select_tool(TOOL_LIST, 0)
+        if SIM then
+            tool_name = select_tool(TOOL_LIST_SIM, 0)     -- SIM
+        else
+            tool_name = select_tool(TOOL_LIST, 0)         -- REAL
+        end
         print("Tool Selected:", tool_name)
+
         if tool_name  ~= " " then 
-            tool_pose = ask_for_tool(tool_name)            
-            --  tool_pose = load_tool(tool_name)                           
+            if SIM then
+                tool_pose = load_tool(tool_name)          -- SIM
+            else
+                tool_pose = ask_for_tool(tool_name)       -- REAL        
+            end
             if tool_pose ~= "invalid" then
                 set_tool_label(tool_pose)         
                 print("Tool-Pose:",tool_pose)
@@ -198,69 +211,80 @@ while state ~= "exit" do
     if state ==  "do_action" then
         print("State = ",state)
 
---[[
-        ----- TEST BEGIN  
-        act_i = aff_generator(0) -- generate act_i
-        print("Action Generated: ", act_i)
-        if act_i >= 0 then 
-            state = "comp_effect"
-        end
-        ----- TEST END
-]]--
-
-        local blobs = port_blobs:read(false)
-        if blobs ~= nil and blobs:size() >= 0 then    
-            if update_objects(blobs) == true then       -- updates the global variable objects (objects in memory)
-                local object = object_list[1]           -- for exploring we assume there is only on object on the table
-                act_i = explore(object)
-                print("Action Performed: ", act_i)
-                if act_i >= 0 then 
-                    state = "comp_effect"                    
-                end
-                go_home()
+        if SIM then                                     -- SIM
+            --        act_i = aff_generator(0)           -- data generator for TEST
+            object = localize_object()            
+            act_i = explore(object)                      -- find the location of the object and select action
+            action = find_key(ACTION_LIST, act_i )
+            if act_i >= 0 then 
+                print("Performing action ", action)
+                perform_action(action, object)           -- Perform selected action
+                print("Action Performed: ", action)
+                state = "comp_effect"                    
             end
-        end        
+            go_home()
+
+        else                                            -- REAL
+
+            local blobs = port_blobs:read(false)
+            if blobs ~= nil and blobs:size() >= 0 then    
+                if update_objects(blobs) == true then           -- updates the global variable objects (objects in memory)
+                    object = object_list[1]               -- for exploring we assume there is only one object on the table
+                    act_i = explore(object)                     -- find the location of the object and select action
+                    action = find_key(ACTION_LIST, act_i)
+                    if act_i >= 0 then 
+                        print("Performing action ", action)
+                        perform_action(action, object)           -- Perform selected action
+                        print("Action Performed: ", action)
+                        state = "comp_effect"                    
+                    end
+                    go_home()
+                end
+            end 
+        end       
     end
 
     --  Observe and save effect  
     if state == "comp_effect" then
+        print("")
         print("State = ",state)
-        print("Action Generated: ", act_i)
---[[
-        ----- TEST BEGIN
-        print("Computing effect for tritrial: ", tp_trial_count)
-        local eff = aff_generator(1) -- generate act_i
-        print("Effect Generated: ", eff)
-        save_effect(act_i, eff)
-        tp_trial_count = tp_trial_count + 1
-
-        if tp_trial_count > trials_x_tp then        -- after a number of trial with tool-pose, change tool
-            state = "no_tool"                
-            tp_trial_count = 0
-            print("Performed enough actions for tool-pose: ", tool_pose)
-            save_affordances()
-        else
-            state = "do_action"                                    
-        end
-        ----- TEST END
-]]--
-
-        local blobs = port_blobs:read(false);
-        if blobs ~= nil and blobs:size() >= 0 then    
+        
+        if SIM then
+            print("Computing effect for trial: ", tp_trial_count)
+            --local eff = aff_generator(1) -- generate act_i
             local object_prev = object                          -- saves previous object coordinates
-            if update_objects(blobs) == true then           -- updates the global variable objects (objects in memory)
-                object = object_list[1]
-                local eff = comp_effect(object, object_prev, bin_aff)
-                print("Effect Computed: ", eff)
-                save_effect(act_i, eff)
+            object = localize_object()
+            local eff = comp_effect(object, object_prev, false)
+            print("Effect Computed: ", eff)
+            save_effect(act_i, eff)
+            if tp_trial_count >= trials_x_tp then        -- after a number of trial with tool-pose, change tool
+                state = "no_tool"                
+                tp_trial_count = 0
+                print("Performed enough actions for tool-pose: ", tool_pose)
+                save_affordances()
+            else
+                state = "do_action"                                    
+                tp_trial_count = tp_trial_count + 1                                   
+            end
 
-                tp_trial_count = tp_trial_count + 1
-                if tp_trial_count > trials_x_tp then        -- after a number of trial with tool-pose, change tool
-                    state = "no_tool"                
-                    tp_trial_count = 0
-                    save_affordances()
-                else
-                    state = "do_action"                                    
+
+        else                        -- REAL
+            local blobs = port_blobs:read(false);
+            if blobs ~= nil and blobs:size() >= 0 then    
+                local object_prev = object                          -- saves previous object coordinates
+                if update_objects(blobs) == true then           -- updates the global variable objects (objects in memory)
+                    object = object_list[1]
+                    local eff = comp_effect(object, object_prev, bin_aff)
+                    print("Effect Computed: ", eff)
+                    save_effect(act_i, eff)                    
+                    if tp_trial_count  >=  trials_x_tp then        -- after a number of trial with tool-pose, change tool
+                        state = "no_tool"                
+                        tp_trial_count = 0
+                        save_affordances()
+                    else
+                        state = "do_action"
+                        tp_trial_count = tp_trial_count + 1                                   
+                    end
                 end
             end
         end

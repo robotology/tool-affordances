@@ -20,6 +20,8 @@
 
 // Includes
 #include <string>
+#include <algorithm>
+#include <iterator>
 #include <math.h>
 #include <sstream>
 #include <stdio.h>
@@ -63,7 +65,7 @@ protected:
     std::string                     camera;             //camera
     std::string                     robot;				//robot
     double                          tableHeight;        // height of the table with respect to the robot frame
-    std::vector<yarp::os::Bottle>   models;             // Vector to contain all models considered in the experiment.
+    std::vector<std::string>   models;             // Vector to contain all models considered in the experiment.
 
     yarp::os::RpcServer         rpcCmd;                 //human rpc port (receive commands via rpc)
 
@@ -113,8 +115,8 @@ protected:
     bool                        graspToolExe();
     bool                        lookToolExe();
     bool                        load3Dmodel(const std::string& tool);
-    bool                        loadToolSim(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
-    bool                        loadToolPose(const int toolI = 3, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
+    bool                        loadToolSim(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
+    bool                        loadToolPose(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
     bool                        getToolExe(const std::string& tool);
 
     bool                        findPoseExe(const std::string& tool, Point3D &ttip);
@@ -151,7 +153,7 @@ public:
 
     // tool load and information
     bool                        setToolName(const std::string &tool);
-    bool                        getToolByPose(int toolI = 0, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
+    bool                        getToolByPose(const std::string& tool, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        getTool(const std::string &tool);
     bool                        graspTool();
     bool                        lookTool();
@@ -159,6 +161,10 @@ public:
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();
+
+    // Get object information
+    yarp::sig::Vector           objLoc();
+    yarp::sig::Vector           objRot();
 
     // actions
     bool                        goHome(bool hands = false);
@@ -171,9 +177,9 @@ public:
 
     // Experiment functions
     bool                        runRandPoses(int numPoses = 50,int numAct = 8);
-    bool                        runToolPose(int toolI, double graspOr = 0.0, double graspDisp = 0.0, double graspTilt = 45.0, int numAct = 8);
-    bool                        runToolOr(int toolI, double graspOr = 0.0, int numAct = 8);
-    bool                        runToolTrial(int toolI, int numAct = 8);
+    bool                        runToolPose(const std::string& tool, double graspOr = 0.0, double graspDisp = 0.0, double graspTilt = 45.0, int numAct = 8);
+    bool                        runToolOr(const std::string& tool, double graspOr = 0.0, int numAct = 8);
+    bool                        runToolTrial(const std::string& tool, int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
     bool                        selectAction(int goal = 1);
     bool                        predExp(int goal = 1);

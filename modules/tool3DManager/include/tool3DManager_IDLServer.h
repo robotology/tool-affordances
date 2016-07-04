@@ -6,14 +6,11 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
+#include <yarp/sig/Vector.h>
 
 class tool3DManager_IDLServer;
 
 
-/**
- * tool3DManager_IDLServer
- * Interface.
- */
 class tool3DManager_IDLServer : public yarp::os::Wire {
 public:
   tool3DManager_IDLServer();
@@ -44,7 +41,7 @@ public:
    * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
    * @return true/false on success/failure of loading the tool with correct pose
    */
-  virtual bool getToolByPose(const int32_t tool = 0, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0);
+  virtual bool getToolByPose(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0);
   /**
    * Performs the sequence to get the tool: \n
    * - Grasp (through ARE)
@@ -83,6 +80,16 @@ public:
    * @return true/false on success/failure to extract features
    */
   virtual bool getToolFeats();
+  /**
+   * Finds out the location of the object and returns its coordinates \n
+   * @return Vector bottle with object coordinates in 3D X Y Z
+   */
+  virtual yarp::sig::Vector objLoc();
+  /**
+   * Finds out the rotation of the object and returns its rotation values \n
+   * @return Vector bottle with object rotation
+   */
+  virtual yarp::sig::Vector objRot();
   /**
    * Adopt home position (optionally opens hands too)
    * @return true/false on success/failure
@@ -129,23 +136,23 @@ public:
    * Runs numAct actions with the given tool on the given pose and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runToolPose(const int32_t toolI, const double deg = 0, const double disp = 0, const double tilt = 45, const int32_t numAct = 8);
+  virtual bool runToolPose(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const int32_t numAct = 8);
   /**
    * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runToolOr(const int32_t toolI, const double graspOr = 0, const int32_t numAct = 8);
+  virtual bool runToolOr(const std::string& tool, const double graspOr = 0, const int32_t numAct = 8);
   /**
    * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
    * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
    * @return true/false on success/failure to perfomr all actions on all toolPoses
    */
-  virtual bool runToolTrial(const int32_t toolI, const int32_t numAct = 8);
+  virtual bool runToolTrial(const std::string& tool, const int32_t numAct = 8);
   /**
    * Runs full trials for all tool with indices between toolini and toolEnd. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 54);
+  virtual bool runExp(const std::string& tool, const int32_t toolEnd = 54);
   /**
    * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
    * Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n
