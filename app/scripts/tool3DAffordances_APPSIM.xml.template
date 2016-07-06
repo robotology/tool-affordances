@@ -43,6 +43,13 @@
         <geometry>(Pos (x 333.202) (y 222.315))</geometry>
     </module>
     <module>
+        <name>affCollector</name>
+        <parameters>--filename affsTCDS.txt --numAct 8 </parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 333.202) (y 222.315))</geometry>
+    </module>
+    <module>
         <name>toolFeatExt</name>
         <parameters></parameters>
         <node>localhost</node>

@@ -21,6 +21,7 @@
 #include <iostream>
 #include <time.h>
 
+
 #include "simtoolloader.h"
 
 using namespace std;
@@ -270,11 +271,14 @@ void CtrlThread::run() {
                 if ( objIndex==100 ) {
 					objIndex = rand() % simWorld.simObject.size() + 1;
 				}
+
+                Rand randG;         // YARP random number generator
+
                 //simWorld.simObject[objIndex]->objSubIndex = 1;  //needs to be automatic, each type of object has his own subIndex
                 simWorld.simObject[objIndex]->setObjectPosition(
-										threadTable.get(4).asDouble()+objPosX,
-										threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-										objPosZ);
+                                        threadTable.get(4).asDouble()+objPosX + randG.scalar(-0.04, 0.04),      // Add a randomness of -+ 4 cm to the X position of the cube
+                                        threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2) + 0.05, // Place the object 5 cmd above the table
+                                        objPosZ + randG.scalar(-0.04, 0.04));                                   // Add a randomness of -+ 4 cm to the X position of the cube
                 simCmd = simWorld.simObject[objIndex]->makeObjectBottle(simWorld.objSubIndex);
 				writeSim(simCmd);
 
@@ -297,10 +301,12 @@ void CtrlThread::run() {
 
                 if (simWorld.simObject[objIndex]->objSubIndex != 0)
                 {
+                    Rand randG;         // YARP random number generator
+
                     simWorld.simObject[objIndex]->setObjectPosition(
-                                                threadTable.get(4).asDouble()+objPosX,
-                                                threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2)+0.1,
-                                                objPosZ);
+                                                threadTable.get(4).asDouble()+objPosX + randG.scalar(-0.04, 0.04),
+                                                threadTable.get(5).asDouble()+((threadTable.get(2).asDouble())/2) + 0.05,
+                                                objPosZ + randG.scalar(-0.04, 0.04));
                     simCmd = simWorld.simObject[objIndex]->moveObjectBottle();
                     writeSim(simCmd);
 
@@ -619,8 +625,8 @@ void CtrlThread::run() {
                 controlCmd.addString("Available commands are:");
                 controlCmd.addString("help");
                 controlCmd.addString("delete - delete all object in sim worlds");
-                controlCmd.addString("obj (int) - creates an object on the table (1 = cube).");
-                controlCmd.addString("move objIdex(int) - moves object índex to original position on table  (1 = cube).");
+                controlCmd.addString("obj (int) - creates an object on the table (0 = cube).");
+                controlCmd.addString("move objIdex(int) - moves object índex to original position on table  (0 = cube).");
                 controlCmd.addString("tool toolIndex(int) objIndex(int) orient(int) pos(int) - creates tool 'toolIndex' at the robots hand with orientation 'orient' and displacement 'pos', and object 'objIndex' on the table.");
                 controlCmd.addString("rot orient(int) pos(int) - moved the tool in hand to displacement 'pos' (in cm) and rotation 'orient'. ");
                 replyCmd(controlCmd);

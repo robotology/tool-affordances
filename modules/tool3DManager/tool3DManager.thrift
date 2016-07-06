@@ -155,6 +155,12 @@ service tool3DManager_IDLServer
      */
     bool compEff();
 
+    /**
+     * Push the cube back in teh orginal position (in SIM)
+     * @return true/false on success/failure to compute Effect
+     */
+    bool resetObj();
+
     /*********************** EXPERIMENT ROUTINES ************************************/
 
     /**

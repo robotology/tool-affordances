@@ -200,6 +200,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_resetObj : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_runRandPoses : public yarp::os::Portable {
 public:
   int32_t numPoses;
@@ -763,6 +771,27 @@ void tool3DManager_IDLServer_compEff::init() {
   _return = false;
 }
 
+bool tool3DManager_IDLServer_resetObj::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("resetObj",1,1)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_resetObj::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_resetObj::init() {
+  _return = false;
+}
+
 bool tool3DManager_IDLServer_runRandPoses::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -1151,6 +1180,16 @@ bool tool3DManager_IDLServer::compEff() {
   helper.init();
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool tool3DManager_IDLServer::compEff()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool tool3DManager_IDLServer::resetObj() {
+  bool _return = false;
+  tool3DManager_IDLServer_resetObj helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::resetObj()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1576,6 +1615,17 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "resetObj") {
+      bool _return;
+      _return = resetObj();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "runRandPoses") {
       int32_t numPoses;
       int32_t numAct;
@@ -1777,6 +1827,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("drag3D");
     helpString.push_back("trackObj");
     helpString.push_back("compEff");
+    helpString.push_back("resetObj");
     helpString.push_back("runRandPoses");
     helpString.push_back("runToolPose");
     helpString.push_back("runToolOr");
@@ -1898,6 +1949,11 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     if (functionName=="compEff") {
       helpString.push_back("bool compEff() ");
       helpString.push_back("Computes the effect of the action in terms of distance displaced, angle of displacement and rotation exerted on the object. \n ");
+      helpString.push_back("@return true/false on success/failure to compute Effect ");
+    }
+    if (functionName=="resetObj") {
+      helpString.push_back("bool resetObj() ");
+      helpString.push_back("Push the cube back in teh orginal position (in SIM) ");
       helpString.push_back("@return true/false on success/failure to compute Effect ");
     }
     if (functionName=="runRandPoses") {

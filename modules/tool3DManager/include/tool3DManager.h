@@ -134,6 +134,7 @@ protected:
     bool                        getObjRot(yarp::sig::Vector &rot3D);
     bool                        computeEffect();
     bool                        sendAffData();
+    bool                        resetCube();
 
     // Action
     void                        goHomeExe(const bool hands = false);
@@ -174,6 +175,7 @@ public:
     bool                        drag(double theta, double radius, double tilt);
     bool                        trackObj();
     bool                        compEff();
+    bool                        resetObj();
 
     // Experiment functions
     bool                        runRandPoses(int numPoses = 50,int numAct = 8);

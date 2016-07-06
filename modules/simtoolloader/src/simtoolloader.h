@@ -28,6 +28,8 @@
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
+#include <yarp/math/Rand.h>
+
 
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/pids.h>

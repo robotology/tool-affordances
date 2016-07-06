@@ -19,9 +19,7 @@ source_group("Header Files" FILES ${header})
 source_group("IDL Files" FILES ${idl})
 
 include_directories(${PROJECT_SOURCE_DIR}/include
-                    ${YARP_INCLUDE_DIRS}
-
-                    )
+                    ${YARP_INCLUDE_DIRS})
 
 add_executable(${PROJECTNAME} ${source} ${header}  ${idl})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})

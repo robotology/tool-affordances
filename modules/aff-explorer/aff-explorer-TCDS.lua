@@ -9,62 +9,37 @@
 -- -- -- DEclare consts.
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
-XOFFSET         = 0.0       -- m
-YOFFSET         = -0.03     -- m
-ZOFFSET         = 0.0       -- m
+DISP_LENGTH     = 0.17      -- length of the drag action
 
 --                  -0.3                   0.05                     0.4    
---                 _________________________|_________________________ -> Y
---            -0.6 |                      | |                        |
---                 |                        |                        |
---                 |         UPLEFT         |        UPRIGHT         |
---                 |                        |                        |
---           -0.41 |______________________|_|________________________|  (orig -0.38)
---                 |                      | |                        |
---                 |                        |                        |
---                 |       BOTTOMLEFT       |      BOTTOMRIGHT       |
---                 |                        |                        |
---            -0.1 |______________________|_|________________________|
---              X  V                      |    
---                                       0.0            -- area is dsipalced to right to help tool actions
-
--- LIMIT LINES
-MIN_X = -0.6        -- meter
-MAX_X = -0.1
-MIN_Y = -0.3
-MAX_Y = 0.4
-CENTER_X = -0.4
-CENTER_Y = 0.05
-
--- ZONES
--- UPRIGHT
-UPRIGHT_ZONE_X = {min=MIN_X, max=CENTER_X}
-UPRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
-
--- UPLEFT
-UPLEFT_ZONE_X = {min=MIN_X, max=CENTER_X}
-UPLEFT_ZONE_Y = {min=MIN_Y, max=CENTER_Y}
-
---BOTTOMRIGHT
-BOTTOMRIGHT_ZONE_X = {min=CENTER_X, max=MAX_X}
-BOTTOMRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
-
---BOTTOMLEFT
-REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}    
-REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}      
+--                 _________________________________________________ -> Y
+--            -0.6 |                              U                |                    drag.deg   ind
+--                 |                       LU  ^  ^  ^ RU          | R  = right             0       0
+--                 |                            \ | /              | RU = right_up         45       1
+--                 |                             \|/               | U  = up               90       2
+--                 |                        L <---O---> R          | LU = lef_up          135       3
+--                 |                             /|\               | L  = left            180       4
+--                 |                            / | \              | LD = left_down       225       5   
+--                 |                       LD  v  v  v  RD         | D  = down            270       6 
+--                 |                              D                | RD = right_down      315       7
+--            -0.1 |_______________________________________________|
+--              X  V                      |   
+--                                       0.0 
+--
 
 -- ACTION LIST
-ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_down_right"] = 1, ["drag_left"] = 2, ["drag_down"] = 3 , ["drag_up"] = 4 , ["drag_up_left"] = 5}
+ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_right_up"] = 1, ["drag_up"] = 2, ["drag_left_up"] = 3, ["drag_left"] = 4, ["drag_left_down"] = 5, ["drag_down"] = 6, ["drag_right_down"] = 7}
 
--- TOOL LIST
+-- ORIENTATION LIST
+ORI_LIST = {-89.0, 0.0, 89.0}
+
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
-TOOL_LIST_SIM = {"rak1", "rak2", "rak3", "hoe1", "hoe2","hoe3","hoe1","hoe2","hoe3","sti1","sti2","sti3","sho1","sho2","sho3"}
---TOOL_LIST = {"RAK2"}
---rakeBlue = RAK2
---rakeGreen = RAK3 
---shovelGreen = SHO1
---shovelOrange = SHO2
---shovelYellow = SHO3
+-- rakeBigBlue = RAK1, rakeBlue = RAK2,  rakeGreen = RAK3, shovelGreen = SHO1, shovelOrange = SHO2, shovelYellow = SHO3
+TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 
+                 "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
+                 "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
+                 "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
+                 "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9"}
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 local signal = require("posix.signal")
@@ -77,9 +52,9 @@ rf:setDefaultContext("AffordancesProject")
 
 --robot = rf:check("robot",Value("icub")).asString()
 
-explore_helper_file = rf:findFile("aff-explorer_helper.lua")
+explore_helper_file = rf:findFile("aff-explorer-TCDS_helper.lua")
 if explore_helper_file == "" then
-    print("Cannot find aff-explorer_helper.lua")
+    print("Cannot find aff-explorer-TCDS_helper.lua")
     return false 
 end
 dofile(explore_helper_file)
@@ -147,16 +122,16 @@ if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") e
 
 -- Before exploring, check if it has a tool (received by rpc as label) 
 -- If it doesnt, 
-    --> ask for tool from list (so it can load the model)
-    --> do alignment and get pose
-    --> tell affCollector to setlabel  of tool-pose
+    --> xx ask for tool from list (so it can load the model)
+    --> xx do alignment and get pose
+    --> xx tell affCollector to setlabel  of tool-pose
 -- When it has it:
     -- >xx find objects at blobs
     --> xx decide action (random based on zone)
     --> xx perform action
-    --> observe effect (success/fail) -> update affCollector (action , effect)
-    --> Do around 60 times, until each action is done about 10 times (more or less)
-    --> Ask to change tool(-pose) and repeat
+    --> xx observe effect (success/fail) -> update affCollector (action , effect)
+    --> xx Do around 60 times, until each action is done about 10 times (more or less)
+    --> xx Ask to change tool(-pose) and repeat
 
 
 ---------------- Modifiable variables for module flow:: 
@@ -177,6 +152,11 @@ object_list = {}                        -- for keeping the memory of objects
 object = {}
 tp_trial_count = 0
 go_home()
+t_i = 1                                 -- tool index
+ori_i = 2                               -- orientation index
+act_i = 0                               -- action index
+go_home()
+
 
 -- -- -- -- -- -- -- -- -- -- -- updateModule -- -- -- -- -- -- -- -- -- -- -- 
 while state ~= "exit" do
@@ -186,7 +166,7 @@ while state ~= "exit" do
     if state == "no_tool" then
         print("State = ",state)
         if SIM then
-            tool_name = select_tool(TOOL_LIST_SIM, 0)     -- SIM
+            tool_name = select_tool(TOOL_LIST_SIM, t_i)     -- SIM
         else
             tool_name = select_tool(TOOL_LIST, 0)         -- REAL
         end
@@ -194,9 +174,9 @@ while state ~= "exit" do
 
         if tool_name  ~= " " then 
             if SIM then
-                tool_pose = load_tool(tool_name)          -- SIM
+                tool_pose = load_tool(tool_name, ORI_LIST[ori_i])           -- SIM                
             else
-                tool_pose = ask_for_tool(tool_name)       -- REAL        
+                tool_pose = ask_for_tool(tool_name)                         -- REAL        
             end
             if tool_pose ~= "invalid" then
                 set_tool_label(tool_pose)         
@@ -211,23 +191,25 @@ while state ~= "exit" do
     if state ==  "do_action" then
         print("State = ",state)
 
-        if SIM then                                     -- SIM
-            --        act_i = aff_generator(0)           -- data generator for TEST
-            object = localize_object()            
-            act_i = explore(object)                      -- find the location of the object and select action
-            action = find_key(ACTION_LIST, act_i )
-            if act_i >= 0 then 
-                print("Performing action ", action)
-                local actOK = perform_action(action, object)           -- Perform selected action
-                if actOK then
-                    print("Action Performed: ", action)
-                    state = "comp_effect"       
-                else
-                    print("Action ", action, "could not be executed" )             
-                end
-            end
-            go_home()
+        if SIM then                             -- SIM
+            --        act_i = aff_generator(0)  -- data generator for TEST
+            object = localize_object()
+            if object.x < -0.1 and object.y > 0.01 then       -- if SIM is OFF, object will be 0,0,0
+                -- act_i = explore(object)          -- find the location of the object and select action
+                
+                action = find_key(ACTION_LIST, act_i )
 
+                print("Performing action ", action, "(index: ", act_i, ")")
+                actOK = perform_action(action, object)           -- Perform selected action
+                if actOK then
+                    state = "comp_effect"                        
+                else
+                    print("Action ", action, "could not be executed" )
+                end
+                go_home()
+            else
+                print("Weird object values, SIM pbbly not working") 
+            end
         else                                            -- REAL
 
             local blobs = port_blobs:read(false)
@@ -254,21 +236,34 @@ while state ~= "exit" do
         print("State = ",state)
         
         if SIM then
-            print("Computing effect for trial: ", tp_trial_count)
+        -- Compute effect, save and reset
+            print("Computing effect for tool-pose: ", tool_pose, "action", act_i)
             --local eff = aff_generator(1) -- generate act_i
             local object_prev = object                          -- saves previous object coordinates
             object = localize_object()
             local eff = comp_effect(object, object_prev, false)
             print("Effect Computed: ", eff)
             save_effect(act_i, eff)
-            if tp_trial_count >= trials_x_tp then        -- after a number of trial with tool-pose, change tool
-                state = "no_tool"                
-                tp_trial_count = 0
-                print("Performed enough actions for tool-pose: ", tool_pose)
-                save_affordances()
+            reset_cube()
+
+        -- Control experimental flow
+            act_i  = act_i + 1                          --increase action counted
+            if math.fmod(act_i,8) == 0 then -- restart cycle after all actions             
+                save_to_file()                          -- save to file after every cycle.
+                ori_i = ori_i + 1                       -- try next orientation
+                act_i = 0                               -- reset action counter (0-indexed)
+                state = "no_tool"                       -- change tool-pose (change tool!)
+                print("Performed all actions for tool-pose: ", tool_pose)
+
+
+                if ori_i > #ORI_LIST then     -- change tool after all orientations have ben tried
+                    t_i = t_i + 1                           -- increase tool counter
+                    ori_i = 1;                              -- reset orientation counter
+                    print("Performed all actions for TOOL: ", tool_name)
+                    print("Increasing tool index and reseting orientation")      
+                end
             else
-                state = "do_action"                                    
-                tp_trial_count = tp_trial_count + 1                                   
+                state = "do_action"     
             end
 
 
@@ -281,13 +276,15 @@ while state ~= "exit" do
                     local eff = comp_effect(object, object_prev, bin_aff)
                     print("Effect Computed: ", eff)
                     save_effect(act_i, eff)                    
-                    if tp_trial_count  >=  trials_x_tp then        -- after a number of trial with tool-pose, change tool
+                    act_i  = act_i + 1
+                    if act_i == 8 * #ORI_LIST then               -- 8 actions x #ORI orientations
+                        act_i = 0                               -- actions are 0-indexed
+                        t_i = t_i + 1
                         state = "no_tool"                
-                        tp_trial_count = 0
-                        save_affordances()
+                        print("Performed all actions for tool-pose: ", tool_pose)
+                        save_to_file()
                     else
-                        state = "do_action"
-                        tp_trial_count = tp_trial_count + 1                                   
+                        state = "do_action"           
                     end
                 end
             end

@@ -128,6 +128,11 @@ public:
    */
   virtual bool compEff();
   /**
+   * Push the cube back in teh orginal position (in SIM)
+   * @return true/false on success/failure to compute Effect
+   */
+  virtual bool resetObj();
+  /**
    * Runs numAct actions for numPoses times, each time with a random tool in a random pose
    * @return true/false on success/failure to perform all actions
    */

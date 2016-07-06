@@ -352,6 +352,10 @@ bool Tool3DManager::compEff(){
     return computeEffect();
 }
 
+bool Tool3DManager::resetObj(){
+    return resetCube();
+}
+
 /***********************************************************************************/
 //  ======================== Functions to get object info:
 Vector Tool3DManager::objLoc(){
@@ -1474,9 +1478,17 @@ bool Tool3DManager::computeEffect()
 
     cout << "Object displaced " << effectVec[0] << " meters on " << effectVec[1] << " direction, and rotated " << effectVec[2] << " degrees."<< endl;
 
+    // Send all data so it can be read and saved.
+    sendAffData();
+
+    resetCube();
+
+    return true;
+}
     // put values on a port so they can be read
     // effDataPort.write(effectVec);
-
+bool Tool3DManager::resetCube()
+{
     if (robot=="icubSim"){
         // Put the cube back in place to restart round:
         Bottle cmdSim,replySim;       // bottles for Simulator
@@ -1488,9 +1500,6 @@ bool Tool3DManager::computeEffect()
         //cout << " Received reply: " << replySim.toString() << endl;
         Time::delay(0.3); // give time for the cube to reach its position before jumping to next step
     }
-    // Send all data so it can be read and saved.
-    sendAffData();
-
     return true;
 }
 
