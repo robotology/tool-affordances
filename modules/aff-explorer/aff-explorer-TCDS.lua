@@ -9,7 +9,7 @@
 -- -- -- DEclare consts.
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
-DISP_LENGTH     = 0.17      -- length of the drag action
+DISP_LENGTH     = 0.15      -- length of the drag action
 
 --                  -0.3                   0.05                     0.4    
 --                 _________________________________________________ -> Y
@@ -35,11 +35,13 @@ ORI_LIST = {-89.0, 0.0, 89.0}
 
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
 -- rakeBigBlue = RAK1, rakeBlue = RAK2,  rakeGreen = RAK3, shovelGreen = SHO1, shovelOrange = SHO2, shovelYellow = SHO3
-TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 
+TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe7", "hoe8", "hoe9", 
                  "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
                  "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
                  "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
                  "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9"}
+
+--skipped hoe6
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 local signal = require("posix.signal")
@@ -152,11 +154,10 @@ object_list = {}                        -- for keeping the memory of objects
 object = {}
 tp_trial_count = 0
 go_home()
-t_i = 1                                 -- tool index
-ori_i = 2                               -- orientation index
+t_i = 14                                -- tool index
+ori_i = 3                               -- orientation index
 act_i = 0                               -- action index
 go_home()
-
 
 -- -- -- -- -- -- -- -- -- -- -- updateModule -- -- -- -- -- -- -- -- -- -- -- 
 while state ~= "exit" do
@@ -244,12 +245,13 @@ while state ~= "exit" do
             local eff = comp_effect(object, object_prev, false)
             print("Effect Computed: ", eff)
             save_effect(act_i, eff)
+            save_to_file()                  -- save to file after every action (so we dont loose anything, and the label is always correct.
             reset_cube()
 
         -- Control experimental flow
             act_i  = act_i + 1                          --increase action counted
             if math.fmod(act_i,8) == 0 then -- restart cycle after all actions             
-                save_to_file()                          -- save to file after every cycle.
+
                 ori_i = ori_i + 1                       -- try next orientation
                 act_i = 0                               -- reset action counter (0-indexed)
                 state = "no_tool"                       -- change tool-pose (change tool!)

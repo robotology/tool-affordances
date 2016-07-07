@@ -93,8 +93,8 @@ public:
     bool                        clearAll();
     std::string                 forgetAll();
 
-    bool                        savetofile(const std::string& label = "affFile.txt");
-    bool                        readfile(const std::string& label = "affFile.txt");
+    bool                        savetofile(const std::string& fileN = "default");
+    bool                        readfile(const std::string& fileN = "default");
     
     // module control //
     bool						attach(yarp::os::RpcServer &source);

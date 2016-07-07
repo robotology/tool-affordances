@@ -73,15 +73,15 @@ public:
    */
   virtual std::string forgetAll();
   /**
-   * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
+   * Saves the known affordances history in a given file.
    * @return true/false on success/failure
    */
-  virtual bool savetofile(const std::string& label = "affFile.txt");
+  virtual bool savetofile(const std::string& file = "default");
   /**
    * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
    * @return true/false on success/failure
    */
-  virtual bool readfile(const std::string& label = "affFile.txt");
+  virtual bool readfile(const std::string& file = "default");
   /**
    * Activates/Deactivates more verbose execution of the module.
    * @return true/false on success/failure

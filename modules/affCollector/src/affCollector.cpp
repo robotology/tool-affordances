@@ -462,7 +462,7 @@ string AffCollector::forgetAll()
 
 
 /**********************************************************/
-bool AffCollector::savetofile(const std::string& filename)
+bool AffCollector::savetofile(const string& fileN)
 {
     // Put file in the proper context path
     /*
@@ -473,9 +473,17 @@ bool AffCollector::savetofile(const std::string& filename)
     //fileLabels << knownLabels;
     fileLabels.close();
     */
+    string file_name;
+    if (fileN == "default"){
+        cout << "No file given, using default: " << filename << endl;
+        file_name = filename;
+    }else{
+        cout << "Using given name: " << fileN << endl;
+        file_name = fileN;
+    }
 
     ofstream fileHist;
-    fileHist.open ((filepath  + filename).c_str());
+    fileHist.open ((filepath  + file_name).c_str());
     for (int l=0; l<knownLabels.size();l++){      // along labels
         fileHist << knownLabels[l];
         fileHist << "\n";
@@ -489,16 +497,27 @@ bool AffCollector::savetofile(const std::string& filename)
     }
     fileHist.close();
 
-    cout << "Labels saved to file " << (filepath  + filename) << endl;
+    cout << "Labels saved to file " << (filepath  + file_name) << endl;
     return true;
 }
 
 
 /**********************************************************/
-bool AffCollector::readfile(const std::string& filename)
+bool AffCollector::readfile(const std::string& fileN)
 {
+    string file_name;
+    if (fileN == "default"){
+        cout << "No file given, using default: " << filename << endl;
+        file_name = filename;
+    }else{
+        cout << "Using given name: " << fileN << endl;
+        file_name = fileN;
+    }
+
+    cout << "Reading data from file: " << filepath +file_name << endl;
+
     // Read the affordance history
-    ifstream fileHist((filepath + filename).c_str());
+    ifstream fileHist((filepath + file_name).c_str());
     std::string line;
 
     int cnt = 0;
@@ -564,13 +583,18 @@ double AffCollector::vecAvg (const vector<double>& vec )
 {
         double return_value = 0.0;
         int n = vec.size();
+        int bad_i = 0;
 
         for ( int i=0; i < n; i++)
         {
-            return_value += vec[i];
+            if (vec[i] < -0.01) {       // Do not include negative values (unknown or wrong samples)
+                bad_i++;
+            }else{
+                return_value += vec[i];
+            }
         }
 
-        return ( return_value / n);
+        return ( return_value / (n-bad_i));
 }
 
 bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)

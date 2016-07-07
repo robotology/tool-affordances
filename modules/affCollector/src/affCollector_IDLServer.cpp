@@ -114,18 +114,18 @@ public:
 
 class affCollector_IDLServer_savetofile : public yarp::os::Portable {
 public:
-  std::string label;
+  std::string file;
   bool _return;
-  void init(const std::string& label);
+  void init(const std::string& file);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_readfile : public yarp::os::Portable {
 public:
-  std::string label;
+  std::string file;
   bool _return;
-  void init(const std::string& label);
+  void init(const std::string& file);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -413,7 +413,7 @@ bool affCollector_IDLServer_savetofile::write(yarp::os::ConnectionWriter& connec
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("savetofile",1,1)) return false;
-  if (!writer.writeString(label)) return false;
+  if (!writer.writeString(file)) return false;
   return true;
 }
 
@@ -427,16 +427,16 @@ bool affCollector_IDLServer_savetofile::read(yarp::os::ConnectionReader& connect
   return true;
 }
 
-void affCollector_IDLServer_savetofile::init(const std::string& label) {
+void affCollector_IDLServer_savetofile::init(const std::string& file) {
   _return = false;
-  this->label = label;
+  this->file = file;
 }
 
 bool affCollector_IDLServer_readfile::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("readfile",1,1)) return false;
-  if (!writer.writeString(label)) return false;
+  if (!writer.writeString(file)) return false;
   return true;
 }
 
@@ -450,9 +450,9 @@ bool affCollector_IDLServer_readfile::read(yarp::os::ConnectionReader& connectio
   return true;
 }
 
-void affCollector_IDLServer_readfile::init(const std::string& label) {
+void affCollector_IDLServer_readfile::init(const std::string& file) {
   _return = false;
-  this->label = label;
+  this->file = file;
 }
 
 bool affCollector_IDLServer_verbose::write(yarp::os::ConnectionWriter& connection) {
@@ -601,22 +601,22 @@ std::string affCollector_IDLServer::forgetAll() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affCollector_IDLServer::savetofile(const std::string& label) {
+bool affCollector_IDLServer::savetofile(const std::string& file) {
   bool _return = false;
   affCollector_IDLServer_savetofile helper;
-  helper.init(label);
+  helper.init(file);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool affCollector_IDLServer::savetofile(const std::string& label)");
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::savetofile(const std::string& file)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool affCollector_IDLServer::readfile(const std::string& label) {
+bool affCollector_IDLServer::readfile(const std::string& file) {
   bool _return = false;
   affCollector_IDLServer_readfile helper;
-  helper.init(label);
+  helper.init(file);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool affCollector_IDLServer::readfile(const std::string& label)");
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::readfile(const std::string& file)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -819,12 +819,12 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "savetofile") {
-      std::string label;
-      if (!reader.readString(label)) {
-        label = "affFile.txt";
+      std::string file;
+      if (!reader.readString(file)) {
+        file = "default";
       }
       bool _return;
-      _return = savetofile(label);
+      _return = savetofile(file);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -834,12 +834,12 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "readfile") {
-      std::string label;
-      if (!reader.readString(label)) {
-        label = "affFile.txt";
+      std::string file;
+      if (!reader.readString(file)) {
+        file = "default";
       }
       bool _return;
-      _return = readfile(label);
+      _return = readfile(file);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -975,12 +975,12 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="savetofile") {
-      helpString.push_back("bool savetofile(const std::string& label = \"affFile.txt\") ");
-      helpString.push_back("Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt' ");
+      helpString.push_back("bool savetofile(const std::string& file = \"default\") ");
+      helpString.push_back("Saves the known affordances history in a given file. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="readfile") {
-      helpString.push_back("bool readfile(const std::string& label = \"affFile.txt\") ");
+      helpString.push_back("bool readfile(const std::string& file = \"default\") ");
       helpString.push_back("Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt' ");
       helpString.push_back("@return true/false on success/failure ");
     }

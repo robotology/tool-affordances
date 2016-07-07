@@ -86,16 +86,16 @@ service affCollector_IDLServer
     string forgetAll();
 
     /**
-     * Saves the known labels in one file 'fileLables.txt' and the affHist in another 'fileHist.txt'
+     * Saves the known affordances history in a given file.
      * @return true/false on success/failure
      */
-    bool savetofile(1:string label = "affFile.txt");
+    bool savetofile(1:string file = "default");
 
     /**
      * Reads labels and aff histories from files 'fileLables.txt' and the affHist in another 'fileHist.txt'
      * @return true/false on success/failure
      */
-    bool readfile(1:string label = "affFile.txt");
+    bool readfile(1:string file = "default");
 
     /**
      * Activates/Deactivates more verbose execution of the module.

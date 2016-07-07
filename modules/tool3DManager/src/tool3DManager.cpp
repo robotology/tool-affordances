@@ -1524,19 +1524,34 @@ bool Tool3DManager::sendAffData()
 void Tool3DManager::goHomeExe(const bool hands)
 {
     cout << endl << "Going home, hands: " << hands <<endl;
-    Bottle cmdAre, replyAre;
-    cmdAre.clear();
-    replyAre.clear();
-    if (hands){
-        cmdAre.addString("home");
-        cmdAre.addString("all");
-    }else{
-        cmdAre.addString("home");
-        cmdAre.addString("head");
-        cmdAre.addString("arms");
-    }
-    rpcMotorAre.write(cmdAre,replyAre);
 
+    if (robot == "icubSim"){
+        Bottle cmdAMM, replyAMM;
+        // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
+        cout << "Moving "<< hand << " arm to a central position" << endl;
+        double dispY = (hand=="right")?0.20:-0.20;
+        cmdAMM.clear();replyAMM.clear();
+        cmdAMM.addString("push");            // Set a position in the center in front of the robot
+        cmdAMM.addDouble(-0.50);
+        cmdAMM.addDouble(dispY);
+        cmdAMM.addDouble(0.10);
+        cmdAMM.addDouble(0.0);       // No angle
+        cmdAMM.addDouble(0.0);       // No radius
+        rpcAffMotor.write(cmdAMM, replyAMM);
+    }else{
+        Bottle cmdAre, replyAre;
+        cmdAre.clear();
+        replyAre.clear();
+        if (hands){
+            cmdAre.addString("home");
+            cmdAre.addString("all");
+        }else{
+            cmdAre.addString("home");
+            cmdAre.addString("head");
+            cmdAre.addString("arms");
+        }
+        rpcMotorAre.write(cmdAre,replyAre);
+    }
     return;
 }
 
@@ -1670,15 +1685,17 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     cout << "Approaching to object on coords: (" << x << ", " << y << ", "<< z << "). " <<endl;
 
     // Close hand on tool grasp
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("look");
-    cmdARE.addString("hand");
-    cmdARE.addString(hand);
-    cmdARE.addString("fixate");
-    cmdARE.addString("block_eyes");
-    cmdARE.addDouble(5.0);
-    rpcMotorAre.write(cmdARE, replyARE);
+    if (robot != "icubSim"){
+        cmdARE.clear();
+        replyARE.clear();
+        cmdARE.addString("look");
+        cmdARE.addString("hand");
+        cmdARE.addString(hand);
+        cmdARE.addString("fixate");
+        cmdARE.addString("block_eyes");
+        cmdARE.addDouble(5.0);
+        rpcMotorAre.write(cmdARE, replyARE);
+    }
 
     cmdAMM.clear();replyAMM.clear();
     cmdAMM.addString("drag");                 // Set a position in the center in front of the robot
@@ -1691,11 +1708,12 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Stop head moving for further visual processing
-    cmdARE.clear();
-    replyARE.clear();
-    cmdARE.addString("idle");
-    rpcMotorAre.write(cmdARE, replyARE);
-
+    if (robot != "icubSim"){
+        cmdARE.clear();
+        replyARE.clear();
+        cmdARE.addString("idle");
+        rpcMotorAre.write(cmdARE, replyARE);
+    }
     // Restore show tool coordinates
     tooltip= tooltip_tmp;
 
