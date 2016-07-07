@@ -58,7 +58,8 @@ ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_down_right"] = 1, ["d
 
 -- TOOL LIST
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
-TOOL_LIST_SIM = {"rak1", "rak2", "rak3", "hoe1", "hoe2","hoe3","hoe1","hoe2","hoe3","sti1","sti2","sti3","sho1","sho2","sho3"}
+TOOL_LIST = {"RAK2"}
+-- TOOL_LIST_SIM = {"rak1", "rak2", "rak3", "hoe1", "hoe2","hoe3","hoe1","hoe2","hoe3","sti1","sti2","sti3","sho1","sho2","sho3"}
 --TOOL_LIST = {"RAK2"}
 --rakeBlue = RAK2
 --rakeGreen = RAK3 
@@ -163,7 +164,7 @@ if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") e
 
 bin_aff = false
 trials_x_tp = 5
-SIM = true
+SIM = false
 
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
@@ -173,6 +174,7 @@ print("Module running ... ")
 t0 = yarp.Time_now()
 math.randomseed( os.time() )
 state = "no_tool"
+--state = "do_action"
 object_list = {}                        -- for keeping the memory of objects
 object = {}
 tp_trial_count = 0
@@ -206,7 +208,6 @@ while state ~= "exit" do
             end
        end
     end
-
     -- Find object, perform action      
     if state ==  "do_action" then
         print("State = ",state)
@@ -238,11 +239,15 @@ while state ~= "exit" do
                     action = find_key(ACTION_LIST, act_i)
                     if act_i >= 0 then 
                         print("Performing action ", action)
-                        perform_action(action, object)           -- Perform selected action
-                        print("Action Performed: ", action)
-                        state = "comp_effect"                    
+                        local actOK = perform_action(action, object)
+                        if actOK then
+                            print("Action Performed: ", action)
+                            state = "comp_effect"       
+                        else
+                            print("Action ", action, "could not be executed" )             
+                        end           -- Perform selected action
                     end
-                    go_home()
+                    --go_home()
                 end
             end 
         end       

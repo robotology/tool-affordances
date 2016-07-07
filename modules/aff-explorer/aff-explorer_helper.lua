@@ -69,24 +69,38 @@ end
 
 --/---------------------------------------------------------------------/
 function get_3d_pos(object_list)
+    print(" Getting 3D position of " , #object_list, " objects")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("s2c")
     for i=1,#object_list do
+        print("Object ", i," at 2D ", object_list[i].u ,",", object_list[i].v  )
         local obj = cmd:addList()
         obj:addDouble(object_list[i].u)
         obj:addDouble(object_list[i].v)
     end
     ar_rpc_io:write(cmd, rep)
-
+    print("rep = ", rep:toString())        
+    
     for i=0,rep:size()-1 do
-        bt = rep:get(i):asList()
-        object_list[i+1].x = bt:get(0):asDouble()
-        object_list[i+1].y = bt:get(1):asDouble()
-        object_list[i+1].z = bt:get(2):asDouble()+0.04
+        bt = rep:get(i):asList()     
+        if bt then
+            object_list[i+1].x = bt:get(0):asDouble()
+            object_list[i+1].y = bt:get(1):asDouble()
+            object_list[i+1].z = bt:get(2):asDouble()+0.04
+            print("Object ", i+1," at 3D ", object_list[i+1].x ,",", object_list[i+1].y ,",", object_list[i+1].z )
+        else
+            object_list[i+1].x = rep:get(0):asDouble()
+            object_list[i+1].y = rep:get(1):asDouble()
+            object_list[i+1].z = rep:get(2):asDouble()+0.04
+            print("Object ", i+1," at 3D ", object_list[i+1].x ,",", object_list[i+1].y ,",", object_list[i+1].z )
+            return true        
+        end
     end
+    return true
 end
+
 
 --/---------------------------------------------------------------------/
 function update_objects(blobs)
@@ -102,10 +116,10 @@ function update_objects(blobs)
     else
         t0 = yarp.Time_now()
     end
-
+    
+    print("object_list")
     -- get the 3D position
-    get_3d_pos(object_list)
-    return true
+    return get_3d_pos(object_list)
 end
 
 
@@ -453,9 +467,9 @@ function ask_for_tool(tool_name)
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
-    print("Sending", cmd:toString())
+    print("--Sending", cmd:toString())
     tmanager_rpc:write(cmd, rep)
-    print("Reply", rep:get(0):asString())
+    print("--Reply", rep:get(0):asString())
     local reply = rep:get(0):asString()
     if reply ~= "ok" then  return "invalid"   end 
  
@@ -465,9 +479,9 @@ function ask_for_tool(tool_name)
     rep:clear()
     cmd:addString("setToolName")
     cmd:addString(tool_file)
-    print("Sending", cmd:toString())
+    print("--Sending", cmd:toString())
     tmanager_rpc:write(cmd, rep)
-    print("Reply", rep:get(0):asString())    
+    print("--Reply", rep:get(0):asString())    
     local reply = rep:get(0):asString()
     if reply ~= "ok" then return "invalid"   end 
  
@@ -475,12 +489,13 @@ function ask_for_tool(tool_name)
     cmd:clear()
     rep:clear()    
     cmd:addString("findPose")
-    print("Sending", cmd:toString())
+    print("--Sending", cmd:toString())
     tmanager_rpc:write(cmd, rep)
     print("Reply", rep:toString())
     local reply = rep:get(0):asString()
     if reply ~= "ok" then  
         say("I could not find the pose" )
+        print("I could not find the pose" )
         return "invalid"   
     end 
 
@@ -488,17 +503,22 @@ function ask_for_tool(tool_name)
     cmd:clear()
     rep:clear()
     cmd:addString("getOri")
-    print("Sending", cmd:toString())
+    print("--Sending", cmd:toString())
     o3de_rpc:write(cmd, rep) 
-    print("Reply", rep:toString())
-    local reply = rep:get(0):asString()
-    if reply ~= "ack" then  return "invalid"   end 
+    print("--Reply", rep:toString())
+   
+    local deg
+    if rep:get(1):asDouble() then 
+        deg = rep:get(1):asDouble()
+        print("Deg", deg)
+    else
+        print("Orientation coulndt be retreived" )
+        return "invalid"   
+    end 
  
-
-    local deg = rep:get(1):asDouble()
-    print("Deg", deg)
     local pose = deg2ori(deg)
     if pose == "out" then
+        print("Pose out of limits" )
         return "invalid"       
     end 
 
