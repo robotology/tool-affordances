@@ -68,13 +68,16 @@ protected:
     std::vector < std::string>  knownLabels;                        // maps string labels to index in affordance matrix
     std::vector < std::vector < std::vector <double> > > affHist;   // Keeps track of all effects, for all acts and all labels: affHist[labI][act].push_back(eff)
     std::vector < std::vector < double> > knownAffs;                // Saves learned success rates: knownAffs[labI][act] = mean(affHist[labI][act] (along recorded effects))
+    std::vector < std::vector < double> > knownAffsVar;             // Saves the variance of the learned affordances, to allow for active learning (higher variance means less certainity about action outcome).
 
     /* functions*/    
 
 
     // Helper functions
     double                      vecAvg(const std::vector<double>& vec);
+    double                      vecVar(const std::vector<double>& vec);
     bool                        compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector <double> >& affs);
+    bool                        compVarFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector <double> >& affsVar);
 
 public:
     
@@ -88,6 +91,7 @@ public:
     yarp::os::Bottle            getAffHist(const std::string& label = "active", const int act = -1);
 
     std::string                 selectTool(const int act);
+    std::string                 activeExp(const std::string& label = "active");
 
     bool                        reset(const std::string& label = "active");
     bool                        clearAll();

@@ -39,9 +39,22 @@ TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe7", "hoe8", "
                  "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
                  "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
                  "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
-                 "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9"}
+                 "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9", 
+                 "flaT", "star"}
 
 --skipped hoe6
+
+---------------- Modifiable variables for module flow:: 
+
+bin_aff = false
+trials_x_tp = 5
+repeat_times = 0
+SIM = true
+activeExp = false
+
+t_i = 49                                -- tool index (1 indexed, 0 random)
+ori_i = 3                               -- orientation index (1-indexed)
+act_i = 6                               -- action index (0-indexed)
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 local signal = require("posix.signal")
@@ -136,12 +149,6 @@ if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") e
     --> xx Ask to change tool(-pose) and repeat
 
 
----------------- Modifiable variables for module flow:: 
-
-bin_aff = false
-trials_x_tp = 5
-SIM = true
-
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 
@@ -153,10 +160,7 @@ state = "no_tool"
 object_list = {}                        -- for keeping the memory of objects
 object = {}
 tp_trial_count = 0
-go_home()
-t_i = 14                                -- tool index
-ori_i = 3                               -- orientation index
-act_i = 0                               -- action index
+repeat_i = 0
 go_home()
 
 -- -- -- -- -- -- -- -- -- -- -- updateModule -- -- -- -- -- -- -- -- -- -- -- 
@@ -167,7 +171,11 @@ while state ~= "exit" do
     if state == "no_tool" then
         print("State = ",state)
         if SIM then
-            tool_name = select_tool(TOOL_LIST_SIM, t_i)     -- SIM
+            if activeExp == true then
+                tool_name, ori_i, act_i = active_exploration()   
+            else         
+                tool_name = select_tool(TOOL_LIST_SIM, t_i)     -- SIM
+            end
         else
             tool_name = select_tool(TOOL_LIST, 0)         -- REAL
         end
@@ -175,7 +183,7 @@ while state ~= "exit" do
 
         if tool_name  ~= " " then 
             if SIM then
-                tool_pose = load_tool(tool_name, ORI_LIST[ori_i])           -- SIM                
+                tool_pose = load_tool(tool_name, ORI_LIST[ori_i])           -- SIM             
             else
                 tool_pose = ask_for_tool(tool_name)                         -- REAL        
             end
@@ -210,6 +218,7 @@ while state ~= "exit" do
                 go_home()
             else
                 print("Weird object values, SIM pbbly not working") 
+                state = "exit" 
             end
         else                                            -- REAL
 
@@ -249,25 +258,35 @@ while state ~= "exit" do
             reset_cube()
 
         -- Control experimental flow
-            act_i  = act_i + 1                          --increase action counted
-            if math.fmod(act_i,8) == 0 then -- restart cycle after all actions             
-
-                ori_i = ori_i + 1                       -- try next orientation
-                act_i = 0                               -- reset action counter (0-indexed)
-                state = "no_tool"                       -- change tool-pose (change tool!)
-                print("Performed all actions for tool-pose: ", tool_pose)
-
-
-                if ori_i > #ORI_LIST then     -- change tool after all orientations have ben tried
-                    t_i = t_i + 1                           -- increase tool counter
-                    ori_i = 1;                              -- reset orientation counter
-                    print("Performed all actions for TOOL: ", tool_name)
-                    print("Increasing tool index and reseting orientation")      
-                end
+            if activeExp == true then
+                state = "no_tool"
             else
-                state = "do_action"     
-            end
+                act_i  = act_i + 1                          --increase action counted
+                if math.fmod(act_i,8) == 0 then             -- restart cycle after all actions             
+                    
+                    if repeat_i == repeat_times then 
+                        ori_i = ori_i + 1                       -- try next orientation
+                        repeat_i = 0                    
+                        print("Cycle repeated ", repeat_times , " times")
+                        state = "no_tool"                       -- change tool-pose (change tool!)
+                    else
+                        print("Performed cycle ", repeat_i, " times.")
+                        repeat_i = repeat_i +1
+                    end
+                    act_i = 0                               -- reset action counter (0-indexed)
+                    print("Performed all actions for tool-pose: ", tool_pose)
 
+
+                    if ori_i > #ORI_LIST then     -- change tool after all orientations have been tried
+                        t_i = t_i + 1                           -- increase tool counter
+                        ori_i = 1;                              -- reset orientation counter
+                        print("Performed all actions for TOOL: ", tool_name)
+                        print("Increasing tool index and reseting orientation")      
+                    end
+                else
+                    state = "do_action"     
+                end
+            end
 
         else                        -- REAL
             local blobs = port_blobs:read(false);
@@ -296,6 +315,7 @@ while state ~= "exit" do
     yarp.Time_delay(0.2) -- acts as getPeriod()
 end
    
+
 -- close ports
 port_blobs:close()
 port_acteff:close()

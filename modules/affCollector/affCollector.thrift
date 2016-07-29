@@ -67,6 +67,12 @@ service affCollector_IDLServer
     string selectTool(1:i32 action);
 
     /**
+     * Returns the label and action with less certainty of known ones, based on variance.
+     * @return true/false on success/failure
+     */
+    string activeExp(1: string label = "active");
+
+    /**
      * Clears all the learnt affordances of the active label, and sets it to unknown.
      * @return true/false on success/failure 
      */

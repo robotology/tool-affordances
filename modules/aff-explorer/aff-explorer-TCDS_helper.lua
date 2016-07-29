@@ -325,17 +325,74 @@ function select_tool(tool_list, tool_i)
 end
 
 --/---------------------------------------------------------------------/
+function active_exploration()
+    -- Active exploration
+    print("Considering variances...")
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:addString("activeExp")
+    cmd:addString("all")
+    print("Sending", cmd:toString())
+    affcollect_rpc:write(cmd, rep)
+    print("Reply", rep:get(0):asString())    
+    local bestToolPoseAction = rep:get(0):asString()
+    local tool_name = bestToolPoseAction:sub(0,4)
+    local ori = bestToolPoseAction:sub(6,9)
+    local act_i = tonumber(bestToolPoseAction:sub(-1,-1))
+    local ori_i = ori2ind(ori)
+    
+    print("Tool Name", tool_name)
+    print("Tool Orietation", ori, " index ", ori_i )
+    print("Uncertain action", act_i)
+
+
+    return tool_name, ori_i, act_i
+
+end
+
+
+--/---------------------------------------------------------------------/
 function deg2ori(deg)
-    if (deg > 45.0) and (deg < 135.0) then        -- oriented left
-        ori = "left"
+    if (deg > -135.0) and (deg < -45.0) then  -- oriented right
+        ori = "rght";
     elseif ((deg < 45.0) and (deg > -45.0)) then  -- oriented front
         ori = "frnt";
-    elseif (deg > -135.0) and (deg < -45.0) then  -- oriented right
-        ori = "rght";
+    elseif (deg > 45.0) and (deg < 135.0) then        -- oriented left
+        ori = "left"
     else 
         return "outx";
     end
     return ori
+end
+
+--/---------------------------------------------------------------------/
+function ori2deg(ori)
+    local deg    
+    if ori == "rght" then
+        deg = 89
+    elseif ori == "frnt" then
+        deg = 0
+    elseif ori == "left" then
+        deg = -89
+    else 
+        return 0;
+    end
+    return deg
+end
+
+--/---------------------------------------------------------------------/
+function ori2ind(ori)
+    local ind    
+    if ori == "rght" then
+        ind = 1
+    elseif ori == "frnt" then
+        ind = 2
+    elseif ori == "left" then
+        ind = 3
+    else 
+        return 0;
+    end
+    return ind
 end
 
 --/---------------------------------------------------------------------/

@@ -58,6 +58,11 @@ public:
    */
   virtual std::string selectTool(const int32_t action);
   /**
+   * Returns the label and action with less certainty of known ones, based on variance.
+   * @return true/false on success/failure
+   */
+  virtual std::string activeExp(const std::string& label = "active");
+  /**
    * Clears all the learnt affordances of the active label, and sets it to unknown.
    * @return true/false on success/failure
    */

@@ -87,6 +87,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class affCollector_IDLServer_activeExp : public yarp::os::Portable {
+public:
+  std::string label;
+  std::string _return;
+  void init(const std::string& label);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class affCollector_IDLServer_reset : public yarp::os::Portable {
 public:
   std::string label;
@@ -344,6 +353,29 @@ void affCollector_IDLServer_selectTool::init(const int32_t action) {
   this->action = action;
 }
 
+bool affCollector_IDLServer_activeExp::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("activeExp",1,1)) return false;
+  if (!writer.writeString(label)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_activeExp::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readString(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_activeExp::init(const std::string& label) {
+  _return = "";
+  this->label = label;
+}
+
 bool affCollector_IDLServer_reset::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
@@ -571,6 +603,16 @@ std::string affCollector_IDLServer::selectTool(const int32_t action) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+std::string affCollector_IDLServer::activeExp(const std::string& label) {
+  std::string _return = "";
+  affCollector_IDLServer_activeExp helper;
+  helper.init(label);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","std::string affCollector_IDLServer::activeExp(const std::string& label)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool affCollector_IDLServer::reset(const std::string& label) {
   bool _return = false;
   affCollector_IDLServer_reset helper;
@@ -781,6 +823,21 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "activeExp") {
+      std::string label;
+      if (!reader.readString(label)) {
+        label = "active";
+      }
+      std::string _return;
+      _return = activeExp(label);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeString(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "reset") {
       std::string label;
       if (!reader.readString(label)) {
@@ -907,6 +964,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     helpString.push_back("getAffs");
     helpString.push_back("getAffHist");
     helpString.push_back("selectTool");
+    helpString.push_back("activeExp");
     helpString.push_back("reset");
     helpString.push_back("clearAll");
     helpString.push_back("forgetAll");
@@ -957,6 +1015,11 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     if (functionName=="selectTool") {
       helpString.push_back("std::string selectTool(const int32_t action) ");
       helpString.push_back(" Based on the previously learnt affordances, returns the best label for a given action/task. ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="activeExp") {
+      helpString.push_back("std::string activeExp(const std::string& label = \"active\") ");
+      helpString.push_back("Returns the label and action with less certainty of known ones, based on variance. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="reset") {

@@ -399,6 +399,85 @@ string AffCollector::selectTool(const int act)
 }
 
 /**********************************************************/
+
+string AffCollector::activeExp(const std::string& label)        // returns name of toolpose_N, N being maxVar Action
+{
+    // Check the case where its called before any affordances are learnt
+    if (knownAffs.size() <1){
+        cout << "No afordance have been learnt yet" << endl;
+        return "noAff";
+    }
+
+    double maxVar = 0.0;
+    double bestExpAction = -1;
+    int bestLab = -1;
+
+    if (label == "all"){
+        for (int l =0; l < knownAffsVar.size(); l < l++)
+        {
+            for (int a =0; a < knownAffsVar[l].size(); a < a++)
+            {
+                double variance = knownAffsVar[l][a];
+                if (variance > maxVar){
+                    bestLab = l;
+                    bestExpAction = a;
+                    maxVar = variance;
+                }
+            }
+        }
+
+        if (bestLab < 0) {
+            cout << "Label not found. " << endl;
+            return "noAff";
+        }
+
+        cout << "ToolPose " << knownLabels[bestLab]<< endl;
+        cout << "Action " << bestExpAction << " is the less certain, std =  " << sqrt(maxVar) << endl;
+
+        stringstream s;
+        s.str("");
+        s << knownLabels[bestLab] << "_" << bestExpAction;
+        string tool_act = s.str();
+
+        return tool_act;
+    }
+
+    if (label == "active"){
+        bestLab = activeLabel;
+    }else {
+        vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
+        bestLab = std::distance(knownLabels.begin(), it);                  // return position of found element
+    }
+    if (bestLab < 0) {
+        cout << "Label not found. Couldnt reset" << endl;
+        return "noAff";
+    }
+
+    cout << "ToolPose " << knownLabels[bestLab]<< endl;
+    cout << "Stds are " << endl;
+    for (int a =0; a < knownAffsVar[bestLab].size(); a < a++)
+    {
+        double variance = knownAffsVar[bestLab][a];
+        cout << sqrt(variance) << endl;
+
+        if (variance > maxVar){
+            bestExpAction = a;
+            maxVar = variance;
+        }
+    }
+
+    cout << "Action " << bestExpAction << " is the less certain, std =  " << sqrt(maxVar) << endl;
+
+    stringstream s;
+    s.str("");
+    s << knownLabels[bestLab] << "_" << bestExpAction;
+    string tool_act = s.str();
+
+    return tool_act;
+
+}
+
+/**********************************************************/
 bool AffCollector::reset(const std::string& label)
 {
     // Check the case where its called before any affordances are learnt
@@ -560,7 +639,9 @@ bool AffCollector::readfile(const std::string& fileN)
     cout << "Read data from " << affHist.size() << " labels" <<endl;
 
     knownAffs.clear();
+    knownAffsVar.clear();
     compRateFromHist(affHist,knownAffs);
+    compVarFromHist(affHist,knownAffsVar);
 
     activeLabel = knownLabels.size()-1;
     return true;
@@ -581,20 +662,41 @@ bool AffCollector::quit()
 /***************** Helper Functions *************************************/
 double AffCollector::vecAvg (const vector<double>& vec )
 {
-        double return_value = 0.0;
-        int n = vec.size();
-        int bad_i = 0;
+    double return_value = 0.0;
+    int n = vec.size();
+    int bad_i = 0;
 
-        for ( int i=0; i < n; i++)
-        {
-            if (vec[i] < -0.01) {       // Do not include negative values (unknown or wrong samples)
-                bad_i++;
-            }else{
-                return_value += vec[i];
-            }
+    for ( int i=0; i < n; i++)
+    {
+        if (vec[i] < -0.01) {       // Do not include negative values (unknown or wrong samples)
+            bad_i++;
+        }else{
+            return_value += vec[i];
         }
+    }
 
-        return ( return_value / (n-bad_i));
+    return ( return_value / (n-bad_i));
+}
+
+double AffCollector::vecVar (const vector<double>& vec)
+{
+    double mean = vecAvg(vec);
+    double sum = 0.0;
+    int bad_i = 0;
+    int n = vec.size();
+
+    for ( int j = 0; j < n; j++)
+    {
+        if (vec[j] < -0.01) {       // Do not include negative values (unknown or wrong samples)
+            bad_i++;
+        }else{
+            sum += (vec[j] - mean)*(vec[j] - mean);
+        }
+    }
+
+    return sum/(n - bad_i);
+
+
 }
 
 bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)
@@ -609,6 +711,20 @@ bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<d
         }
     }
 }
+
+bool  AffCollector::compVarFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affsVar)
+{
+    for(int l = 0; l<hist.size(); l++)
+    {
+        vector<double> affInit(numAct,-1.0);
+        affsVar.push_back(affInit);           // Add aff Vector corresponding to that label
+
+        for(int a= 0; a<numAct; a++){
+            affsVar[l][a] = vecVar(hist[l][a]);
+        }
+    }
+}
+
 
 
 /************************************************************************/
