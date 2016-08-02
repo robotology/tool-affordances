@@ -35,7 +35,7 @@ ORI_LIST = {-89.0, 0.0, 89.0}
 
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
 -- rakeBigBlue = RAK1, rakeBlue = RAK2,  rakeGreen = RAK3, shovelGreen = SHO1, shovelOrange = SHO2, shovelYellow = SHO3
-TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe7", "hoe8", "hoe9", 
+TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 
                  "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
                  "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
                  "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
@@ -52,10 +52,12 @@ repeat_times = 0
 SIM = true
 activeExp = false
 
-t_i = 49                                -- tool index (1 indexed, 0 random)
-ori_i = 3                               -- orientation index (1-indexed)
-act_i = 6                               -- action index (0-indexed)
+t_i = 15                                -- tool index (1 indexed, 0 random)
+ori_i = 3                              -- orientation index (1-indexed)
+act_i = 5                              -- action index (0-indexed)
 
+
+t_i = t_i + 1                          -- so the name given is indexed as the tools :)
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 local signal = require("posix.signal")
 require("yarp")
