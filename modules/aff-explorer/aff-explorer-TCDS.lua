@@ -42,7 +42,6 @@ TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "h
                  "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9", 
                  "flaT", "star"}
 
---skipped hoe6
 
 ---------------- Modifiable variables for module flow:: 
 
@@ -52,14 +51,14 @@ repeat_times = 0
 SIM = true
 activeExp = false
 
-t_i = 15                                -- tool index (1 indexed, 0 random)
-ori_i = 3                              -- orientation index (1-indexed)
-act_i = 5                              -- action index (0-indexed)
+t_i = 37                                -- tool index (1 indexed, 0 random)
+ori_i = 1                               -- orientation index (1-indexed)
+act_i = 2                               -- action index (0-indexed)
 
 
 t_i = t_i + 1                          -- so the name given is indexed as the tools :)
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
-local signal = require("posix.signal")
+--local signal = require("posix.signal")
 require("yarp")
 
 rf = yarp.ResourceFinder()
@@ -83,9 +82,9 @@ if yarp_helper_file == "" then
 end
 dofile(yarp_helper_file)
 
-signal.signal(signal.SIGINT, function(signum)
-  state = "exit";
-end)
+--signal.signal(signal.SIGINT, function(signum)
+--  state = "exit";
+--end)
 
 yarp.Network()
 

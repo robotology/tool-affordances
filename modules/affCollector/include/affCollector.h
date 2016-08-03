@@ -92,6 +92,7 @@ public:
 
     std::string                 selectTool(const int act);
     std::string                 activeExp(const std::string& label = "active");
+    std::string                 balanceExp(const std::string& label = "active");
 
     bool                        reset(const std::string& label = "active");
     bool                        clearAll();

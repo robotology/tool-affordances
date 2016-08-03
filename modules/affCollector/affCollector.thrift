@@ -73,6 +73,12 @@ service affCollector_IDLServer
     string activeExp(1: string label = "active");
 
     /**
+     * Returns the label and action that has been tried the least.
+     * @return true/false on success/failure
+     */
+    string balanceExp(1: string label = "active");
+
+    /**
      * Clears all the learnt affordances of the active label, and sets it to unknown.
      * @return true/false on success/failure 
      */

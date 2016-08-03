@@ -63,6 +63,11 @@ public:
    */
   virtual std::string activeExp(const std::string& label = "active");
   /**
+   * Returns the label and action that has been tried the least.
+   * @return true/false on success/failure
+   */
+  virtual std::string balanceExp(const std::string& label = "active");
+  /**
    * Clears all the learnt affordances of the active label, and sets it to unknown.
    * @return true/false on success/failure
    */

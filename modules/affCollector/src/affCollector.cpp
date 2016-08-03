@@ -399,7 +399,6 @@ string AffCollector::selectTool(const int act)
 }
 
 /**********************************************************/
-
 string AffCollector::activeExp(const std::string& label)        // returns name of toolpose_N, N being maxVar Action
 {
     // Check the case where its called before any affordances are learnt
@@ -476,6 +475,88 @@ string AffCollector::activeExp(const std::string& label)        // returns name 
     return tool_act;
 
 }
+
+/**********************************************************/
+
+string AffCollector::balanceExp(const std::string& label)        // returns name of toolpose_N, N being maxVar Action
+{
+    // Check the case where its called before any affordances are learnt
+    if (knownAffs.size() <1){
+        cout << "No afordance have been learnt yet" << endl;
+        return "noAff";
+    }
+
+    int minTrials = 1000;
+    double bestExpAction = -1;
+    int bestLab = -1;
+
+    if (label == "all"){
+        for (int l =0; l < knownAffs.size(); l < l++)
+        {
+            cout << "ToolPose " << knownLabels[l]<< endl;
+            for (int a =0; a < knownAffs[l].size(); a < a++)
+            {
+                int trialNum = affHist[l][a].size();
+                cout << trialNum << endl;
+                if (trialNum < minTrials){
+                    bestLab = l;
+                    bestExpAction = a;
+                    minTrials = trialNum;
+                }
+            }
+        }
+
+        if (bestLab < 0) {
+            cout << "Label not found. " << endl;
+            return "noAff";
+        }
+
+        cout << "ToolPose " << knownLabels[bestLab]<< endl;
+        cout << "Action " << bestExpAction << " has been the least tried " << minTrials << " times."<< endl;
+
+        stringstream s;
+        s.str("");
+        s << knownLabels[bestLab] << "_" << bestExpAction;
+        string tool_act = s.str();
+
+        return tool_act;
+    }
+
+    if (label == "active"){
+        bestLab = activeLabel;
+    }else {
+        vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
+        bestLab = std::distance(knownLabels.begin(), it);                  // return position of found element
+    }
+    if (bestLab < 0) {
+        cout << "Label not found. Couldnt reset" << endl;
+        return "noAff";
+    }
+
+    cout << "ToolPose " << knownLabels[bestLab]<< endl;
+    cout << "Trial nums have been " << endl;
+    for (int a =0; a < knownAffs[bestLab].size(); a < a++)
+    {
+        int trialNum = affHist[bestLab][a].size();
+        cout << trialNum << endl;
+        if (trialNum < minTrials){
+            bestExpAction = a;
+            minTrials = trialNum;
+        }
+    }
+
+    cout << "Action " << bestExpAction << " has been the least tried " << minTrials << " times."<< endl;
+
+    stringstream s;
+    s.str("");
+    s << knownLabels[bestLab] << "_" << bestExpAction;
+    string tool_act = s.str();
+
+    return tool_act;
+
+}
+
+
 
 /**********************************************************/
 bool AffCollector::reset(const std::string& label)
