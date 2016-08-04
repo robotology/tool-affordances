@@ -173,10 +173,10 @@ while state ~= "exit" do
         print("State = ",state)
         if SIM then
             if activeExp == true then
-                tool_name, ori_i, act_i = active_exploration()  
-                -- tool_name = "sti5"
-                -- ori_i = 3
-                -- act_i = 0 
+                -- tool_name, ori_i, act_i = active_exploration()  
+                tool_name = "sho7"
+                ori_i = 3
+                act_i = 6 
             else         
                 tool_name = select_tool(TOOL_LIST_SIM, t_i)     -- SIM
             end
