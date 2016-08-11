@@ -49,11 +49,11 @@ bin_aff = false
 trials_x_tp = 5
 repeat_times = 3
 SIM = true
-activeExp = true
+activeExp = false
 
-t_i = 29                                -- tool index (1 indexed, 0 random)
-ori_i = 2                               -- orientation index (1-indexed)
-act_i = 5                               -- action index (0-indexed)
+t_i = 1                                -- tool index (1 indexed, 0 random)
+ori_i = 1                               -- orientation index (1-indexed)
+act_i = 0                               -- action index (0-indexed)
 
 
 t_i = t_i + 1                          -- so the name given is indexed as the tools :)

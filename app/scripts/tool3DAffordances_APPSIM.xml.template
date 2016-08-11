@@ -51,7 +51,7 @@
     </module>
     <module>
         <name>toolFeatExt</name>
-        <parameters></parameters>
+        <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 863.126) (y 658.233))</geometry>
