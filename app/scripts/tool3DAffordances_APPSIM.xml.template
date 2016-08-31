@@ -1,144 +1,131 @@
 <application>
     <name>tool3DAffordances_APPSIM</name>
     <module>
-        <name>actionsRenderingEngine</name>
-        <parameters>--from sim/config.ini</parameters>
+        <name>affCollector</name>
+        <parameters>--filename affsTCDS.txt --numAct 8</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 1240.43) (y 291.314))</geometry>
+        <geometry>(Pos (x 49) (y 489.9))</geometry>
     </module>
     <module>
         <name>affMotor</name>
         <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 674.657) (y 309.723))</geometry>
+        <geometry>(Pos (x 725) (y 315.9))</geometry>
     </module>
     <module>
         <name>objects3DExplorer</name>
         <parameters>--from 50tools.ini --robot icubSim</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 622.441) (y 475.197))</geometry>
+        <geometry>(Pos (x 705) (y 508.9))</geometry>
     </module>
     <module>
         <name>show3D</name>
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 1118.45) (y 562.277))</geometry>
+        <geometry>(Pos (x 1279) (y 545.9))</geometry>
     </module>
     <module>
         <name>simtoolloader</name>
         <parameters>--from 50tools.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 615.442) (y 145.258))</geometry>
+        <geometry>(Pos (x 709) (y 213.9))</geometry>
     </module>
     <module>
         <name>tool3DManager</name>
         <parameters>--robot icubSim --from 50tools.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 333.202) (y 222.315))</geometry>
-    </module>
-    <module>
-        <name>affCollector</name>
-        <parameters>--filename affsTCDS.txt --numAct 8 </parameters>
-        <node>localhost</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 333.202) (y 222.315))</geometry>
+        <geometry>(Pos (x 327) (y 240.9))</geometry>
     </module>
     <module>
         <name>toolFeatExt</name>
-        <parameters>--robot icubSim</parameters>
+        <parameters>--robot icubSim --from 50tools.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 863.126) (y 658.233))</geometry>
+        <geometry>(Pos (x 1063) (y 598.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters>--x 0 --y 350</parameters>
         <node>localhost</node>
         <prefix>/toolFinder</prefix>
-        <geometry>(Pos (x 958.127) (y 293.684))</geometry>
+        <geometry>(Pos (x 1095) (y 500.9))</geometry>
     </module>
     <connection>
         <from>/tool3DManager/simulator:rpc</from>
         <to external="true">/icubSim/world</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 481.033) (y 347.372)) ((x 107) (y -48)) ((x 724.317) (y 208.525))  )</geometry>
+        <geometry>(Pos ((x 619.5) (y 297)) ((x 516) (y 308)) ((x 744) (y 286))  )</geometry>
     </connection>
     <connection>
         <from>/tool3DManager/obj3Dexp:rpc</from>
         <to>/objects3DExplorer/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 466.533) (y 454.872)) ((x 107) (y 16)) ((x -119) (y -48))  )</geometry>
+        <geometry>(Pos ((x 600) (y 454.5)) ((x 516) (y 358)) ((x 705) (y 551))  )</geometry>
     </connection>
     <connection>
         <from>/tool3DManager/simToolLoader:rpc</from>
         <to>/simtoolloader/cmd:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 468.533) (y 314.872)) ((x 107) (y -80)) ((x -103) (y 0))  )</geometry>
+        <geometry>(Pos ((x 602) (y 257)) ((x 516) (y 283)) ((x 709) (y 231))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/visualizer:rpc</from>
         <to>/show3D/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 871.533) (y 545.372)) ((x 119) (y 16)) ((x -79) (y -16))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/clouds:o</from>
-        <to>/show3D/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 885.033) (y 533.872)) ((x 119) (y -48)) ((x -79) (y 16))  )</geometry>
+        <geometry>(Pos ((x 1092) (y 582)) ((x 926) (y 601)) ((x 1279) (y 563))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/clouds:o</from>
         <to>/toolFeatExt/clouds:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 885.033) (y 533.872)) ((x 119) (y -48)) ((x -79) (y 16))  )</geometry>
+        <geometry>(Pos ((x 987) (y 597)) ((x 931) (y 552)) ((x 1064) (y 642))  )</geometry>
     </connection>
     <connection>
         <from>/toolFeatExt/clouds:o</from>
         <to>/show3D/clouds:i</to>
         <protocol></protocol>
-        <geometry>(Pos ((x 1000.53) (y 582.372)) ((x 88) (y -16)) ((x -79) (y 16))  )</geometry>
+        <geometry>(Pos ((x 1260.5) (y 603)) ((x 1241) (y 617)) ((x 1280) (y 589))  )</geometry>
+    </connection>
+    <connection>
+        <from>/toolFeatExt/feats3D:o</from>
+        <to external="true">/matlab/data:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 1256.5) (y 646)) ((x 1241) (y 642)) ((x 1293) (y 650))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/featExt:rpc</from>
         <to>/toolFeatExt/rpc:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 751.033) (y 582.872)) ((x 119) (y 48)) ((x -88) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from>/tool3DManager/are:rpc</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 641.533) (y 256.872)) ((x 107) (y -112)) ((x -134) (y -176))  )</geometry>
+        <geometry>(Pos ((x 984) (y 621)) ((x 926) (y 626)) ((x 1063) (y 616))  )</geometry>
     </connection>
     <connection>
         <from>/tool3DManager/affMotor:rpc</from>
         <to>/affMotor/rpc</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 107) (y -16)) ((x -86) (y -32))  )</geometry>
+        <geometry>(Pos ((x 610) (y 333)) ((x 516) (y 333)) ((x 725) (y 333))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/img:o</from>
         <to>/toolFinder/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -64)) ((x -85) (y 0))  )</geometry>
+        <geometry>(Pos ((x 1003) (y 523)) ((x 931) (y 527)) ((x 1096) (y 519))  )</geometry>
     </connection>
     <connection>
         <from external="true">/matlab/data:o</from>
         <to>/tool3DManager/matlab:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 224.033) (y 407.372)) ((x 104.058) (y 161.991)) ((x -107) (y -80))  )</geometry>
+        <geometry>(Pos ((x 256) (y 384.5)) ((x 205) (y 385)) ((x 328) (y 384))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icubSim/cam/left</from>
         <to>/objects3DExplorer/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 130.658) (y 420.654)) ((x -119) (y 0))  )</geometry>
+        <geometry>(Pos ((x 566) (y 600.5)) ((x 447) (y 598)) ((x 706) (y 602))  )</geometry>
     </connection>
 </application>

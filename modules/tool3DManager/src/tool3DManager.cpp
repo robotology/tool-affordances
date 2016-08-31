@@ -103,6 +103,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 	//ports
 	bool ret = true;  
     ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                     // port to receive data from MATLAB processing
+    ret = ret && affDataPort.open(("/"+name+"/affData:o").c_str());                   // port to send data of computed affordances out for recording
     ret = ret && effDataPort.open(("/"+name+"/effData:o").c_str());                   // port to send data of computed effect out for recording
     ret = ret && actDataPort.open(("/"+name+"/actData:o").c_str());                   // port to send data of action parameters out for recording
     ret = ret && graspDataPort.open(("/"+name+"/graspData:o").c_str());               // port to send data of grasp parameters out for recording
@@ -119,7 +120,6 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
     retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
     retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
-    retRPC = retRPC && rpcFeatExt.open(("/"+name+"/featExt:rpc").c_str());             // rpc server to query tool Feat Extraction module
     retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
 
@@ -146,6 +146,7 @@ bool Tool3DManager::updateModule()
 bool Tool3DManager::interruptModule()
 {
     effDataPort.interrupt();
+    affDataPort.interrupt();
     actDataPort.interrupt();
     graspDataPort.interrupt();
     matlabPort.interrupt();
@@ -155,8 +156,6 @@ bool Tool3DManager::interruptModule()
     rpcSimulator.interrupt();
     rpcMotorAre.interrupt();
     rpcAffMotor.interrupt();
-
-    rpcFeatExt.interrupt();
     rpcObjFinder.interrupt();
 
     return true;
@@ -166,6 +165,7 @@ bool Tool3DManager::interruptModule()
 bool Tool3DManager::close()
 {
     effDataPort.close();
+    affDataPort.close();
     actDataPort.close();
     graspDataPort.close();
     matlabPort.close();
@@ -175,8 +175,6 @@ bool Tool3DManager::close()
     rpcSimulator.close();
     rpcMotorAre.close();
     rpcAffMotor.close();
-
-    rpcFeatExt.close();
     rpcObjFinder.close();
 
 	running = false;
@@ -225,6 +223,7 @@ bool Tool3DManager::setToolName(const string &tool){
 bool Tool3DManager::getToolByPose(const string &tool, double deg, double disp, double tilt, double shift){
     bool ok;
     if (robot=="icubSim"){
+        toolname = tool;
         cout << "Loading tool " << tool << " in simulation" << endl;
         ok = loadToolSim(tool, deg, disp, tilt);
     }else{
@@ -520,21 +519,21 @@ bool Tool3DManager::selectAction(int goal)
     cout << " Oriented 3D features extracted and sent to Matlab" << endl;
 
     Bottle *matReply = matlabPort.read(true);
+    cout << " Read Bottle from Matlab of length " << matReply->size() << endl;
     cout << " Read prediction form Matlab " << matReply->toString().c_str() << endl;
 
     // Find the maximum for affPred and perform doAction on the max index.
-    int predClust = matReply->get(0).asInt();
-    Bottle *effPred = matReply->get(1).asList();
-    cout << "Cluster " << predClust << ", Predicted Effect Vector " << effPred->toString().c_str() << endl;
+    //Bottle *effPred = matReply->get(0).asList();
+    //cout << ", Predicted Effect Vector " << effPred->toString().c_str() << endl;
 
     if (goal == 1) // Goal is to achieve maximum displacement
     {
-        int numPoint = effPred->size();
+        int numPoint = matReply->size();
         double bestEff = 0;
         int bestAngleI = 0;
         for ( int angleI = 0; angleI < numPoint; angleI++ ) // Find the approach that will generate predicted maximum effect
         {
-           double predEff = effPred->get(angleI).asDouble();
+           double predEff = matReply->get(angleI).asDouble();
            if (predEff > bestEff){
                bestEff = 	predEff;
                bestAngleI = angleI;
@@ -551,7 +550,7 @@ bool Tool3DManager::selectAction(int goal)
     {
         // Pull action is dragging towards the robot -> angle 270 -> actionI = 6
         int pullI = 6;
-        double predEff = effPred->get(pullI).asDouble();
+        double predEff = matReply->get(pullI).asDouble();
         if (predEff < 0.05) // If the expected pull is smaller than 5 cm means teh tool can't afford pulling{
         {
             cout << "Please give me another tool, I can't pull with this tool" << endl;
@@ -569,26 +568,30 @@ bool Tool3DManager::selectAction(int goal)
 bool Tool3DManager::predExp(int goal)
 {   // Remember that MATLAB has to be connected to YARP, and the right affordance models loaded.
 
+    int numTools_test = 52;
     // List the tools to use for testing:
     if (robot == "icubSim"){
-        int testTools[14] = {   0,  3,  7,       // hoe0, hoe3, hoe7
-                               13, 16,      // hook3, hook6
-                               24, 27, 29,  // rake4, rake7, rake9
-                               32, 35, 38,  // stick2, stick5, stick8
-                               48, 49,      // shovel8, shovel9
-                               53 };        // star
-        for (int testToolI = 0; testToolI < 14; testToolI++ ){
-            for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
-                for (int disp=0  ; disp<2 ; disp++ ){                 // This is a loop for disp {0,1}
-                    string tool = models[testTools[testToolI]];
-                    if (getToolByPose(tool, ori, disp)){
-                        cout << "Tool loaded, selecting best action for goal " << goal << endl;
+        //int testTools[numTools_test] = {   0,  3,  7,       // hoe0, hoe3, hoe7
+        //                       13, 16,      // hook3, hook6
+        //                       24, 27, 29,  // rake4, rake7, rake9
+        //                       32, 35, 38,  // stick2, stick5, stick8
+        //                       48, 49,      // shovel8, shovel9
+        //                       51 };        // star
+
+        for (int testToolI = 1; testToolI < numTools_test; testToolI++ ){
+            for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}            
+                string& tool = models[testToolI];       // Because tools are 1 indexed on the file, but 0 on sim
+                cout << "Attempting to load " << tool << endl;
+                if (getToolByPose(tool, ori)){
+                    cout << "Tool loaded, selecting best action for goal " << goal << endl;
+                    for (int i = 1; i<3;i++){                                // this is just repetitions.
                         selectAction(goal);
-                    }else{
-                        cout << "Couldn't load the desired test tool" << endl;
-                        return false;
                     }
+                }else{
+                    cout << "Couldn't load the desired test tool" << endl;
+                    return false;
                 }
+
             }
         }
         return true;
@@ -752,6 +755,8 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
 /**********************************************************/
 bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const double graspDisp, const double graspTilt)
 {    
+    toolname = tool;
+
     int toolI;
     vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
     if ( it == models.end() ) { //Not found
@@ -808,7 +813,8 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
         cmdSim.addInt(0);                   // object -> Cube
         cmdSim.addInt(graspOr);             // orientation
         cmdSim.addInt(graspDisp);           // displacement
-        cmdSim.addInt(tiltValid);           // tilt
+        //cmdSim.addInt(tiltValid);           // tilt
+        cmdSim.addInt(45.0);                  // tilt
         rpcSimToolLoader.write(cmdSim, replySim);
         cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
 
@@ -897,7 +903,7 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
 /**********************************************************/
 bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
-    // XXX test this
+    // XXX test this (works in affCollector, check there
     int toolI;
     vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
     if ( it == models.end() ) { //Not found
@@ -1226,15 +1232,14 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
 bool Tool3DManager::extractFeats()
 {    // Query toolFeatExt to extract features
     cout << "Extacting features of handled tool." << endl;
-    Bottle cmdTFE,replyTFE;                 // bottles for toolFeatExt
-    cmdTFE.clear();   replyTFE.clear();
-    cmdTFE.addString("getFeats");
-    rpcFeatExt.write(cmdTFE, replyTFE);
-    cout << "Sent RPC command to toolFeatExt: " << cmdTFE.toString() << "."<< endl;
-    if (replyTFE.size() <1){
-        cout << "ToolFeatExt coudln't extract the features." << endl;
-        return false;
-    }
+    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("extractFeats");
+    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+
     return true;
 }
 
@@ -1433,6 +1438,7 @@ bool Tool3DManager::getObjRot(Vector &rot3D)
 bool Tool3DManager::computeEffect()
 {
     cout << endl << "Computing effect from action."  << endl;
+
     effectVec.clear();		// Clear to make space for new coordinates
     effectVec.resize(3);    // Resize to 3D coordinates
 
@@ -1478,6 +1484,18 @@ bool Tool3DManager::computeEffect()
 
     cout << "Object displaced " << effectVec[0] << " meters on " << effectVec[1] << " direction, and rotated " << effectVec[2] << " degrees."<< endl;
 
+    // Prepare the affordance out bottle
+    aff_out_data.clear();
+    Bottle& aff_toolpose = aff_out_data.addList();
+    aff_toolpose.addString(toolname);
+    Bottle& aff_action = aff_out_data.addList();
+    aff_action.addDouble(actVec[0]);        // theta
+    aff_action.addDouble(actVec[1]);        // radius
+    Bottle& aff_effect = aff_out_data.addList();
+    aff_effect.addDouble(effectVec[0]);        // distance
+    aff_effect.addDouble(effectVec[1]);        // angle
+    aff_effect.addDouble(effectVec[2]);        // rotation
+
     // Send all data so it can be read and saved.
     sendAffData();
 
@@ -1511,7 +1529,11 @@ bool Tool3DManager::sendAffData()
     actDataPort.write(actVec);
     graspDataPort.write(graspVec);
     effDataPort.write(effectVec);
+    affDataPort.write(aff_out_data);
 
+
+    //XXX affDataPort.write(effectVec);
+    // XX create a bottle with the name of the toolpose (toolname), the angle of the action, and the effects (displ and angle), and write that on affPort
     return true;
 }
 

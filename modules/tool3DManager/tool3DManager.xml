@@ -69,11 +69,6 @@
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/tool3DManager/featExt:rpc</port>
-            <description>Send commands to the tool 3D Feature Extraction Module</description>
-        </output>
-        <output port_type="service">
-            <type>rpc</type>
             <port>/tool3DManager/objFind:rpc</port>
             <description> Send commands to the objectFinder Module</description>
         </output>

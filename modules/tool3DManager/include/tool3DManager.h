@@ -81,6 +81,7 @@ protected:
     yarp::os::RpcClient         rpcObjFinder;           //rpc connecting to object finder
 
 
+    yarp::os::Port                             affDataPort;   // port to send out data of computed effect
     yarp::os::Port                             effDataPort;   // port to send out data of computed effect
     yarp::os::Port                             actDataPort;   // port to send out data of action parameters
     yarp::os::Port                             graspDataPort; // port to send out data of grasp parameters
@@ -96,6 +97,8 @@ protected:
     yarp::sig::Vector			target3DcoordsAfter;	// Keeps the target position in 3D after the action
     yarp::sig::Vector			target3DrotIni;         // Keeps the target rotation in 3D before the action
     yarp::sig::Vector			target3DrotAfter;		// Keeps the target rotation in 3D after the action
+
+    yarp::os::Bottle			aff_out_data;           // Data concerning measured affordance data (toolpose - action - effect)
 
     yarp::sig::Vector			effectVec;              // Measurements of the effect of the action (distance Moved - Angle of movement - Rotation)
     yarp::sig::Vector			graspVec;               // Measurements of the grasp parameters (toolI - grasp Orientation - grasp Displacement)

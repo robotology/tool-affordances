@@ -6,6 +6,16 @@
     </authors>
     <module>
         <name>yarpdatadumper</name>
+        <parameters>--name feats3D --rxTime</parameters>
+        <node>localhost</node>
+    </module>
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name affData --rxTime</parameters>
+        <node>localhost</node>
+    </module>
+    <module>
+        <name>yarpdatadumper</name>
         <parameters>--name actData --rxTime</parameters>
         <node>localhost</node>
     </module>
@@ -19,15 +29,16 @@
         <parameters>--name effData --rxTime</parameters>
         <node>localhost</node>
     </module>
-    <module>
-        <name>yarpdatadumper</name>
-        <parameters>--name feats3D --rxTime</parameters>
-        <node>localhost</node>
-    </module>
+
 
     <connection>
         <from external="true">/toolFeatExt/feats3D:o</from>
         <to external="true">/feats3D</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from external="true">/tool3DManager/affData:o</from>
+        <to external="true">/affData</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
