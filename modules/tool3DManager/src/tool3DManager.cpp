@@ -24,6 +24,8 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace yarp::dev;
 
+// XXX XXX Remove disp from all the functions using it.
+// XXX Remove checks for "invalid" tools
 
 /**********************************************************
 					PUBLIC METHODS
@@ -428,19 +430,8 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
 
 
     int toolI_prev = round(randG.scalar(1,52));
-    for (int p=1 ; p <= numPoses ; p++){
-        bool toolOK = false;
+    for (int p=1 ; p <= numPoses ; p++){        
         int toolI;
-        while (!toolOK){                // Prevent known non-working tools to stop the run
-            toolI = round(randG.scalar(1,52));
-            // toolIs are the official number of the tool + 1 =>
-            //((toolI == 6) || (toolI == 16) || (toolI == 19) || (toolI == 40) || (toolI == 41) || (toolI == 42) || (toolI == 43) || (toolI == 49) || (toolI == 51)
-            if ((toolI == 7) || (toolI == 17) || (toolI == 20) || (toolI == 41) || (toolI == 42) || (toolI == 43) || (toolI == 44) || (toolI == 50) || (toolI == 52) ||(toolI == toolI_prev)){
-                cout << "invalid tool" <<endl;}
-            else{
-                toolOK = true;
-            }
-        }
 
         double  graspOr = randG.scalar(-90,90);
         double  graspDisp = randG.scalar(-3,3);
@@ -494,11 +485,9 @@ bool Tool3DManager::runToolTrial(const string& tool, int numAct){
 bool Tool3DManager::runExp(int toolIni, int toolEnd)
 {
     for (int toolI=toolIni ; toolI<= toolEnd ; toolI++)
-    {
-        if (toolI != 7){             // XXX For some strange reason, loading tool 8 chrashes the simulator
-            string tool = models[toolI];
-            runToolTrial(tool);
-        }
+    {        
+        string tool = models[toolI];
+        runToolTrial(tool);
     }
     return true;
 }
@@ -903,7 +892,7 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
 /**********************************************************/
 bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
-    // XXX test this (works in affCollector, check there
+    // Look For model label among all models.
     int toolI;
     vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
     if ( it == models.end() ) { //Not found
@@ -912,7 +901,6 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
     }else{                          // Found
         toolI = std::distance(models.begin(), it);                  // return position of found element
     }
-
 
     cout << endl<<"Getting tool " << tool << " with orientation: "<< graspOr << ", displacement: " << graspDisp << ", tilt: " << graspTilt << "and shift: " << graspTilt << endl;
     toolLoadedIdx = toolI;
@@ -1340,6 +1328,7 @@ bool Tool3DManager::trackObjExe()
 bool Tool3DManager::getObjLoc(Vector &coords3D)
 {
     // XXX Tracking has to be modified so coordinates can be directly asked to LBP extract or any other 3D tracker
+    // Done on lua Scipt
 
     if (robot=="icubSim"){
         Bottle cmdSim,replySim;
@@ -1531,9 +1520,6 @@ bool Tool3DManager::sendAffData()
     effDataPort.write(effectVec);
     affDataPort.write(aff_out_data);
 
-
-    //XXX affDataPort.write(effectVec);
-    // XX create a bottle with the name of the toolpose (toolname), the angle of the action, and the effects (displ and angle), and write that on affPort
     return true;
 }
 
