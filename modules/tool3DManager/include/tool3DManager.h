@@ -81,10 +81,7 @@ protected:
     yarp::os::RpcClient         rpcObjFinder;           //rpc connecting to object finder
 
 
-    yarp::os::Port                             affDataPort;   // port to send out data of computed effect
-    yarp::os::Port                             effDataPort;   // port to send out data of computed effect
-    yarp::os::Port                             actDataPort;   // port to send out data of action parameters
-    yarp::os::Port                             graspDataPort; // port to send out data of grasp parameters
+    yarp::os::Port                             affDataPort;   // port to send out data of computed affordance data: tool, grasp, action, effect
     yarp::os::BufferedPort<yarp::os::Bottle >  matlabPort;    // port to receive predictions from MATLAB
 
     /* class variables */

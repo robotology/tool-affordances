@@ -74,20 +74,9 @@
         </output>
         <output>
             <type>Bottle</type>
-            <port>/tool3DManager/effData:o</port>
-            <description> Port to send data of computed effect out for recording </description>
+            <port>/tool3DManager/affData:o</port>
+            <description> Port to send data of held tool, action and effect for recording </description>
         </output>
-        <output>
-            <type>Bottle</type>
-            <port>/tool3DManager/actData:o</port>
-            <description> Port to send data of action effect out for recording </description>
-        </output>
-        <output>
-            <type>Bottle</type>
-            <port>/tool3DManager/graspData:o</port>
-            <description> Port to send data of grasp effect out for recording </description>
-        </output>
-    </data>
     
     <services>
     </services>

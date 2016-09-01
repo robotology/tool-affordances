@@ -106,9 +106,6 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 	bool ret = true;  
     ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                     // port to receive data from MATLAB processing
     ret = ret && affDataPort.open(("/"+name+"/affData:o").c_str());                   // port to send data of computed affordances out for recording
-    ret = ret && effDataPort.open(("/"+name+"/effData:o").c_str());                   // port to send data of computed effect out for recording
-    ret = ret && actDataPort.open(("/"+name+"/actData:o").c_str());                   // port to send data of action parameters out for recording
-    ret = ret && graspDataPort.open(("/"+name+"/graspData:o").c_str());               // port to send data of grasp parameters out for recording
 
     if (!ret){
 		printf("Problems opening ports\n");
@@ -146,11 +143,8 @@ bool Tool3DManager::updateModule()
 
 /**********************************************************/
 bool Tool3DManager::interruptModule()
-{
-    effDataPort.interrupt();
-    affDataPort.interrupt();
-    actDataPort.interrupt();
-    graspDataPort.interrupt();
+{    
+    affDataPort.interrupt();    
     matlabPort.interrupt();
 
     rpcCmd.interrupt();
@@ -166,10 +160,7 @@ bool Tool3DManager::interruptModule()
 /**********************************************************/
 bool Tool3DManager::close()
 {
-    effDataPort.close();
     affDataPort.close();
-    actDataPort.close();
-    graspDataPort.close();
     matlabPort.close();
 
     rpcCmd.close();
@@ -1109,8 +1100,6 @@ bool Tool3DManager::regraspExe(Point3D &newTip, const double graspOr, const doub
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
     graspVec[3] = tiltValid;
-    //graspDataPort.write(graspVec);
-
 
     return true;
 }
@@ -1477,6 +1466,8 @@ bool Tool3DManager::computeEffect()
     aff_out_data.clear();
     Bottle& aff_toolpose = aff_out_data.addList();
     aff_toolpose.addString(toolname);
+    aff_toolpose.addInt(graspVec[0]);           // toolI
+    aff_toolpose.addDouble(graspVec[1]);        // orientation
     Bottle& aff_action = aff_out_data.addList();
     aff_action.addDouble(actVec[0]);        // theta
     aff_action.addDouble(actVec[1]);        // radius
@@ -1492,8 +1483,7 @@ bool Tool3DManager::computeEffect()
 
     return true;
 }
-    // put values on a port so they can be read
-    // effDataPort.write(effectVec);
+
 bool Tool3DManager::resetCube()
 {
     if (robot=="icubSim"){
@@ -1515,9 +1505,6 @@ bool Tool3DManager::sendAffData()
     // Send (action - grasp - effect) parameters together so that they are synced
 
     // put values on a port so they can be read
-    actDataPort.write(actVec);
-    graspDataPort.write(graspVec);
-    effDataPort.write(effectVec);
     affDataPort.write(aff_out_data);
 
     return true;
@@ -1611,7 +1598,6 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
     // Put action parameters on a port so they can be read
     actVec[0] = theta;
     actVec[1] = radius;
-    //actDataPort.write(actVec);
 
     goHomeExe();
 
@@ -1660,6 +1646,10 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
 
     // Restore show tool coordinates
     tooltip = tooltip_tmp;
+
+    // Put action parameters on a vector so they can be sent
+    actVec[0] = theta;
+    actVec[1] = radius;
 
     goHomeExe();
 

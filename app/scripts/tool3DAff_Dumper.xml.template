@@ -6,17 +6,7 @@
     </authors>
     <module>
         <name>yarpdatadumper</name>
-        <parameters>--name actData --rxTime</parameters>
-        <node>localhost</node>
-    </module>
-    <module>
-        <name>yarpdatadumper</name>
-        <parameters>--name graspData --rxTime</parameters>
-        <node>localhost</node>
-    </module>
-    <module>
-        <name>yarpdatadumper</name>
-        <parameters>--name effData --rxTime</parameters>
+        <parameters>--name affData --rxTime</parameters>
         <node>localhost</node>
     </module>
     <module>
@@ -31,18 +21,8 @@
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from external="true">/tool3DManager/actData:o</from>
-        <to external="true">/actData</to>
-        <protocol>udp</protocol>
-    </connection>
-    <connection>
-        <from external="true">/tool3DManager/effData:o</from>
-        <to external="true">/effData</to>
-        <protocol>udp</protocol>
-    </connection>
-    <connection>
-        <from external="true">/tool3DManager/graspData:o</from>
-        <to external="true">/graspData</to>
+        <from external="true">/tool3DManager/affData:o</from>
+        <to external="true">/affData</to>
         <protocol>udp</protocol>
     </connection>
 </application>
