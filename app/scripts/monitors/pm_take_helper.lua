@@ -7,7 +7,7 @@
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
 XOFFSET         = 0.0       -- m
-YOFFSET         = -0.03     -- m
+YOFFSET         = -0.01     -- m
 ZOFFSET         = 0.0       -- m
 
 --                  -0.4                   0.0                       0.4     Y ->
@@ -25,19 +25,19 @@ ZOFFSET         = 0.0       -- m
 --              X  V
 --                 max
 -- UPRIGHT
-UPRIGHT_ZONE_X = {min=-0.60, max=-0.38}
+UPRIGHT_ZONE_X = {min=-0.60, max=-0.41}
 UPRIGHT_ZONE_Y = {min=0.0, max=0.40}
 
 -- UPLEFT
-UPLEFT_ZONE_X = {min=-0.60, max=-0.38}
+UPLEFT_ZONE_X = {min=-0.60, max=-0.41}
 UPLEFT_ZONE_Y = {min=-0.40, max=0.0}
 
 --BOTTOMRIGHT
-BOTTOMRIGHT_ZONE_X = {min=-0.38, max=-0.10}
+BOTTOMRIGHT_ZONE_X = {min=-0.41, max=-0.10}
 BOTTOMRIGHT_ZONE_Y = {min=0.0, max=0.40}
 
 --BOTTOMLEFT
-REACHABLE_ZONE_X  = {min=-0.38, max=-0.10}    -- meter 
+REACHABLE_ZONE_X  = {min=-0.41, max=-0.10}    -- meter 
 REACHABLE_ZONE_Y  = {min=-0.40, max=0.0}      -- meter
 
 --
@@ -200,7 +200,7 @@ function select_action(reply, zone_name)
         if affordance:check("drag_left") == true then return "drag_left" end
         -- if affordance:check("drag_diag_left") == true then return "drag_diagl" end
     elseif zone_name == "UPLEFT" then        
-        if affordance:check("drag_diag_right") == true then return "drag_diagr" end
+        if affordance:check("drag_diag_right") == true then return "drag_down_right" end
     end
     return "not_affordable"
 end
@@ -237,8 +237,8 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.05)
-        cmd:addDouble(object.y + 0.07)
+        cmd:addDouble(object.x - 0.09)
+        cmd:addDouble(object.y + 0.09)
         cmd:addDouble(object.z - 0.01)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10)))
