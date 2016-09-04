@@ -491,6 +491,7 @@ bool Tool3DManager::selectAction(int goal)
     int tilt = 0;
     if (!(robot=="icubSim")){
         tilt = -15; // Action on the real robot need some tilt to not crash teh hand on the table
+        goHomeExe(false);
     }
 
     // A tool has to have been handled in the first place -> so the model is already loaded    
@@ -1319,9 +1320,6 @@ bool Tool3DManager::trackObjExe()
 /**********************************************************/
 bool Tool3DManager::getObjLoc(Vector &coords3D)
 {
-    // XXX Tracking has to be modified so coordinates can be directly asked to LBP extract or any other 3D tracker
-    // Done on lua Scipt
-
     if (robot=="icubSim"){
         Bottle cmdSim,replySim;
         cout << endl <<"Getting 3D coords of object." <<endl;
@@ -1361,16 +1359,18 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
             cout << "No 2D point received" << endl;
             return false;
         }
-        double tlx = trackCoords->get(0).asDouble();
-        double tly = trackCoords->get(1).asDouble();
-        double brx = trackCoords->get(2).asDouble();
-        double bry = trackCoords->get(3).asDouble();
+
+        cout << " Read from tracker: " << trackCoords->toString() << endl;
+        double tlx = trackCoords->get(0).asList()->get(0).asDouble();
+        double tly = trackCoords->get(0).asList()->get(1).asDouble();
+        double brx = trackCoords->get(0).asList()->get(2).asDouble();
+        double bry = trackCoords->get(0).asList()->get(3).asDouble();
 
         Vector coords2D(2,0.0);
         coords2D(0) = (tlx + brx)/2;
         coords2D(1) = (tly + bry)/2;
 
-        cout << "Object tracked at 2Dwcoordinates (" << coords2D[0] << ", " << coords2D[1] << ")" << endl;
+        cout << "Object tracked at 2D coordinates (" << coords2D[0] << ", " << coords2D[1] << ")" << endl;
 
         coords3D.resize(3);
         Bottle cmdAre, replyAre;
@@ -1378,7 +1378,7 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
         cmdAre.addString("s2c");
         Bottle& boords_bot = cmdAre.addList();
         boords_bot.addDouble(coords2D[0]);
-        boords_bot.addDouble(coords2D[0]);
+        boords_bot.addDouble(coords2D[1]);
         rpcMotorAre.write(cmdAre,replyAre);
 
 
@@ -1387,6 +1387,7 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
             coords3D(1) = replyAre.get(1).asDouble();
             coords3D(2) = replyAre.get(2).asDouble();
             printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
+
             return true;
         }
         cout << "No 3D point received" << endl;
@@ -1637,6 +1638,24 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
         return false;
     }
     getObjRot(target3DrotIni);               // Get the initial rotation of the object
+
+    if (robot == "icubSim"){
+        bool coordOK = true;
+        if ((target3DcoordsIni[0] < -0.6) || (target3DcoordsIni[0] < -0.3)){
+            coordOK = false;
+        }
+        if ((target3DcoordsIni[1] < 0.15) || (target3DcoordsIni[1] > 0.4)){
+            coordOK = false;
+        }
+        if ((target3DcoordsIni[2] < -0.17) || (target3DcoordsIni[2] > 0.0)){
+            coordOK = false;
+        }
+
+        if (!coordOK){
+            cout << "Object coordenated out of save reach" << endl;
+            return false;
+        }
+    }
 
 
     // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,

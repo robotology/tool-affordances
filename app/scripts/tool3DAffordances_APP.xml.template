@@ -9,8 +9,8 @@
     </module>
     <module>
         <name>actionsRenderingEngine</name>
-        <parameters>icub21</parameters>
-        <node>console</node>
+        <parameters></parameters>
+        <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 1219) (y 37.9))</geometry>
     </module>
@@ -58,28 +58,28 @@
     </module>
     <module>
         <name>toolFeatExt</name>
-        <parameters>--from realTools.ini</parameters>
+        <parameters>--from realTools.ini --binRes 1 --maxDepth 3</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 854) (y 384.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 0 --y 700 --p 50 --compact</parameters>
+        <parameters>--x 0 --y 0 --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/toolFinder</prefix>
         <geometry>(Pos (x 886) (y 213.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 0 --y 0 --out /imOut --p 50 --compact</parameters>
-        <node>icub21</node>
-        <prefix>/imLeft</prefix>
-        <geometry>(Pos (x 447) (y 371.9))</geometry>
+        <parameters>--x 640 --out /out --y 0 --p 50 --compact</parameters>
+        <node>icub22</node>
+        <prefix>/seg</prefix>
+        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 350 --out /blobOut --p 50 --compact</parameters>
+        <parameters>--x 320 --y 0 --out /blobOut --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/blobs</prefix>
         <geometry>(Pos (x 402) (y 258.9))</geometry>
@@ -89,18 +89,6 @@
         <to>/actionsRenderingEngine/cmd:io</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 902) (y 58)) ((x 605) (y 60)) ((x 1220) (y 56))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/imLeft/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 317) (y 371)) ((x 207) (y 352)) ((x 448) (y 390))  )</geometry>
-    </connection>
-    <connection>
-        <from>/toolFeatExt/clouds:o</from>
-        <to>/show3D/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 1038) (y 385)) ((x 1032) (y 403)) ((x 1065) (y 367))  )</geometry>
     </connection>
     <connection>
         <from external="true">/matlab/data:o</from>
@@ -139,6 +127,12 @@
         <geometry>(Pos ((x 941.5) (y 341.5)) ((x 840) (y 342)) ((x 1064) (y 341))  )</geometry>
     </connection>
     <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/show3D/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 941.5) (y 341.5)) ((x 840) (y 342)) ((x 1064) (y 341))  )</geometry>
+    </connection>
+    <connection>
         <from>/objects3DExplorer/img:o</from>
         <to>/toolFinder/yarpview/img:i</to>
         <protocol>udp</protocol>
@@ -167,6 +161,12 @@
         <to>/blobs/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 374) (y 261)) ((x 366) (y 245)) ((x 403) (y 277))  )</geometry>
+    </connection>
+    <connection>
+        <from>/seg2cloud/disp:o</from>
+        <to>/seg/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/objrec:rpc</from>
