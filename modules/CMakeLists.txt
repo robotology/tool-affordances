@@ -15,10 +15,11 @@ add_subdirectory(tool3DManager)
 add_subdirectory(drop-away)
 add_subdirectory(affMotor)
 add_subdirectory(simtoolloader) #Use only in simulation
+#add_subdirectory(positionFilter) # No need to run in simulation
 
 ### Not fully developed or obsolete modules
 
-# add_subdirectory(objectFinder) # No need to run in simulation
+#add_subdirectory(objectFinder) # No need to run in simulation
 # add_subdirectory(toolBlobber)  # No need to run in simulation
 
 # add_subdirectory(affLearn)

@@ -1,6 +1,6 @@
 --
 -- Copyright (C) 2012 IITRBCS
--- Authors: Ali Paikan
+-- Authors: Ali Paikan, Tanis Mar
 -- CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 --
  

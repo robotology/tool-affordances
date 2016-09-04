@@ -83,6 +83,7 @@ protected:
 
     yarp::os::Port                             affDataPort;   // port to send out data of computed affordance data: tool, grasp, action, effect
     yarp::os::BufferedPort<yarp::os::Bottle >  matlabPort;    // port to receive predictions from MATLAB
+    yarp::os::BufferedPort<yarp::os::Bottle >  trackPort;     // port to receive
 
     /* class variables */
 	// Flags

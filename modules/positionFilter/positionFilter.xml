@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>positionFilter</name>
+    <description>Filters the coordinates sent by online trackers so they are more reliable to locate static objects</description>
+        <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+    <version>1.0</version>
+    
+    <description-long>
+    The positionFilter filters the coordinates returned by online trackers so they provide reliable locations. It provides to a set of RPC commands to retrieve 2D coordinates of centroid or bb.
+    </description-long>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>    
+    <param desc="Name of the module" default="objectFinder"> name</param>
+    <param desc="Robot used" default="icub"> robot</param>    
+    <param desc="Camera used" default="left"> camera</param>  
+    <param desc="distance to the table plen" default=-0.10> tableHeight</param>
+    <param desc="Configuration file" default="objectFinder.ini"> from </param> 
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email="tanis.mar@iit.it"> Tanis Mar</author>
+    </authors>
+    
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input port_type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/positionFilter/rpc:i</port>
+            <description> Takes the following RPC commands from Human or stateMachine
+                -# <b>getBox</b>: Creates a template by cropping the image based on user input (click on viewer) and initializes the tracker with it.   
+                -# <b>getPointClick</b>: Reads a click and returns the 2D coordinates.
+                -# <b>getPointTrack</b>: Retrieves 2D coords form the tracker and returns the 3D coordinates of the object tracked based on the table Height.                 
+                -# <b>help </b>: Produces help on rpc commands. 
+            </description>
+        </input>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/positionFilter/img:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives the camera image to propagate or prepare the template.</description>
+        </input>
+        
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/positionFilter/coords:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> receives coords from yarpview out to define Bounding Box for template or 2D coordinates</description>
+        </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/positionFilter/track:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives coordinates from the tracker  to get object 2D or 3D location</description>
+        </input>
+        
+        <!-- output data if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/positionFilter/coords:o</port>
+            <description>Sends out computed object coordinates</description>
+        </output> 
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/positionFilter/crop:o</port>
+            <description>Sends out the desired image crop to initialize a tracker</description>
+        </output> 
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/positionFilter/imgOut:o</port>
+            <description>Sends out images on the frames when the objects location is computed</description>
+        </output> 
+    </data>
+
+    <dependencies>
+        <computer>
+            Gaze Cotnroller to be running. Assumes connection to a tracker module
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+        
+    </development>
+
+</module>
+

@@ -105,6 +105,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
 	//ports
 	bool ret = true;  
     ret = ret && matlabPort.open(("/"+name+"/matlab:i").c_str());                     // port to receive data from MATLAB processing
+    ret = ret && trackPort.open(("/"+name+"/track:i").c_str());                     // port to receive data from MATLAB processing
     ret = ret && affDataPort.open(("/"+name+"/affData:o").c_str());                   // port to send data of computed affordances out for recording
 
     if (!ret){
@@ -146,6 +147,7 @@ bool Tool3DManager::interruptModule()
 {    
     affDataPort.interrupt();    
     matlabPort.interrupt();
+    trackPort.interrupt();
 
     rpcCmd.interrupt();
     rpcSimToolLoader.interrupt();
@@ -162,6 +164,7 @@ bool Tool3DManager::close()
 {
     affDataPort.close();
     matlabPort.close();
+    trackPort.close();
 
     rpcCmd.close();
     rpcSimToolLoader.close();
@@ -1352,26 +1355,37 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
 
     }else{
 
-    // If object is not being tracked, initialize tracking.
-        if (!trackingObj)
-            trackObjExe();
-
         // Get the 2D coordinates of the object from objectFinder
+        Bottle *trackCoords = trackPort.read(true);
+        if (trackCoords->size() <1){
+            cout << "No 2D point received" << endl;
+            return false;
+        }
+        double tlx = trackCoords->get(0).asDouble();
+        double tly = trackCoords->get(1).asDouble();
+        double brx = trackCoords->get(2).asDouble();
+        double bry = trackCoords->get(3).asDouble();
+
+        Vector coords2D(2,0.0);
+        coords2D(0) = (tlx + brx)/2;
+        coords2D(1) = (tly + bry)/2;
+
+        cout << "Object tracked at 2Dwcoordinates (" << coords2D[0] << ", " << coords2D[1] << ")" << endl;
+
         coords3D.resize(3);
+        Bottle cmdAre, replyAre;
+        cmdAre.addString("get");
+        cmdAre.addString("s2c");
+        Bottle& boords_bot = cmdAre.addList();
+        boords_bot.addDouble(coords2D[0]);
+        boords_bot.addDouble(coords2D[0]);
+        rpcMotorAre.write(cmdAre,replyAre);
 
-        Bottle cmdFinder,replyFinder;
-        //fprintf(stdout,"Get 3D coords of tracked object:\n");
-        cmdFinder.clear();        replyFinder.clear();
-        cmdFinder.addString("getPointTrack");
-        cmdFinder.addDouble(tableHeight);
-        //printf("RPC to objFinder: %s \n", cmdFinder.toString().c_str());
-        rpcObjFinder.write(cmdFinder, replyFinder);
-        //printf("  Reply from objFinder: %s \n", replyFinder.toString().c_str());
 
-        if (replyFinder.size() >1){
-            coords3D(0) = replyFinder.get(1).asList()->get(0).asDouble();
-            coords3D(1) = replyFinder.get(1).asList()->get(1).asDouble();
-            coords3D(2) = replyFinder.get(1).asList()->get(2).asDouble();
+        if (replyAre.size() >1){
+            coords3D(0) = replyAre.get(0).asDouble();
+            coords3D(1) = replyAre.get(1).asDouble();
+            coords3D(2) = replyAre.get(2).asDouble();
             printf("Point in 3D retrieved: %g, %g %g\n", coords3D(0), coords3D(1), coords3D(2));
             return true;
         }
