@@ -33,6 +33,7 @@ ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_right_up"] = 1, ["dra
 -- ORIENTATION LIST
 ORI_LIST = {-89.0, 0.0, 89.0}
 
+
 --TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
 -- rakeBigBlue = RAK1, rakeBlue = RAK2,  rakeGreen = RAK3, shovelGreen = SHO1, shovelOrange = SHO2, shovelYellow = SHO3
 TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 

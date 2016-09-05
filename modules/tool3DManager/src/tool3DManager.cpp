@@ -920,7 +920,7 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
 
     ok = load3Dmodel(cloudName);
     if (!ok){
-        cout << "O3DE coudl not load the tool" << endl;
+        cout << "O3DE could not load the tool" << endl;
         return false;
     }
 
@@ -1007,19 +1007,19 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
         return false;
     }
 
-    // Query object3DExplorer to find the object pose
-    cout << "Finding out tool pose from 3D partial view." << endl;
+    // Query object3DExplorer to find the tooltip
+    cout << "Finding out Pose and tooltip by aligning 3D partial view with model." << endl;
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findPoseAlign");
+    cmd3DE.addString("findTooltipAlign");
     cmd3DE.addInt(5);
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.get(0).asString() == "[nack]" ){        
+    if (reply3DE.get(0).asString() == "[nack]" ){
         cout << "Objects3Dexplorer couldn't align properly, trying from another pose." << endl;
         lookToolExe();
         cmd3DE.clear();   reply3DE.clear();
-        cmd3DE.addString("findPoseAlign");
+        cmd3DE.addString("findTooltipAlign");
         cmd3DE.addInt(5);
         rpc3Dexp.write(cmd3DE, reply3DE);
         if (reply3DE.get(0).asString() == "[nack]" ){
@@ -1027,19 +1027,7 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
             return false;
         }
     }
-    //Matrix pose = reply3DE.get(0).asList();
 
-    // Query object3DExplorer to find the tooltip
-    cout << "Finding out tooltip from model and pose." << endl;
-    cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findTooltipAlign");
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
-    rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "Objects3Dexplorer couldn't estimate the tip." << endl;
-        return false;
-    }
     Bottle tooltipBot = reply3DE.tail();
     ttip.x = tooltipBot.get(0).asDouble();
     ttip.y = tooltipBot.get(1).asDouble();
@@ -1536,6 +1524,12 @@ void Tool3DManager::goHomeExe(const bool hands)
     cout << endl << "Going home, hands: " << hands <<endl;
 
     if (robot == "icubSim"){
+        Bottle cmd3DE,reply3DE;                 // bottles for O3DE
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("showTipProj");
+        cmd3DE.addString("OFF");
+        rpc3Dexp.write(cmd3DE, reply3DE);
+
         Bottle cmdAMM, replyAMM;
         // Move hand to center to receive tool on correct position - implemented by faking a push action to the center to avoid iCart dependencies.
         cout << "Moving "<< hand << " arm to a central position" << endl;
@@ -1548,6 +1542,13 @@ void Tool3DManager::goHomeExe(const bool hands)
         cmdAMM.addDouble(0.0);       // No angle
         cmdAMM.addDouble(0.0);       // No radius
         rpcAffMotor.write(cmdAMM, replyAMM);
+
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("showTipProj");
+        cmd3DE.addString("ON");
+        rpc3Dexp.write(cmd3DE, reply3DE);
+
+
     }else{
         Bottle cmdAre, replyAre;
         cmdAre.clear();
@@ -1639,7 +1640,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     }
     getObjRot(target3DrotIni);               // Get the initial rotation of the object
 
-    if (robot == "icubSim"){
+    if (robot != "icubSim"){
         bool coordOK = true;
         if ((target3DcoordsIni[0] < -0.6) || (target3DcoordsIni[0] < -0.3)){
             coordOK = false;
@@ -1664,7 +1665,13 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     Point3D tooltip_tmp = tooltip;
     tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
 
+    Bottle cmd3DE,reply3DE;                 // bottles for O3DE
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("showTipProj");
+    cmd3DE.addString("OFF");
+    rpc3Dexp.write(cmd3DE, reply3DE);
 
+    // Perform drag action
     cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
     Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
     cmdAMM.clear();replyAMM.clear();
@@ -1679,6 +1686,10 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
 
     // Restore show tool coordinates
     tooltip = tooltip_tmp;
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("showTipProj");
+    cmd3DE.addString("ON");
+    rpc3Dexp.write(cmd3DE, reply3DE);
 
     // Put action parameters on a vector so they can be sent
     actVec[0] = theta;
