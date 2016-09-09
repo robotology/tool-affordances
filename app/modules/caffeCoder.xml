@@ -1,0 +1,69 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>caffeCoder</name>
+    <description>This module is responsible for coding images into feature vectors. To this end, we extract local appearance descriptors (sparse or dense). These descriptors are coded using a learned dictionary and the pooled together via a spatial pyramid representation.</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>    
+    <param desc="Name of the module" default="caffeCoder"> name</param>
+    <param desc="Configuration File name" default="">from</param>
+    <param desc="Current context" default="right"> context</param>
+    <param desc="Absolute path to the .caffemodel file containing the weights of the network used" default=""> pretrained_binary_proto_file</param>   
+    <param desc="Name of the .prototxt file containing the definition of the network (or part of the network) used.." default=""> feature_extraction_proto_file_file</param>
+    <param desc="Tag (defined in the .prototxt) of the layer at which we want to extract the features."default=""> extract_features_blob_names</param>
+    <param desc=" [GPU|gpu|CPU|cpu] passed to Caffe initialization." default="cpu"> compute_mode</param>
+    <param desc="GPU device chosen by Caffe to run the computations (used if compute_mode is set to GPU|gpu)." default="">device_id</param>   
+    <param desc=" [true|false] depending on whether you desire to read in the stdout the time to extract the features.." default="true"> timing</param> 
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+        <author email=""> Giulia Pasquale </author>
+        <author email=""> xml by Tanis Mar </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/caffeCoder/img:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>  Feed images to caffeCoder using this port.</description>
+        </input>
+        <input port_type="service">
+            <type> Rpc</type>
+            <port carrier="tcp">/caffeCoder/rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>Receives the following commands and provides replies</description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/caffeCoder/code:o</port>
+            <description> Output vectorial representation of the image.</description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/caffeCoder/img:o</port>
+            <description>  Output image (equal to the input). </description>
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+
