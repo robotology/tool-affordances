@@ -43,7 +43,7 @@
         <geometry>(Pos (x 1234.1) (y 324.22))</geometry>
     </module>
     <module>
-        <name>seg2cloud</name>lbpE
+        <name>seg2cloud</name>
         <parameters></parameters>
         <node>icub21</node>
         <prefix></prefix>

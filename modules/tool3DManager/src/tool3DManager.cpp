@@ -1662,9 +1662,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    Point3D tooltip_tmp = tooltip;
-    tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
-
+    cout << "Deactivating Tootip projection: " << endl; 
     Bottle cmd3DE,reply3DE;                 // bottles for O3DE
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("showTipProj");
@@ -1685,7 +1683,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     rpcAffMotor.write(cmdAMM, replyAMM);
 
     // Restore show tool coordinates
-    tooltip = tooltip_tmp;
+    cout << "Reactivating Tootip projection: " << endl;
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("showTipProj");
     cmd3DE.addString("ON");
@@ -1709,6 +1707,7 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
     Bottle cmdARE,replyARE;
 
+
     if (!useTool){
          yInfo()<<"Removing tool";
         // Remove any end effector so that action is carried wrt hand reference frame.
@@ -1721,8 +1720,15 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
-    Point3D tooltip_tmp = tooltip;
-    tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
+    //Point3D tooltip_tmp = tooltip;
+    //tooltip.x = 0.0;    tooltip.y = 0.0;  tooltip.z = 0.0;
+
+    cout << "Deactivating Tootip projection: " << endl; 
+    Bottle cmd3DE,reply3DE;                 // bottles for O3DE
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("showTipProj");
+    cmd3DE.addString("OFF");
+    rpc3Dexp.write(cmd3DE, reply3DE);
 
     cout << "Approaching to object on coords: (" << x << ", " << y << ", "<< z << "). " <<endl;
 
@@ -1756,8 +1762,13 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
         cmdARE.addString("idle");
         rpcMotorAre.write(cmdARE, replyARE);
     }
+
     // Restore show tool coordinates
-    tooltip= tooltip_tmp;
+    cout << "Reactivating Tootip projection: " << endl;
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("showTipProj");
+    cmd3DE.addString("ON");
+    rpc3Dexp.write(cmd3DE, reply3DE);
 
     // Re-attach the tooltip for further actions
     if (!useTool){
