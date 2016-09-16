@@ -562,7 +562,7 @@ bool Tool3DManager::predExp(int goal)
         //                       48, 49,      // shovel8, shovel9
         //                       51 };        // star
 
-        for (int testToolI = 1; testToolI < numTools_test; testToolI++ ){
+        for (int testToolI = 40; testToolI < numTools_test; testToolI++ ){
             for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}            
                 string& tool = models[testToolI];       // Because tools are 1 indexed on the file, but 0 on sim
                 cout << "Attempting to load " << tool << endl;
