@@ -373,30 +373,7 @@ Vector Tool3DManager::objRot(){
 
 
 /***********************************************************************************/
-//  ======================== Functions to run experiment:
-bool Tool3DManager::runToolPose(const string &tool, double graspOr, double graspDisp, double graspTilt, int numAct){
-    double thetaDiv = 360.0/numAct;
-    double theta = 0.0;
-
-    int tilt = 0;
-    if (robot=="icubSim"){
-        getToolByPose(tool, graspOr, graspDisp, graspTilt);  // (re-)grasp the tool with the given grasp parameters
-        extractFeats();
-    } else {
-        tilt = -15; // Action on the real robot need some tilt to not crash the hand on the table
-    }
-
-    // On the robot we assume the tool is grasped previously, because grasps usually need to be adjusted.
-
-    for (int i=1 ; i<=numAct ; i++){
-        dragExe(theta,0.15,tilt);
-        computeEffect();   
-        cout << "Going to next action" <<endl;
-        theta += thetaDiv;
-    }
-    return true;
-}
-
+//  ======================== Exploration commands  =======================
 bool Tool3DManager::runRandPoses(int numPoses,int numAct){
     double thetaDiv = 360.0/numAct;
     double theta = 0.0;
@@ -409,7 +386,7 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
 
 
     int toolI_prev = round(randG.scalar(1,52));
-    for (int p=1 ; p <= numPoses ; p++){        
+    for (int p=1 ; p <= numPoses ; p++){
         int toolI;
 
         double  graspOr = randG.scalar(-90,90);
@@ -432,31 +409,48 @@ bool Tool3DManager::runRandPoses(int numPoses,int numAct){
     return true;
 }
 
-bool Tool3DManager::runToolOr(const string& tool, double graspOr, int numAct){
 
-    // For each tool with an orientation, run all displacements (-2, 0, +2) cm
-    for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
-        cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
-        cout << "Running trial with tool: " << tool << " grasped at orientation "<< graspOr << ", and displacement "<< disp <<"."<< endl;
-        runToolPose(tool, graspOr, disp);
+
+bool Tool3DManager::runToolPose(int numRep,  int numAct){
+    double thetaDiv = 360.0/numAct;
+    double theta = 0.0;
+
+    int tilt = 0;
+    if (robot!="icubSim"){
+        tilt = -15; // Action on the real robot need some tilt to not crash the hand on the table
     }
 
+    // We assume the tool is grasped previously with getTool() or getToolByPose()
+    for (int r=1 ; r<=numRep ; r++){
+        for (int i=1 ; i<=numAct ; i++){
+            dragExe(theta, 0.15, tilt);
+            computeEffect();
+            cout << "Going to next action" <<endl;
+            theta += thetaDiv;
+        }
+    }
     return true;
 }
 
-bool Tool3DManager::runToolTrial(const string& tool, int numAct){
+bool Tool3DManager::runToolTrial(int numRep, const string &tool,  int numAct){
+
 
     // For each tool, run all combinations of
     // x 3 Grasps: left front right
-    // x 3 disps (-2, 0, +2) cm
     // x 8 thetas (every 45 degrees).
-
     for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}
-        for (int disp=-2 ; disp<3 ; disp += 2){                 // This is a loop for {-2,0,2}
-            cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
-            cout << "Running trial with tool: " << tool << " grasped at orientation "<< ori << ", and displacement "<< disp <<"."<< endl;
-            runToolPose(tool, ori, disp);
+
+        cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< endl;
+        // Get tool
+        if (robot == "icubSim"){
+            getToolByPose(tool,ori);
+        }else{
+            cout << "Hand me the tool: " << tool << " at orientation "<< ori << "."<< endl;
+            getToolExe(tool);
         }
+
+        // Perform exploration actions
+        runToolPose(numRep, numAct);
     }
     return true;
 }
@@ -466,11 +460,12 @@ bool Tool3DManager::runExp(int toolIni, int toolEnd)
     for (int toolI=toolIni ; toolI<= toolEnd ; toolI++)
     {        
         string tool = models[toolI];
-        runToolTrial(tool);
+        runToolTrial(1, tool);
     }
     return true;
 }
 
+//  ======================== Exploitation commands  =======================
 bool Tool3DManager::selectAction(int goal)
 {   // Goals are 1 to achieve maximum displacement, 2 to perform pull
     int tilt = 0;
@@ -547,7 +542,7 @@ bool Tool3DManager::predExp(int goal)
         //                       48, 49,      // shovel8, shovel9
         //                       51 };        // star
 
-        for (int testToolI = 40; testToolI < numTools_test; testToolI++ ){
+        for (int testToolI = 1; testToolI < numTools_test; testToolI++ ){
             for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}            
                 string& tool = models[testToolI];       // Because tools are 1 indexed on the file, but 0 on sim
                 cout << "Attempting to load " << tool << endl;
@@ -725,17 +720,10 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
 bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const double graspDisp, const double graspTilt)
 {    
     toolname = tool;
-
-    int toolI;
-    vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
-    if ( it == models.end() ) { //Not found
+    int toolI = findToolInd(tool);
+    if (tool < 0){
         cout << "Tool label not found" << endl;
-        return false;
-    }else{                          // Found
-        toolI = std::distance(models.begin(), it);                  // return position of found element
-        cout << "Tool found with index" << toolI << endl;
-    }
-
+        return false;}
 
     double tiltValid = graspTilt;
     if (graspTilt > 90.0) {   tiltValid  = 90.0; }
@@ -793,13 +781,6 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
             return false;
         }
 
-        // Get tool name from simtooloader response.
-        // simtoolloader response is (sent command) (toolI loaded) (toolName) (object loaded)
-        // cout << "Retrieving tool name." << endl;
-        // string meshName = replySim.get(2).asString();
-        // string::size_type idx;
-        // idx = meshName.rfind('.');
-        // string cloudName = meshName.substr(0,idx);
         string cloudName = "sim/"+ tool;
         cout << "cloud model: " << cloudName << endl;
 
@@ -856,10 +837,9 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
     addToolTip(tooltip);
     cout << "Tool loaded and tooltip attached" << endl;
 
+    // Put action parameters on a port so they can be read
     graspVec.clear();		// Clear to make space for new coordinates
     graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
-
-    // Put action parameters on a port so they can be read
     graspVec[0] = toolI;
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
@@ -873,17 +853,13 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
 bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
     // Look For model label among all models.
-    int toolI;
-    vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
-    if ( it == models.end() ) { //Not found
-        cout << "Tool label not found" << endl;
+    int toolI = findToolInd(tool);
+    if (tool < 0)
         return false;
-    }else{                          // Found
-        toolI = std::distance(models.begin(), it);                  // return position of found element
-    }
 
     cout << endl<<"Getting tool " << tool << " with orientation: "<< graspOr << ", displacement: " << graspDisp << ", tilt: " << graspTilt << "and shift: " << graspTilt << endl;
     toolLoadedIdx = toolI;
+    toolname = tool;
 
     bool ok;
 
@@ -893,13 +869,6 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
         return false;
     }
 
-    // Get tool name in order to load its 3D model
-    //cout << "Retrieving tool name." << endl;
-    //string meshName = models[toolI].get(2).asString();
-    //string::size_type idx;
-    //idx = meshName.rfind('.');
-    //string cloudName = meshName.substr(0,idx);  //remove format
-    //cloudName = "real/"+ cloudName;
     string cloudName = "real/"+ tool;
     cout << "cloud model: " << cloudName << endl;
 
@@ -913,7 +882,7 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
     cout << "Querying objectd3DExplorer to load pointcloud, and set tooltip based on parameters." << endl;
     ok = findTipFromParam(tooltip, graspOr, graspDisp, graspTilt, graspShift);
     if (!ok){
-        cout << "Tool Tip coudl not be computed from params." << endl;
+        cout << "Tool Tip could not be computed from params." << endl;
         return false;
     }
     cout << "Tooltip of tool in positon: x= "<< tooltip.x << ", y = " << tooltip.y << ", z = " << tooltip.z <<endl;
@@ -926,10 +895,10 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
     }
     cout <<  "Tooltip attached, ready to perform action!" << endl;
 
-    graspVec.clear();		// Clear to make space for new coordinates
-    graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
 
     // Put action parameters on a port so they can be read
+    graspVec.clear();		// Clear to make space for new coordinates
+    graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
     graspVec[0] = toolI;
     graspVec[1] = graspOr;
     graspVec[2] = graspDisp;
@@ -941,6 +910,9 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
 /**********************************************************/
 bool Tool3DManager::getToolExe(const string& tool)
 {
+    int toolI = findToolInd(tool);
+    toolname = tool;
+
     bool ok;
     cout << endl << "Getting " << tool << endl;
     ok = graspToolExe();
@@ -955,7 +927,9 @@ bool Tool3DManager::getToolExe(const string& tool)
         cout << "Tool Pose could not be estimated properly" << endl;
         return false;
     }
-    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
+    double ori = getToolOri();
+    cout <<  "Tool  grasped with orientation: " << ori << endl;
+    cout <<  "Tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
     ok =addToolTip(tooltip);
     if (!ok){
@@ -964,10 +938,42 @@ bool Tool3DManager::getToolExe(const string& tool)
     }
     cout <<  "Tooltip attached, ready to perform action!" << endl;
 
+    // Put action parameters on a port so they can be read
+    graspVec.clear();		// Clear to make space for new coordinates
+    graspVec.resize(4);     // Resize to save orientation - displacement coordinates coordinates
+    graspVec[0] = toolI;
+    graspVec[1] = ori;
     return true;
 }
 
 
+/**********************************************************/
+int Tool3DManager::findToolInd(const string& tool)
+{
+    int toolI = -1;
+    vector<string>::iterator it = std::find(models.begin(), models.end(), tool);
+    if ( it == models.end() ) { //Not found
+        return -1;
+    }else{                          // Found
+        toolI = std::distance(models.begin(), it);                  // return position of found element
+    }
+    return toolI;
+}
+
+double Tool3DManager::getToolOri()
+{
+    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("getOri");
+    rpc3Dexp.write(cmd3DE, reply3DE);
+    if (reply3DE.get(0).asString() != "[ack]" ){
+        cout << "objects3DExplorer coudln't return tool's orientation." << endl;
+        return false;
+    }
+    double ori = reply3DE.get(0).asDouble();
+
+    return ori;
+}
 
 /**********************************************************/
 bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
@@ -1638,26 +1644,14 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     }
     getObjRot(target3DrotIni);               // Get the initial rotation of the object
 
-    if (robot != "icubSim"){
-        bool coordOK = true;
-        if ((target3DcoordsIni[0] < -0.6) || (target3DcoordsIni[0] < -0.3)){
-            coordOK = false;
-        }
-        if ((target3DcoordsIni[1] < 0.15) || (target3DcoordsIni[1] > 0.4)){
-            coordOK = false;
-        }
-        if ((target3DcoordsIni[2] < -0.17) || (target3DcoordsIni[2] > 0.0)){
-            coordOK = false;
-        }
+    if (robot != "icubSim"){        
+        bool coordOK = checkSaveDrag(target3DcoordsIni, theta, radius);       // check if the desired drag is save (heurisitcs).
 
         if (!coordOK){
             cout << "Object coordenated out of save reach" << endl;
             return false;
         }
     }
-
-    // XXX saveDrag = checksavedrag(coordsIni, theta, radius)       // check if the desired drag is save (heurisitcs).
-
 
     // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
@@ -1780,6 +1774,29 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
     return true;
 }
 
+bool Tool3DManager::checkSaveDrag(Vector coords, double theta , double radius)
+{
+    // Define general workspace
+    bool coordOK = true;
+    if ((coords[0] < -0.6) || (coords[0] > -0.3)){
+        coordOK = false;
+    }
+    if ((coords[1] < 0.15) || (coords[1] > 0.4)){
+        coordOK = false;
+    }
+    if ((coords[2] < -0.17) || (coords[2] > 0.0)){
+        coordOK = false;
+    }
+
+    // Check limit for specific actions
+//    if (theta > 180) {
+//        if (coords[0] > -0.)
+//        {
+//            coordOK = false;
+//        }
+//    }
+    return coordOK;
+}
 
 //++++++++++++++++++++++++++++++ MAIN ++++++++++++++++++++++++++++++++//
 /**********************************************************************/

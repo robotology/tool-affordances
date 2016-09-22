@@ -173,20 +173,13 @@ service tool3DManager_IDLServer
      * Runs numAct actions with the given tool on the given pose and computes the effect. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runToolPose(1:string tool, 2: double deg = 0.0, 3: double disp = 0.0, 4: double tilt = 45.0, 5: i32 numAct = 8);
+    bool runToolPose(1: i32 numRep = 1, 2: i32 numAct = 8);
 
     /**
-     * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
-     * @return true/false on success/failure to perform all actions
-     */
-    bool runToolOr(1:string tool, 2: double graspOr = 0.0, 3: i32 numAct = 8);
-
-    /**
-     * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
-     * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
+     * For the given tool, performs numAct actions for each toolpose. Tries all grasp orientation {-90, 0, 90}
      * @return true/false on success/failure to perfomr all actions on all toolPoses
      */
-    bool runToolTrial(1:string tool, 2: i32 numAct = 8);
+    bool runToolTrial(1: i32 numRep = 1, 2:string tool = "", 3: i32 numAct = 8);
 
     /**
      * Runs full trials for all tool with indices between toolini and toolEnd. \n

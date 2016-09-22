@@ -220,34 +220,21 @@ public:
 
 class tool3DManager_IDLServer_runToolPose : public yarp::os::Portable {
 public:
-  std::string tool;
-  double deg;
-  double disp;
-  double tilt;
+  int32_t numRep;
   int32_t numAct;
   bool _return;
-  void init(const std::string& tool, const double deg, const double disp, const double tilt, const int32_t numAct);
-  virtual bool write(yarp::os::ConnectionWriter& connection);
-  virtual bool read(yarp::os::ConnectionReader& connection);
-};
-
-class tool3DManager_IDLServer_runToolOr : public yarp::os::Portable {
-public:
-  std::string tool;
-  double graspOr;
-  int32_t numAct;
-  bool _return;
-  void init(const std::string& tool, const double graspOr, const int32_t numAct);
+  void init(const int32_t numRep, const int32_t numAct);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class tool3DManager_IDLServer_runToolTrial : public yarp::os::Portable {
 public:
+  int32_t numRep;
   std::string tool;
   int32_t numAct;
   bool _return;
-  void init(const std::string& tool, const int32_t numAct);
+  void init(const int32_t numRep, const std::string& tool, const int32_t numAct);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -819,12 +806,9 @@ void tool3DManager_IDLServer_runRandPoses::init(const int32_t numPoses, const in
 
 bool tool3DManager_IDLServer_runToolPose::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(6)) return false;
+  if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("runToolPose",1,1)) return false;
-  if (!writer.writeString(tool)) return false;
-  if (!writer.writeDouble(deg)) return false;
-  if (!writer.writeDouble(disp)) return false;
-  if (!writer.writeDouble(tilt)) return false;
+  if (!writer.writeI32(numRep)) return false;
   if (!writer.writeI32(numAct)) return false;
   return true;
 }
@@ -839,46 +823,17 @@ bool tool3DManager_IDLServer_runToolPose::read(yarp::os::ConnectionReader& conne
   return true;
 }
 
-void tool3DManager_IDLServer_runToolPose::init(const std::string& tool, const double deg, const double disp, const double tilt, const int32_t numAct) {
+void tool3DManager_IDLServer_runToolPose::init(const int32_t numRep, const int32_t numAct) {
   _return = false;
-  this->tool = tool;
-  this->deg = deg;
-  this->disp = disp;
-  this->tilt = tilt;
-  this->numAct = numAct;
-}
-
-bool tool3DManager_IDLServer_runToolOr::write(yarp::os::ConnectionWriter& connection) {
-  yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(4)) return false;
-  if (!writer.writeTag("runToolOr",1,1)) return false;
-  if (!writer.writeString(tool)) return false;
-  if (!writer.writeDouble(graspOr)) return false;
-  if (!writer.writeI32(numAct)) return false;
-  return true;
-}
-
-bool tool3DManager_IDLServer_runToolOr::read(yarp::os::ConnectionReader& connection) {
-  yarp::os::idl::WireReader reader(connection);
-  if (!reader.readListReturn()) return false;
-  if (!reader.readBool(_return)) {
-    reader.fail();
-    return false;
-  }
-  return true;
-}
-
-void tool3DManager_IDLServer_runToolOr::init(const std::string& tool, const double graspOr, const int32_t numAct) {
-  _return = false;
-  this->tool = tool;
-  this->graspOr = graspOr;
+  this->numRep = numRep;
   this->numAct = numAct;
 }
 
 bool tool3DManager_IDLServer_runToolTrial::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeListHeader(4)) return false;
   if (!writer.writeTag("runToolTrial",1,1)) return false;
+  if (!writer.writeI32(numRep)) return false;
   if (!writer.writeString(tool)) return false;
   if (!writer.writeI32(numAct)) return false;
   return true;
@@ -894,8 +849,9 @@ bool tool3DManager_IDLServer_runToolTrial::read(yarp::os::ConnectionReader& conn
   return true;
 }
 
-void tool3DManager_IDLServer_runToolTrial::init(const std::string& tool, const int32_t numAct) {
+void tool3DManager_IDLServer_runToolTrial::init(const int32_t numRep, const std::string& tool, const int32_t numAct) {
   _return = false;
+  this->numRep = numRep;
   this->tool = tool;
   this->numAct = numAct;
 }
@@ -1204,32 +1160,22 @@ bool tool3DManager_IDLServer::runRandPoses(const int32_t numPoses, const int32_t
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::runToolPose(const std::string& tool, const double deg, const double disp, const double tilt, const int32_t numAct) {
+bool tool3DManager_IDLServer::runToolPose(const int32_t numRep, const int32_t numAct) {
   bool _return = false;
   tool3DManager_IDLServer_runToolPose helper;
-  helper.init(tool,deg,disp,tilt,numAct);
+  helper.init(numRep,numAct);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolPose(const std::string& tool, const double deg, const double disp, const double tilt, const int32_t numAct)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolPose(const int32_t numRep, const int32_t numAct)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::runToolOr(const std::string& tool, const double graspOr, const int32_t numAct) {
-  bool _return = false;
-  tool3DManager_IDLServer_runToolOr helper;
-  helper.init(tool,graspOr,numAct);
-  if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolOr(const std::string& tool, const double graspOr, const int32_t numAct)");
-  }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
-}
-bool tool3DManager_IDLServer::runToolTrial(const std::string& tool, const int32_t numAct) {
+bool tool3DManager_IDLServer::runToolTrial(const int32_t numRep, const std::string& tool, const int32_t numAct) {
   bool _return = false;
   tool3DManager_IDLServer_runToolTrial helper;
-  helper.init(tool,numAct);
+  helper.init(numRep,tool,numAct);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolTrial(const std::string& tool, const int32_t numAct)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runToolTrial(const int32_t numRep, const std::string& tool, const int32_t numAct)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1647,53 +1593,16 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "runToolPose") {
-      std::string tool;
-      double deg;
-      double disp;
-      double tilt;
+      int32_t numRep;
       int32_t numAct;
-      if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
-      }
-      if (!reader.readDouble(deg)) {
-        deg = 0;
-      }
-      if (!reader.readDouble(disp)) {
-        disp = 0;
-      }
-      if (!reader.readDouble(tilt)) {
-        tilt = 45;
+      if (!reader.readI32(numRep)) {
+        numRep = 1;
       }
       if (!reader.readI32(numAct)) {
         numAct = 8;
       }
       bool _return;
-      _return = runToolPose(tool,deg,disp,tilt,numAct);
-      yarp::os::idl::WireWriter writer(reader);
-      if (!writer.isNull()) {
-        if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeBool(_return)) return false;
-      }
-      reader.accept();
-      return true;
-    }
-    if (tag == "runToolOr") {
-      std::string tool;
-      double graspOr;
-      int32_t numAct;
-      if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
-      }
-      if (!reader.readDouble(graspOr)) {
-        graspOr = 0;
-      }
-      if (!reader.readI32(numAct)) {
-        numAct = 8;
-      }
-      bool _return;
-      _return = runToolOr(tool,graspOr,numAct);
+      _return = runToolPose(numRep,numAct);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1703,17 +1612,20 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "runToolTrial") {
+      int32_t numRep;
       std::string tool;
       int32_t numAct;
+      if (!reader.readI32(numRep)) {
+        numRep = 1;
+      }
       if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
+        tool = "";
       }
       if (!reader.readI32(numAct)) {
         numAct = 8;
       }
       bool _return;
-      _return = runToolTrial(tool,numAct);
+      _return = runToolTrial(numRep,tool,numAct);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1830,7 +1742,6 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("resetObj");
     helpString.push_back("runRandPoses");
     helpString.push_back("runToolPose");
-    helpString.push_back("runToolOr");
     helpString.push_back("runToolTrial");
     helpString.push_back("runExp");
     helpString.push_back("selectAction");
@@ -1962,19 +1873,13 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
     if (functionName=="runToolPose") {
-      helpString.push_back("bool runToolPose(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const int32_t numAct = 8) ");
+      helpString.push_back("bool runToolPose(const int32_t numRep = 1, const int32_t numAct = 8) ");
       helpString.push_back("Runs numAct actions with the given tool on the given pose and computes the effect. \n ");
       helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
-    if (functionName=="runToolOr") {
-      helpString.push_back("bool runToolOr(const std::string& tool, const double graspOr = 0, const int32_t numAct = 8) ");
-      helpString.push_back("Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n ");
-      helpString.push_back("@return true/false on success/failure to perform all actions ");
-    }
     if (functionName=="runToolTrial") {
-      helpString.push_back("bool runToolTrial(const std::string& tool, const int32_t numAct = 8) ");
-      helpString.push_back("For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations ");
-      helpString.push_back("of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n ");
+      helpString.push_back("bool runToolTrial(const int32_t numRep = 1, const std::string& tool = \"\", const int32_t numAct = 8) ");
+      helpString.push_back("For the given tool, performs numAct actions for each toolpose. Tries all grasp orientation {-90, 0, 90} ");
       helpString.push_back("@return true/false on success/failure to perfomr all actions on all toolPoses ");
     }
     if (functionName=="runExp") {
