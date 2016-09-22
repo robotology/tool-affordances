@@ -1,0 +1,95 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>himrepClassifier</name>
+    <description>This module is responsible for the communication with coders (i.e. sparseCoder or caffeCoder) and the classifier (i.e. linearClassifierModule) for learning and classify feature vectors. Input features are passed, the output are the scores of the SVM machines</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>    
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+        <author email=""> Sean Ryan Fanello </author>
+        <author email=""> xml by Tanis Mar </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/himrepClassifier/img:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>Receives an input image.</description>
+        </input>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/himrepClassifier/SIFTimg:i </port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description>Reads the image with the extracted local descriptors from the coder.</description>
+        </input>
+
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/himrepClassifier/scores:i</port>
+            <description> Reads the classification scores from the classifier.</description>
+        </input> 
+
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/himrepClassifier/features:i</port>
+            <description> Reads the hierarchical image representation from the coder..</description>
+        </input> 
+
+        <input port_type="service">
+            <type> Rpc</type>
+            <port carrier="tcp">/himrepClassifier/rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>Receives rpc requests for training and recognition.</description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/himrepClassifier/img:o</port>
+            <description>Outputs the image to the coder. </description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/himrepClassifier/SIFTimg:o</port>
+            <description>Outputs the image with the extracted local descriptors. </description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/himrepClassifier/features:o </port>
+            <description>Outputs  the hierarchical image representation to the classifier.</description>
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/himrepClassifier/classify:rpc </port>
+            <description> RPC port that communicates with the classifier module.</description>        
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/himrepClassifier/opc </port>
+            <description> RPC port communication with the Object Property Collector..</description>        
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+

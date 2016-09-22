@@ -141,18 +141,12 @@ public:
    * Runs numAct actions with the given tool on the given pose and computes the effect. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runToolPose(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const int32_t numAct = 8);
+  virtual bool runToolPose(const int32_t numRep = 1, const int32_t numAct = 8);
   /**
-   * Runs numAct actions with the given tool on the given orientation, for the displacements {-2, 0, 2} and computes the effect. \n
-   * @return true/false on success/failure to perform all actions
-   */
-  virtual bool runToolOr(const std::string& tool, const double graspOr = 0, const int32_t numAct = 8);
-  /**
-   * For the given tool, performs numAct actions for each toolpose. Tries all toolposes as combinations
-   * of grasp orientation {-90, 0, 90} and displacements { -2, 0, 2} cm. \n
+   * For the given tool, performs numAct actions for each toolpose. Tries all grasp orientation {-90, 0, 90}
    * @return true/false on success/failure to perfomr all actions on all toolPoses
    */
-  virtual bool runToolTrial(const std::string& tool, const int32_t numAct = 8);
+  virtual bool runToolTrial(const int32_t numRep = 1, const std::string& tool = "", const int32_t numAct = 8);
   /**
    * Runs full trials for all tool with indices between toolini and toolEnd. \n
    * @return true/false on success/failure to perform all actions

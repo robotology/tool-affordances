@@ -1,0 +1,66 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>sparseCoder</name>
+    <description>This module is responsible for coding images into feature vectors. To this end, we extract local appearance descriptors (sparse or dense). These descriptors are coded using a learned dictionary and the pooled together via a spatial pyramid representation.</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>    
+    <param desc="dictionary file.ini where atoms are stored." default="buffer"> dictionary_file</param>
+    <param desc="coding method used. Possible values are 'BOW' for Bag of Words, 'SC' for Sparse Coding, 'BCE' for Best Codes Entries."> coding_mode</param>
+    <param desc="regular grid of dense descriptors must be used (1) or sparse keypoints must be detected (0)." default="0"> dense_descriptors</param>
+    <param desc="Number of nearest neighbors used for the encoding with BCE." default="5"> nearest_neighbor</param>   
+    <param desc="Scale of local descriptors extracted from a dense grid." default="1"> grid_scale</param> 
+    <param desc="Sampling step among descriptors in a dense grid.." default="1">grid_step</param> 
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+        <author email=""> Sean Ryan Fanello </author>
+        <author email=""> xml by Tanis Mar </author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/sparseCoder/img:i</port>
+            <required>yes</required>
+            <priority>no</priority>
+            <description> Receives the image acquired from the camera.</description>
+        </input>
+        <input port_type="service">
+            <type> Rpc</type>
+            <port carrier="tcp">/sparseCoder/rpc</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>receives requests for SIFT dump or dictionary learning.</description>
+        </input>
+
+        <!-- output datas if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/sparseCoder/code:o</port>
+            <description> streams out the vector containing the hierarchical image representation.</description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="udp">/sparseCoder/img:o</port>
+            <description> Streams out the image containing the extracted local descriptors. </description>
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+        <library>OpenCV</library>
+    </development>
+
+</module>
+

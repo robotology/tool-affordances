@@ -128,6 +128,9 @@ protected:
     bool                        addToolTip(const Point3D ttip);
     bool                        extractFeats();
 
+    double                      getToolOri();
+    int                         findToolInd(const std::string &tool);
+
     // Object Localization and effect computation
     double                      findTableHeight(bool calib = true);
     bool                        trackObjExe();
@@ -142,7 +145,7 @@ protected:
     bool                        slideExe(const double theta = 0.0, const double radius = 0.1);
     bool                        dragExe(double theta = 0.0, double radius = 0.1, double tilt = 0.0);
     bool                        drag3DExe(double x, double y, double z,  double theta = 0.0, double radius = 0.1, double tilt = -15.0, bool useTool = true);
-
+    bool                        checkSaveDrag(yarp::sig::Vector coords, double theta , double radius);
 
 public:
 
@@ -180,9 +183,8 @@ public:
 
     // Experiment functions
     bool                        runRandPoses(int numPoses = 50,int numAct = 8);
-    bool                        runToolPose(const std::string& tool, double graspOr = 0.0, double graspDisp = 0.0, double graspTilt = 45.0, int numAct = 8);
-    bool                        runToolOr(const std::string& tool, double graspOr = 0.0, int numAct = 8);
-    bool                        runToolTrial(const std::string& tool, int numAct = 8);
+    bool                        runToolPose(int numRep  = 1, int numAct = 8);
+    bool                        runToolTrial(int numRep  = 1, const std::string& tool = "",  int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
     bool                        selectAction(int goal = 1);
     bool                        predExp(int goal = 1);

@@ -226,8 +226,8 @@ void CtrlThread::run() {
     double toolPose = 0.0;
     double toolDisp = 0.0;
     double toolTilt = 0.0;
-    double objPosX = -0.1;
-    double objPosZ = 0.4;
+    double objPosX = -0.17;
+    double objPosZ = 0.45;
     NetInt32 code;
 
 

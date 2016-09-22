@@ -56,8 +56,6 @@ input images.</description>
         <input>
             <!-- <type> refers to nominal type of data (e.g. ImageFrame, String). -->
             <type>Image</type>
-
-            <!-- input port which receive the data. -->
             <port carrier="udp">/motionCUT/img:i</port>
             <required>yes</required>
             <priority>no</priority>

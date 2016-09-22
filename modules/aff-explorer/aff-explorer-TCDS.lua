@@ -6,7 +6,7 @@
 
 
 -- XXX All these consts could be set by ini file
--- -- -- DEclare consts.
+-- -- -- Declare consts.
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
 DISP_LENGTH     = 0.15      -- length of the drag action
@@ -34,21 +34,21 @@ ACTION_LIST = {["no_act"] = -1, ["drag_right"] = 0, ["drag_right_up"] = 1, ["dra
 ORI_LIST = {-89.0, 0.0, 89.0}
 
 
---TOOL_LIST = {"RAK1", "RAK2", "HOE1", "HOE2", "SHO1","SHO2", "HOK1","HOK2","STI1","STI2"}
+TOOL_LIST = {"HOE1", "HOE2","HOE3", "HOK1","HOK2","HOK3", "RAK1", "RAK2", "RAK3", "SHO1","SHO2","SHO3","STI1","STI2","STI3"}
 -- rakeBigBlue = RAK1, rakeBlue = RAK2,  rakeGreen = RAK3, shovelGreen = SHO1, shovelOrange = SHO2, shovelYellow = SHO3
-TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 
-                 "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
-                 "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
-                 "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
-                 "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9", 
-                 "flaT", "star"}
+-- TOOL_LIST_SIM = {"hoe0","hoe1", "hoe2", "hoe3","hoe4", "hoe5", "hoe6","hoe7", "hoe8", "hoe9", 
+--                 "hok0","hok1", "hok2", "hok3","hok4", "hok5", "hok6","hok7", "hok8", "hok9", 
+--                 "rak0","rak1", "rak2", "rak3","rak4", "rak5", "rak6","rak7", "rak8", "rak9", 
+--                 "sti0","sti1", "sti2", "sti3","sti4", "sti5", "sti6","sti7", "sti8", "sti9", 
+--                 "sho0","sho1", "sho2", "sho3","sho4", "sho5", "sho6","sho7", "sho8", "sho9", 
+--                 "flaT", "star"}
 
 
 ---------------- Modifiable variables for module flow:: 
 
 bin_aff = false
-trials_x_tp = 5
-repeat_times = 3
+trials_x_tp = 2
+repeat_times = 1
 SIM = true
 activeExp = false
 
@@ -111,7 +111,7 @@ tmanager_rpc:open("/affExplorer/t3dm:rpc")
 ispeak_rpc:open("/affExplorer/ispeak:rpc")
 affcollect_rpc:open("/affExplorer/affcol:rpc")
 
--- XXX this should be deleted when module works (connectiosn should go through yarpmanager):
+-- XXX this should be deleted when module works (connections should go through yarpmanager):
 if robot == "icub" then
     ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
     if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
@@ -174,15 +174,12 @@ while state ~= "exit" do
         print("State = ",state)
         if SIM then
             if activeExp == true then
-                -- tool_name, ori_i, act_i = active_exploration()  
-                tool_name = "sho7"
-                ori_i = 3
-                act_i = 6 
+                tool_name, ori_i, act_i = active_exploration()  
             else         
-                tool_name = select_tool(TOOL_LIST_SIM, t_i)     -- SIM
+                tool_name = select_tool(TOOL_LIST_SIM, t_i)                 -- SIM
             end
         else
-            tool_name = select_tool(TOOL_LIST, 0)         -- REAL
+            tool_name = select_tool(TOOL_LIST, 0)                           -- REAL
         end
         print("Tool Selected:", tool_name)
 
