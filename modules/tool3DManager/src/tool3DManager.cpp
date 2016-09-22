@@ -390,22 +390,7 @@ bool Tool3DManager::runToolPose(const string &tool, double graspOr, double grasp
 
     for (int i=1 ; i<=numAct ; i++){
         dragExe(theta,0.15,tilt);
-        computeEffect();
-        if (!(robot == "icubSim"))
-        {
-            cout << '\a' << endl;
-            cout << "Effect computed, 5 seconds to put the object back in place" <<endl;
-            cout << "5" <<endl;
-            Time::delay(1);
-            cout << "4" <<endl;
-            Time::delay(1);
-            cout << "3" <<endl;
-            Time::delay(1);
-            cout << "2" <<endl;
-            Time::delay(1);
-            cout << "1" <<endl;
-            Time::delay(1);
-        }
+        computeEffect();   
         cout << "Going to next action" <<endl;
         theta += thetaDiv;
     }
@@ -1499,6 +1484,19 @@ bool Tool3DManager::resetCube()
         //cout << "Sent RPC command to simtoolloader: " << cmdSim.toString() << "." <<endl;
         //cout << " Received reply: " << replySim.toString() << endl;
         Time::delay(0.3); // give time for the cube to reach its position before jumping to next step
+    } else {
+        cout << '\n' << endl;
+        cout << "Effect computed, 5 seconds to put the object back in place" <<endl;
+        cout << "5" <<endl;
+        Time::delay(1);
+        cout << "4" <<endl;
+        Time::delay(1);
+        cout << "3" <<endl;
+        Time::delay(1);
+        cout << "2" <<endl;
+        Time::delay(1);
+        cout << "1" <<endl;
+        Time::delay(1);
     }
     return true;
 }
@@ -1657,6 +1655,8 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
             return false;
         }
     }
+
+    // XXX saveDrag = checksavedrag(coordsIni, theta, radius)       // check if the desired drag is save (heurisitcs).
 
 
     // Action during the Affordance Motor Module execution transforms the end-effector from the hand to the tip pf the tool,
