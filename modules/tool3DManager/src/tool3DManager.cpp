@@ -283,17 +283,20 @@ bool Tool3DManager::regrasp(double deg, double disp, double tilt, double Z){
 }
 
 bool Tool3DManager::findPose(){
-    bool ok;
+
     if (robot=="icubSim"){
         cout << "Grasp in sim corresponds surely with given one." << endl;
         return false;
     }
-    ok = findPoseExe(toolname, tooltip);
+    bool ok;
+    double ori;
+    ok = findPoseExe(toolname, tooltip, ori);
     if (!ok){
         cout << "Tool Pose could not be estimated properly" << endl;
         return false;
     }
-    cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
+    cout <<  "Tool  grasped with orientation: " << ori << endl;
+    cout <<  "Tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
     ok = addToolTip(tooltip);
     if (!ok){
@@ -781,11 +784,11 @@ bool Tool3DManager::loadToolSim(const string &tool, const double graspOr,const d
             return false;
         }
 
-        string cloudName = "sim/"+ tool;
-        cout << "cloud model: " << cloudName << endl;
+        //string cloudName = "sim/"+ tool;
+        cout << "cloud model: " << tool << endl;
 
         // Query toolFeatExt to load model to load 3D Pointcloud.
-        if (!load3Dmodel(cloudName)){
+        if (!load3Dmodel(tool)){
             cout << "Coudln't load the tool." << endl;
             return false;
         }        
@@ -869,10 +872,10 @@ bool Tool3DManager::loadToolPose(const string &tool, const double graspOr, const
         return false;
     }
 
-    string cloudName = "real/"+ tool;
-    cout << "cloud model: " << cloudName << endl;
+    //string cloudName = "real/"+ tool;
+    cout << "cloud model: " << tool << endl;
 
-    ok = load3Dmodel(cloudName);
+    ok = load3Dmodel(tool);
     if (!ok){
         cout << "O3DE could not load the tool" << endl;
         return false;
@@ -922,12 +925,12 @@ bool Tool3DManager::getToolExe(const string& tool)
     }
     cout <<  "Tool grasped!" << endl;
 
-    ok = findPoseExe(tool, tooltip);
+    double ori;
+    ok = findPoseExe(tool, tooltip, ori);
     if (!ok){
         cout << "Tool Pose could not be estimated properly" << endl;
         return false;
     }
-    double ori = getToolOri();
     cout <<  "Tool  grasped with orientation: " << ori << endl;
     cout <<  "Tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
@@ -976,29 +979,20 @@ double Tool3DManager::getToolOri()
 }
 
 /**********************************************************/
-bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
+bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip, double ori)
 {
     if (tool.size()<4){
         cout << " Tool not loaded, please load tool before attempting to estimate pose" << endl;
         return false;
     }
 
-    // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
-    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
-
-    cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("loadCloud");
-    cmd3DE.addString(tool);
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
-    rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-
-    if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "objects3DExplorer coudln't load the tool." << endl;
+    if (!load3Dmodel(tool)){
+        cout << "O3DE could not load the tool" << endl;
         return false;
     }
 
     // Query object3DExplorer to find the tooltip
+    Bottle cmd3DE,reply3DE;
     cout << "Finding out Pose and tooltip by aligning 3D partial view with model." << endl;
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("findTooltipAlign");
@@ -1007,22 +1001,15 @@ bool Tool3DManager::findPoseExe(const string& tool, Point3D &ttip)
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() == "[nack]" ){
-        cout << "Objects3Dexplorer couldn't align properly, trying from another pose." << endl;
-        lookToolExe();
-        cmd3DE.clear();   reply3DE.clear();
-        cmd3DE.addString("findTooltipAlign");
-        cmd3DE.addInt(5);
-        rpc3Dexp.write(cmd3DE, reply3DE);
-        if (reply3DE.get(0).asString() == "[nack]" ){
-            cout << "Objects3Dexplorer couldn't find out the pose." << endl;
-            return false;
-        }
+        cout << "Objects3Dexplorer couldn't find out the pose." << endl;
+        return false;
     }
 
     Bottle tooltipBot = reply3DE.tail();
     ttip.x = tooltipBot.get(0).asDouble();
     ttip.y = tooltipBot.get(1).asDouble();
     ttip.z = tooltipBot.get(2).asDouble();
+    ori = tooltipBot.get(3).asDouble();
 
     return true;
 }
@@ -1627,6 +1614,9 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
 /**********************************************************/
 bool Tool3DManager::dragExe(const double theta, const double radius, const double tilt)
 {
+        Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
+        Bottle cmdARE,replyARE;
+    Bottle cmd3DE,reply3DE;                         // bottles for O3DE
     actVec.clear();		// Clear to make space for new coordinates
     actVec.resize(2);   // Resize to save theta - radius coordinates coordinates
 
@@ -1657,15 +1647,27 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     // so the representation has to be inverted so it still shows the right tooltip while performing the action
     // and restored afterwards so it shows it also during not execution.
     cout << "Deactivating Tootip projection: " << endl; 
-    Bottle cmd3DE,reply3DE;                 // bottles for O3DE
+
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("showTipProj");
     cmd3DE.addString("OFF");
     rpc3Dexp.write(cmd3DE, reply3DE);
 
+    if (robot != "icubSim"){
+        cmdARE.clear();
+        replyARE.clear();
+        cmdARE.addString("look");
+        cmdARE.addString("hand");
+        cmdARE.addString(hand);
+        cmdARE.addString("fixate");
+        cmdARE.addString("block_eyes");
+        cmdARE.addDouble(5.0);
+        rpcMotorAre.write(cmdARE, replyARE);
+    }
+
     // Perform drag action
     cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
-    Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
+
     cmdAMM.clear();replyAMM.clear();
     cmdAMM.addString("drag");                 // Set a position in the center in front of the robot
     cmdAMM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly

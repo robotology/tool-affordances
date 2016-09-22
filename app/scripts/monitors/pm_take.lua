@@ -208,16 +208,16 @@ PortMonitor.accept = function(thing)
     pm_print("I need a tool")
     if get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y) ~= nil then 
         --say("I need a tool. Give me the shovel, please!")
-        --ask_tool("real/STI3") -- Yellow shovel
+        --ask_tool("STI3") -- Yellow shovel
         
         say("I need a tool. Give me the stick, please!")
-        ask_tool("real/STI3") -- 2-MArkes stick
+        ask_tool("STI3") -- 2-MArkes stick
 
         --say("I need a tool. Give me the rake, please!")
         --ask_tool("real/rakeBlue")
     else
         say("I need a tool. Give me the rake, please!")
-        ask_tool("real/RAK2")  -- Blue rake
+        ask_tool("RAK2")  -- Blue rake
     end
 
     -- go home
