@@ -48,7 +48,7 @@ service tool3DManager_IDLServer
      * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
      * @return true/false on success/failure of loading the tool with correct pose
      */
-    bool getToolByPose(1:string tool, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0,  5:double shift = 0.0);
+    bool getToolParam(1:string tool, 2:double deg = 0.0, 3:double disp = 0.0, 4:double tilt = 45.0,  5:double shift = 0.0);
 
     /**
      * Performs the sequence to get the tool: \n
@@ -57,13 +57,13 @@ service tool3DManager_IDLServer
      * - Find pose and tooltip with align method (by findPose)
      * @return true/false on success/failure of grasping and loading the named tool
      */
-    bool getTool(1:string tool);
+    bool getToolAlign(1:string tool);
 
     /**
      * Communicates with ARE and KM to grasp a tool and move it to the center.
      * @return true/false on success/failure
      */
-    bool graspTool();
+    bool graspTool(1:string tool);
 
     /**
      * Communicates with O3DE to explore the tool and get the tooltip without a model

@@ -124,7 +124,7 @@ protected:
 
 
     bool                        findPoseParamExe(Point3D &ttip, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0, const double graspShift = 0.0);
-    bool                        findPoseAlignExe(Point3D &ttip, double ori, double displ, double tilt);
+    bool                        findPoseAlignExe(Point3D &ttip, double &ori, double &displ, double &tilt);
     bool                        addToolTip(const Point3D ttip);
 
     bool                        exploreTool(Point3D &ttip);

@@ -30,10 +30,10 @@ public:
    */
   virtual bool setSeg(const bool seg = 0);
   /**
-   * Set the tool name on objects3DExplorer
+   * Loads the tool on objects3DExplorer and changes name
    * @return true/false on success/failure on setting name
    */
-  virtual bool setToolName(const std::string& tool);
+  virtual bool loadModel(const std::string& tool);
   /**
    * Performs the sequence to get the tool: \n
    * - On the simulator calls simtoolloader which creates the tool  <i>tool</i> at the orientation <i>deg</i>, tilted at <i>tilt</i> and with a displacement on the -Y hand axis <i>disp</i>. Uses magnet function to hold it to hand.
@@ -41,7 +41,7 @@ public:
    * - On the real robot moves hand to receiving position and closes hand on tool grasp. In this case  <i>tool</i>, <i>deg</i>, <i>disp</i>  and <i>tilt</i> should correspond to the way in which the tool is given
    * @return true/false on success/failure of loading the tool with correct pose
    */
-  virtual bool getToolByPose(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0);
+  virtual bool getToolParam(const std::string& tool, const double deg = 0, const double disp = 0, const double tilt = 45, const double shift = 0);
   /**
    * Performs the sequence to get the tool: \n
    * - Grasp (through ARE)
@@ -49,12 +49,12 @@ public:
    * - Find pose and tooltip with align method (by findPose)
    * @return true/false on success/failure of grasping and loading the named tool
    */
-  virtual bool getTool(const std::string& tool);
+  virtual bool getToolAlign(const std::string& tool);
   /**
    * Communicates with ARE and KM to grasp a tool and move it to the center.
    * @return true/false on success/failure
    */
-  virtual bool graspTool();
+  virtual bool graspTool(const std::string& tool);
   /**
    * Communicates with O3DE to explore the tool and get the tooltip without a model
    * @return true/false on success/failure

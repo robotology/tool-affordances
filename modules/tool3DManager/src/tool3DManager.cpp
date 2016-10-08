@@ -48,7 +48,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
         tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
     }else{
         cout << "Configuring for robot real iCub" << endl;
-        tableHeight = rf.check("tableHeight", Value(-0.12)).asDouble();      // Height of the table in the robots coord frame
+        tableHeight = rf.check("tableHeight", Value(-0.13)).asDouble();      // Height of the table in the robots coord frame
     }
     
 
@@ -430,6 +430,7 @@ bool Tool3DManager::runToolPose(int numRep,  int numAct){
             cout << "Going to next action" <<endl;
             theta += thetaDiv;
         }
+        theta = 0.0;
     }
     return true;
 }
@@ -967,7 +968,7 @@ bool Tool3DManager::regraspExe(Point3D &newTip, const double graspOr, const doub
 
 
 /**********************************************************/
-bool Tool3DManager::findPoseAlignExe(Point3D &ttip, double ori, double displ, double tilt)
+bool Tool3DManager::findPoseAlignExe(Point3D &ttip, double &ori, double &displ, double &tilt)
 {
     // Query object3DExplorer to find the tooltip
     Bottle cmd3DE,reply3DE;
@@ -990,6 +991,8 @@ bool Tool3DManager::findPoseAlignExe(Point3D &ttip, double ori, double displ, do
     ori = tooltipBot.get(3).asDouble();
     displ = tooltipBot.get(4).asDouble();
     tilt = tooltipBot.get(5).asDouble();
+
+    cout <<  "Pose found relative to parameters:" <<endl << " orientation: " << ori <<", displ: " << displ << " and tilt " << tilt <<  endl;
 
     return true;
 }
@@ -1565,8 +1568,11 @@ bool Tool3DManager::slideExe(const double theta, const double radius)
 /**********************************************************/
 bool Tool3DManager::dragExe(const double theta, const double radius, const double tilt)
 {
-        Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
-        Bottle cmdARE,replyARE;
+
+    goHomeExe();
+
+    Bottle cmdAMM,replyAMM;                    // bottles for the Affordance Motor Module
+    Bottle cmdARE,replyARE;
     Bottle cmd3DE,reply3DE;                         // bottles for O3DE
     actVec.clear();		// Clear to make space for new coordinates
     actVec.resize(2);   // Resize to save theta - radius coordinates coordinates
@@ -1576,6 +1582,8 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     target3DcoordsIni.resize(3);    // Resizze to 3D coordinates
     target3DrotIni.clear();         // Clear to make space for new rotation values
     target3DrotIni.resize(3);
+
+
 
     // Locate object and perform slide action with given theta and aradius parameters
     if (!getObjLoc(target3DcoordsIni))
@@ -1619,10 +1627,15 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
     // Perform drag action
     cout << "Approaching to object on coords: (" << target3DcoordsIni[0] << ", " << target3DcoordsIni[1] << ", "<< target3DcoordsIni[2] << "). " <<endl;
 
+    // Calculate approach shift depending on side it is approaching from:
+    double toolOri = graspVec[1];
+    double Y_off = 0.03*(sin(toolOri));
+
+
     cmdAMM.clear();replyAMM.clear();
     cmdAMM.addString("drag");                 // Set a position in the center in front of the robot
-    cmdAMM.addDouble(target3DcoordsIni[0] - 0.04);   // Approach the end effector slightly behind the object to grab it properly
-    cmdAMM.addDouble(target3DcoordsIni[1]);
+    cmdAMM.addDouble(target3DcoordsIni[0] - 0.05);   // Approach the end effector slightly behind the object to grab it properly
+    cmdAMM.addDouble(target3DcoordsIni[1]+Y_off);
     cmdAMM.addDouble(target3DcoordsIni[2]);   // Approach the center of the object, not its lower part.
     cmdAMM.addDouble(theta);
     cmdAMM.addDouble(radius);
