@@ -36,10 +36,10 @@ service tool3DManager_IDLServer
     /****************************** TOOL LOADING AND INFORMATION **************************************/
 
     /**
-     * Set the tool name on objects3DExplorer
+     * Loads the tool on objects3DExplorer and changes name
      * @return true/false on success/failure on setting name
      */
-    bool setToolName(1: string tool);
+    bool loadModel(1: string tool);
 
     /**
      * Performs the sequence to get the tool: \n
