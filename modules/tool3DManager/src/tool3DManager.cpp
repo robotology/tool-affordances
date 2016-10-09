@@ -1365,7 +1365,7 @@ bool Tool3DManager::computeEffect()
         cout << " Object not located, cant observe effect"<< endl;
         return false;
     }
-    cout << "Coords after action: (" << target3DcoordsAfter[0] << ", " << target3DcoordsAfter[2] << ", "<< target3DcoordsAfter[2] << "). " <<endl;
+    cout << "Coords after action: (" << target3DcoordsAfter[0] << ", " << target3DcoordsAfter[1] << ", "<< target3DcoordsAfter[2] << "). " <<endl;
 
     //To compute the displacement, we assume that the object hasnt move in the z axis (that is, has remained on the table)
     Vector displ = target3DcoordsAfter - target3DcoordsIni;
