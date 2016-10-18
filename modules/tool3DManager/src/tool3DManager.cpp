@@ -506,7 +506,7 @@ bool Tool3DManager::selectAction(int goal)
                bestAngleI = angleI;
            }
         }
-        double theta = 45 * bestAngleI;     // Get the drag angle corresponding to the best predicted effect
+        double theta = (360/numPoint) * bestAngleI;     // Get the drag angle corresponding to the best predicted effect
         printf("Best predicted drag from angle %g, predicted effect of %f m  \n", theta, bestEff);
 
         dragExe(theta,0.15, tilt);
