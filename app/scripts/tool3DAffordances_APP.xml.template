@@ -58,7 +58,7 @@
     </module>
     <module>
         <name>toolFeatExt</name>
-        <parameters>--from realTools.ini --binRes 1 --maxDepth 3</parameters>
+        <parameters>--from realTools.ini</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 854) (y 384.9))</geometry>
@@ -72,14 +72,14 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 640 --out /out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 700 --out /out --y 0 --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/seg</prefix>
         <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 320 --y 0 --out /blobOut --p 50 --compact</parameters>
+        <parameters>--x 350 --y 0 --out /blobOut --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/blobs</prefix>
         <geometry>(Pos (x 402) (y 258.9))</geometry>
@@ -121,16 +121,22 @@
         <geometry>(Pos ((x 836.5) (y 384.5)) ((x 840) (y 367)) ((x 854) (y 402))  )</geometry>
     </connection>
     <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/toolFeatExt/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
         <from>/objects3DExplorer/visualizer:rpc</from>
         <to>/show3D/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 941.5) (y 341.5)) ((x 840) (y 342)) ((x 1064) (y 341))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/clouds:o</from>
+        <from>/toolFeatExt/clouds:o</from>
         <to>/show3D/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 941.5) (y 341.5)) ((x 840) (y 342)) ((x 1064) (y 341))  )</geometry>
+        <protocol></protocol>
+        <geometry>(Pos ((x 1260.5) (y 603)) ((x 1241) (y 617)) ((x 1280) (y 589))  )</geometry>
     </connection>
     <connection>
         <from>/objects3DExplorer/img:o</from>
