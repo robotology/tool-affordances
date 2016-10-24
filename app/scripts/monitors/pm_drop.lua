@@ -21,6 +21,8 @@ function get_ar_status()
     return rep    
 end
 
+-- Change this function by one where it asks himrep whether the hand is full or empty
+
 function get_ar_holding()
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
