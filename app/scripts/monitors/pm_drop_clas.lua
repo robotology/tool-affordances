@@ -30,33 +30,16 @@ function get_hand_holding()
     cmdARE:addString("observe")
     ar_rpc:write(cmdARE, repARE)
 
+    -- Call graspChekcer module to ask classifier to check if its full or empty
 
-    -- Cal lclassifier to check if its full or empty
-    local img = yarp.Bottle()
-    img = img_in:read()
-    himrep_img:write(img)
+    local cmdGC = yarp.Bottle()    
+    local repGC = yarp.Bottle()
+    cmdGC:addString("check")
+    gc_rpc:write(cmdGC, repGC)
 
-    local bb_bot = yarp.Bottle()
-    local bb = yarp.Bottle()
+    return repGC
 
-    bb_bot = dispblob_bb:read(true);
-    bb = bb_bot:get(0):asList();
-    local tlx = bb:get(0):asDouble()
-    local tly = bb:get(1):asDouble()
-    local brx = bb:get(2):asDouble()
-    local bry = bb:get(3):asDouble()
-
-    print("[trainObserve] got bounding Box is ", tlx,", ", tly, ", ", brx,", ", bry)
-
-    local cmdHR = yarp.Bottle()    
-    local repHR = yarp.Bottle()
-    cmdHR:addString("train")
-    local options = yarp.Bottle()
-    options  = cmdHR:addList():addList()
-    options:add(bb_bot:get(0))
-    
-    himrep_rpc:write(cmdHR,repHR)
-    return repHR    
+   
 end
 
 function get_ar_holding()
@@ -79,19 +62,10 @@ PortMonitor.create = function(options)
 
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
+    gc_rpc = yarp.Port()
     ar_rpc:open("...")
     ar_rpc_io:open("...")
-
-    img_in = yarp.Port()
-    dispblob_bb = yarp.Port()
-    img_in:open("...")
-    dispblob_bb:open("...")
-
-    himrep_img = yarp.Port()
-    himrep_rpc = yarp.Port()    
-    himrep_img:open("...")
-    himrep_rpc:open("...")
-
+    gc_rpc:open("...")
 
     ret = yarp.NetworkBase_connect(ar_rpc:getName(), "/actionsRenderingEngine/rpc")
     if ret == false then
@@ -105,28 +79,11 @@ PortMonitor.create = function(options)
         return false
     end
 
-    ret = yarp.NetworkBase_connect(img_in:getName(), "/icub/camcalib/left/out")
+    ret = yarp.NetworkBase_connect(gc_rpc:getName(), "/graspChecker/rpc:i")
     if ret == false then 	
-        pm_print("cannot connect to /icub/camcalib/left/out")
+        pm_print("cannot connect to /graspChecker/rpc:i")
         return false
     end
-    ret = yarp.NetworkBase_connect(dispblob_bb:getName(), "/dispBlobber/roi/left:o")
-    if ret == false then 	
-        pm_print("cannot connect to /dispBlobber/roi/left:o")
-        return false
-    end
-
-    ret = yarp.NetworkBase_connect(himrep_img:getName(), "/himrepClassifierHand/img:i")
-    if ret == false then 	
-        pm_print("cannot connect to /himrepClassifierHand/img:i")
-        return false
-    end
-    ret = yarp.NetworkBase_connect(dispblob_bb:getName(), "/himrepClassifierHand/rpc")
-    if ret == false then 	
-        pm_print("cannot connect to /himrepClassifierHand/rpc")
-        return false
-    end
-
     prev_cmd_time = yarp.Time_now()
     return true
 end
@@ -147,7 +104,7 @@ PortMonitor.accept = function(thing)
     status = get_ar_status()
     leftarm_idle = (status:find("left_arm"):asString() == "idle")
     status = get_hand_holding()
-    lefthand_holding = (status:toString() == "full")
+    lefthand_holding = (status:toString() == "[ack]")
 
     return (leftarm_idle and lefthand_holding)
 end
