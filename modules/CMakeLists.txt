@@ -8,6 +8,7 @@ add_subdirectory(aff-explorer)
 
 # 2D Specific module
 add_subdirectory(affManager)
+add_subdirectory(toolRecognizer)
 #add_subdirectory(feat2DExt)	
 
 # 3D specific modules
