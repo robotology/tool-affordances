@@ -21,7 +21,7 @@ function get_ar_status()
     return rep    
 end
 
--- Ask himrep whether the hand is full or empty
+-- Ask graspChecker whether the hand is full or empty
 function get_hand_holding()
     
     --  look at hand
@@ -55,7 +55,7 @@ end
 PortMonitor.create = function(options)    
     -- setting constrasint 
     --file_name = options:find("file"):asString()
-    file_name = "pm_drop"   
+    file_name = "pm_drop_clas"   
     pm_print('created')
 
     PortMonitor.setConstraint("e_taken")
@@ -104,7 +104,8 @@ PortMonitor.accept = function(thing)
     status = get_ar_status()
     leftarm_idle = (status:find("left_arm"):asString() == "idle")
     status = get_hand_holding()
-    lefthand_holding = (status:toString() == "[ack]")
+    pm_print("graspChecker returned: ", status)
+    lefthand_holding = (status:toString() == "[ok]")
 
     return (leftarm_idle and lefthand_holding)
 end

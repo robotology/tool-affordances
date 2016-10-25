@@ -220,7 +220,7 @@
     <connection>
         <from external="true">/drop-away/cmd:o</from>
         <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop</protocol>
+        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop_clas</protocol>
         <geometry>(Pos ((x 1105.57) (y 77.0148)) ((x 1217.19) (y 116.719)) ((x -134) (y -176))  )</geometry>
     </connection>
     <connection>
