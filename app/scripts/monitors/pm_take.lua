@@ -73,7 +73,7 @@ PortMonitor.create = function(options)
     ret = yarp.NetworkBase_connect(ispeak_port:getName(), "/iSpeak")
     if ret == false then 	
         pm_print("cannot connect to /iSpeak!")
-        return false
+        --return false
     end
 
     objects = {}            -- for keeping the memory of objects

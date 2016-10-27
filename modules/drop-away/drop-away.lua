@@ -23,7 +23,6 @@ while true do
     -- write to the port
     local wb = port:prepare()
     wb:clear()
-    -- drop over (-0.15 -0.35 0.0) left
     wb:addString("drop")
     wb:addString("over")
     target = wb:addList()
