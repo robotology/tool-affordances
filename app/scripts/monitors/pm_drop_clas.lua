@@ -22,27 +22,17 @@ function get_ar_status()
 end
 
 -- Ask graspChecker whether the hand is full or empty
-function get_hand_holding()
-    
-    --  look at hand
-    local cmdARE = yarp.Bottle()    
-    local repARE = yarp.Bottle()
-    cmdARE:addString("observe")
-    ar_rpc:write(cmdARE, repARE)
-
+function check_grasp()    
     -- Call graspChekcer module to ask classifier to check if its full or empty
-
     local cmdGC = yarp.Bottle()    
     local repGC = yarp.Bottle()
     cmdGC:addString("check")
     gc_rpc:write(cmdGC, repGC)
 
-    return repGC
-
-   
+    return repGC  
 end
 
-function get_ar_holding()
+function get_ar_closed()
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("get")
@@ -59,6 +49,10 @@ PortMonitor.create = function(options)
     pm_print('created')
 
     PortMonitor.setConstraint("e_taken")
+
+    mod_cmd = false
+    observing_hand = false
+    AR_CMD = yarp.Bottle()
 
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
@@ -98,16 +92,53 @@ PortMonitor.destroy = function()
 end
 
 PortMonitor.accept = function(thing)
-
+    -- e_taken is set when wither the object is in "reachable position", or there is no object and the robot is in home position. 
     -- slow down the commands to the action rendering port
-    if (yarp.Time_now() - prev_cmd_time) < 1.0 then return false end
+    if (yarp.Time_now() - prev_cmd_time) < 2.0 then return false end
+
+    --Check first that the arm is idle before doing anything else
     status = get_ar_status()
     leftarm_idle = (status:find("left_arm"):asString() == "idle")
-    status = get_hand_holding()
+    if leftarm_idle ==false then
+        return false
+    end
+
+    -- Check that the hand is closed (otherwise it can be in home position)
+    status = get_ar_closed()
+    pm_print("graspChecker returned: ", status)
+    lefthand_closed = (status:toString() == "[ack]")
+    if lefthand_closed == false then
+        return false
+    end
+
+    -- Check that we actually have something in the hand
+    if observing_hand == false then
+        AR_CMD:clear()
+        AR_CMD:addString("observe")
+        observing_hand = true
+        mod_cmd = true
+        return true    
+    end
+
+    -- if all conditions are met and the robot is observing the object:
+    observing_hand = false
+    status = check_grasp()
     pm_print("graspChecker returned: ", status)
     lefthand_holding = (status:toString() == "[ok]")
 
-    return (leftarm_idle and lefthand_holding)
+    -- if the hand is empty, go home
+    if lefthand_holding == false then
+        AR_CMD:clear()
+        AR_CMD:addString("home")
+        AR_CMD:addString("head")
+        AR_CMD:addString("arms")  
+        mod_cmd = true 
+        return true
+
+    --if the hand is full, accept drop-away command
+    else
+       return true
+    end
 end
 
 --
@@ -115,6 +146,16 @@ end
 -- @param thing The Things abstract data type
 -- @return Things
 PortMonitor.update = function(thing)
+
+    prev_cmd_time = yarp.Time_now()
+    -- in order to observe hand, we modify the ARE command
+    if mod_cmd == true then
+        th = yarp.Things()
+        th:setPortWriter(AR_CMD)
+        mod_cmd = false
+        return th
+    end
+
     PortMonitor.unsetEvent("e_taken")
     pm_print("dropping away")
     return thing

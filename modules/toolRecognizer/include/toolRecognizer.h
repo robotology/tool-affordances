@@ -29,6 +29,7 @@
 #include <yarp/math/Math.h>
 
 #include <toolRecognizer_IDLServer.h>
+#include <BoundingBox.h>
 
 class ToolRecognizer : public yarp::os::RFModule, public toolRecognizer_IDLServer
 {
@@ -45,8 +46,8 @@ protected:
     bool                                running;
 
     /*****  Methods  ****/   
-    bool                trainObserve(const std::string &label);
-    bool                classifyObserve(std::string &label);
+    bool                trainObserve(const std::string &label, BoundingBox &bb);
+    bool                classifyObserve(std::string &label, BoundingBox &bb);
     std::string         processScores(const yarp::os::Bottle &scores);
 
 public:
@@ -61,8 +62,8 @@ public:
         bool						updateModule();
         double						getPeriod();
 
-        bool                        train(const std::string &label);
-        std::string                 recognize();
+        bool                        train(const std::string &label, const double tlx = 0.0,const double tly = 0.0, const double brx = 0.0, const double bry = 0.0);
+        std::string                        recognize(const double tlx = 0.0,const double tly = 0.0, const double brx = 0.0, const double bry = 0.0);
 
 
 };

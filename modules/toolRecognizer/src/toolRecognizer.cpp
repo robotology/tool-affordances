@@ -12,25 +12,37 @@ using namespace yarp::sig;
 
 
 /*******************************************************************************/
-bool ToolRecognizer::trainObserve(const string &label)
+bool ToolRecognizer::trainObserve(const string &label, BoundingBox &bb)
 {
     ImageOf<PixelRgb> img= *portImgIn.read(true);
     portImgOut.write(img);
 
-    Bottle bot = *portBBcoordsIn.read(true);
-    yarp::os::Bottle *items=bot.get(0).asList();
+    Bottle bot;
+    // Check if Bounding box was not initialized
+    if ((bb.tlx + bb.tly + bb.brx + bb.bry) == 0.0 ){
+        bot = *portBBcoordsIn.read(true);            // read all bounding boxes
+        Bottle *items=bot.get(0).asList();                  // pick up first bounding box
 
-    double tlx = items->get(0).asDouble();
-    double tly = items->get(1).asDouble();
-    double brx = items->get(2).asDouble();
-    double bry = items->get(3).asDouble();
-    yInfo("[trainObserve] got bounding Box is %lf %lf %lf %lf", tlx, tly, brx, bry);
+        bb.tlx = items->get(0).asDouble();
+        bb.tly = items->get(1).asDouble();
+        bb.brx = items->get(2).asDouble();
+        bb.bry = items->get(3).asDouble();
+    }else{
+
+        Bottle &items = bot.addList();
+        items.addDouble(bb.tlx);
+        items.addDouble(bb.tly);
+        items.addDouble(bb.brx);
+        items.addDouble(bb.bry);
+    }
+
+    yInfo("[trainObserve] got bounding Box is %lf %lf %lf %lf", bb.tlx, bb.tly, bb.brx, bb.bry);
 
     Bottle cmd,reply;
     cmd.addVocab(Vocab::encode("train"));
+
     Bottle &options=cmd.addList().addList();
     options.addString(label.c_str());
-
     options.add(bot.get(0));
 
     yInfo("[trainObserve] Sending training request: %s\n",cmd.toString().c_str());
@@ -43,24 +55,35 @@ bool ToolRecognizer::trainObserve(const string &label)
 
 
 /**********************************************************/
-bool ToolRecognizer::classifyObserve(string &label)
+bool ToolRecognizer::classifyObserve(string &label, BoundingBox &bb)
 {
     ImageOf<PixelRgb> img= *portImgIn.read(true);
     portImgOut.write(img);
 
     Bottle cmd,reply;
     cmd.addVocab(Vocab::encode("classify"));
-    Bottle &options=cmd.addList();
 
-    Bottle bot = *portBBcoordsIn.read(true);
+    Bottle &options=cmd.addList();                  // cmd = classify ()
 
-    for (int i=0; i<bot.size(); i++)
-    {
-        ostringstream tag;
-        tag<<"blob_"<<i;
-        Bottle &item=options.addList();
-        item.addString(tag.str().c_str());
-        item.addList()=*bot.get(i).asList();
+    // Check if Bounding box was not initialized
+    if ((bb.tlx + bb.tly + bb.brx + bb.bry) == 0.0 ){
+        Bottle bot = *portBBcoordsIn.read(true);        // Read all Bounding boxes. Bot = ((bb1)(bb2)(bb3))
+        for (int i=0; i<bot.size(); i++)                // Add each of them
+        {
+            ostringstream tag;
+            tag<<"blob_"<<i;
+            Bottle &item=options.addList();             // cmd = classify (() () () )
+            item.addString(tag.str().c_str());          // cmd = classify ((blob_i) (blob_j) (...) )
+            item.addList()=*bot.get(i).asList();        // cmd = classify ((blob_i (bb1)) (blob_j (bb2)) (...) )
+        }
+    }else{
+        Bottle &item=options.addList();                 // cmd = classify (())
+        item.addString("blob_1");                       // cmd = classify ((blob_i))
+        Bottle &bbox = item.addList();                  // cmd = classify ((blob_i ()))
+        bbox.addDouble(bb.tlx);
+        bbox.addDouble(bb.tly);
+        bbox.addDouble(bb.brx);
+        bbox.addDouble(bb.bry);                         // cmd = classify ((blob_i(bb1)))
     }
 
     yInfo("[classifyObserve] Sending classification request: %s\n",cmd.toString().c_str());
@@ -123,7 +146,7 @@ bool ToolRecognizer::configure(ResourceFinder &rf)
 
     ret = ret && portBBcoordsIn.open("/"+name+"/bb:i");
     ret = ret && portImgIn.open("/"+name+"/img:i");
-    ret = ret && portImgIn.open("/"+name+"/img:o");
+    ret = ret && portImgOut.open("/"+name+"/img:o");
 
     ret = ret && portHimRep.open("/"+name+"/himrep:rpc");
     ret = ret && portRpc.open("/"+name+"/rpc:i");
@@ -200,15 +223,30 @@ bool ToolRecognizer::quit(){
 }
 
 //Thrifted
-bool ToolRecognizer::train(const string &label)
+bool ToolRecognizer::train(const string &label, const double tlx ,const double tly, const double brx, const double bry)
 {
-    return trainObserve(label);
+    BoundingBox bb;
+    bb.tlx = tlx;
+    bb.tly = tly;
+    bb.brx = brx;
+    bb.bry = bry;
+
+    return trainObserve(label, bb);
 }
 
-string ToolRecognizer::recognize()
+string ToolRecognizer::recognize(const double tlx ,const double tly, const double brx, const double bry)
 {
     string label;
-    classifyObserve(label);
+
+    BoundingBox bb;
+    bb.tlx = tlx;
+    bb.tly = tly;
+    bb.brx = brx;
+    bb.bry = bry;
+
+    cout << "Classifying image from crop " << tlx <<", "<< tly <<", "<< brx <<", "<< bry <<". "<<endl;
+
+    classifyObserve(label, bb);
 
     return label;
 }

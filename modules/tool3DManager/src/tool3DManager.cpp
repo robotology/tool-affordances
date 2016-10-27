@@ -313,6 +313,7 @@ bool Tool3DManager::getToolFeats(){
     return true;
 }
 
+
 /***********************************************************************************/
 // ======================== Functions to call actions - compute effects
 
@@ -662,7 +663,7 @@ bool Tool3DManager::lookToolExe()
     rpc3Dexp.write(cmd3DE, reply3DE);
 
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "objects3DExplorer coudln't loo at tool." << endl;
+        cout << "objects3DExplorer coudln't look at tool." << endl;
         return false;
     }
 
@@ -1142,39 +1143,6 @@ bool Tool3DManager::extractFeats()
 
     return true;
 }
-
-
-/**********************************************************/
-/*void Tool3DManager::transformToolTip(const Point3D ttCanon, Point3D &tooltipTrans, const double graspOr, const double graspDisp, const double graspTilt)
-{
-    // Transform canonical coordinates to correspond with tilt, rotation and displacemnt of the tool.
-    Point3D ttRot = {0.0, 0.0, 0.0};
-    //ttRot.x = 0.0, ttRot.y = 0.0, ttRot.z = 0.0;    // Receive coordinates of tooltip of tool in canonical position
-    // Rotate first around Y axis to match tooltip to end-effector orientation
-    double sinOr = sin(graspOr*M_PI/180.0);
-    double cosOr = cos(graspOr*M_PI/180.0);
-    ttRot.x = ttCanon.x*cosOr - ttCanon.z*sinOr;
-    ttRot.y = ttCanon.y;
-    ttRot.z = ttCanon.x*sinOr + ttCanon.z*cosOr;
-    cout << "Tooltip of tool rotated " << graspOr << " degrees: x= "<< ttRot.x << ", y = " << ttRot.y << ", z = " << ttRot.z << endl;
-
-    // Now tilt 45 degrees arund Z to match the way in which the tool is held
-    Point3D ttTilt = {0.0, 0.0, 0.0};
-    // ttTilt.x =0.0, ttTilt.y=0.0, ttTilt.z=0.0;    // Receive coordinates of tooltip of tool in canonical position
-    ttTilt.x = ttRot.x*cos(graspTilt*M_PI/180.0) - ttRot.y*sin(graspTilt*M_PI/180.0);
-    ttTilt.y = ttRot.x*sin(graspTilt*M_PI/180.0) + ttRot.y*cos(graspTilt*M_PI/180.0);
-    ttTilt.z = ttRot.z;
-    cout << "Tooltip of tool rotated " << graspOr << " degrees and tilted 45 degrees: x= "<< ttTilt.x << ", y = " << ttTilt.y << ", z = " << ttTilt.z << endl;
-
-    // Finally add translation along -Y axis to match handle displacement
-    tooltipTrans.x = ttTilt.x;
-    tooltipTrans.y = ttTilt.y - graspDisp/100.0;;
-    tooltipTrans.z = ttTilt.z + 0.03;   // The center of the tool is always displaced 3cm from the tool ref frame to avoid collisions.
-    cout << "Tooltip of tool rotated, tilted and displaced "<< graspDisp << "cm: x= "<< tooltipTrans.x << ", y = " << tooltipTrans.y << ", z = " << tooltipTrans.z << endl;
-
-    return;
-}
-*/
 
 // ===================================================================================================================================/
 /***************************************************   OBJECT LOCALIZATION   *********************************************************/

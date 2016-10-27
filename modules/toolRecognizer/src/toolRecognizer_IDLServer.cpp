@@ -25,16 +25,24 @@ public:
 class toolRecognizer_IDLServer_train : public yarp::os::Portable {
 public:
   std::string label;
+  double tlx;
+  double tly;
+  double brx;
+  double bry;
   bool _return;
-  void init(const std::string& label);
+  void init(const std::string& label, const double tlx, const double tly, const double brx, const double bry);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class toolRecognizer_IDLServer_recognize : public yarp::os::Portable {
 public:
+  double tlx;
+  double tly;
+  double brx;
+  double bry;
   std::string _return;
-  void init();
+  void init(const double tlx, const double tly, const double brx, const double bry);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -83,9 +91,13 @@ void toolRecognizer_IDLServer_quit::init() {
 
 bool toolRecognizer_IDLServer_train::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeListHeader(6)) return false;
   if (!writer.writeTag("train",1,1)) return false;
   if (!writer.writeString(label)) return false;
+  if (!writer.writeDouble(tlx)) return false;
+  if (!writer.writeDouble(tly)) return false;
+  if (!writer.writeDouble(brx)) return false;
+  if (!writer.writeDouble(bry)) return false;
   return true;
 }
 
@@ -99,15 +111,23 @@ bool toolRecognizer_IDLServer_train::read(yarp::os::ConnectionReader& connection
   return true;
 }
 
-void toolRecognizer_IDLServer_train::init(const std::string& label) {
+void toolRecognizer_IDLServer_train::init(const std::string& label, const double tlx, const double tly, const double brx, const double bry) {
   _return = false;
   this->label = label;
+  this->tlx = tlx;
+  this->tly = tly;
+  this->brx = brx;
+  this->bry = bry;
 }
 
 bool toolRecognizer_IDLServer_recognize::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeListHeader(5)) return false;
   if (!writer.writeTag("recognize",1,1)) return false;
+  if (!writer.writeDouble(tlx)) return false;
+  if (!writer.writeDouble(tly)) return false;
+  if (!writer.writeDouble(brx)) return false;
+  if (!writer.writeDouble(bry)) return false;
   return true;
 }
 
@@ -121,8 +141,12 @@ bool toolRecognizer_IDLServer_recognize::read(yarp::os::ConnectionReader& connec
   return true;
 }
 
-void toolRecognizer_IDLServer_recognize::init() {
+void toolRecognizer_IDLServer_recognize::init(const double tlx, const double tly, const double brx, const double bry) {
   _return = "";
+  this->tlx = tlx;
+  this->tly = tly;
+  this->brx = brx;
+  this->bry = bry;
 }
 
 toolRecognizer_IDLServer::toolRecognizer_IDLServer() {
@@ -148,22 +172,22 @@ bool toolRecognizer_IDLServer::quit() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool toolRecognizer_IDLServer::train(const std::string& label) {
+bool toolRecognizer_IDLServer::train(const std::string& label, const double tlx, const double tly, const double brx, const double bry) {
   bool _return = false;
   toolRecognizer_IDLServer_train helper;
-  helper.init(label);
+  helper.init(label,tlx,tly,brx,bry);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool toolRecognizer_IDLServer::train(const std::string& label)");
+    yError("Missing server method '%s'?","bool toolRecognizer_IDLServer::train(const std::string& label, const double tlx, const double tly, const double brx, const double bry)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-std::string toolRecognizer_IDLServer::recognize() {
+std::string toolRecognizer_IDLServer::recognize(const double tlx, const double tly, const double brx, const double bry) {
   std::string _return = "";
   toolRecognizer_IDLServer_recognize helper;
-  helper.init();
+  helper.init(tlx,tly,brx,bry);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","std::string toolRecognizer_IDLServer::recognize()");
+    yError("Missing server method '%s'?","std::string toolRecognizer_IDLServer::recognize(const double tlx, const double tly, const double brx, const double bry)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -202,11 +226,28 @@ bool toolRecognizer_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "train") {
       std::string label;
+      double tlx;
+      double tly;
+      double brx;
+      double bry;
       if (!reader.readString(label)) {
-        label = "";
+        reader.fail();
+        return false;
+      }
+      if (!reader.readDouble(tlx)) {
+        tlx = 0;
+      }
+      if (!reader.readDouble(tly)) {
+        tly = 0;
+      }
+      if (!reader.readDouble(brx)) {
+        brx = 0;
+      }
+      if (!reader.readDouble(bry)) {
+        bry = 0;
       }
       bool _return;
-      _return = train(label);
+      _return = train(label,tlx,tly,brx,bry);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -216,8 +257,24 @@ bool toolRecognizer_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "recognize") {
+      double tlx;
+      double tly;
+      double brx;
+      double bry;
+      if (!reader.readDouble(tlx)) {
+        tlx = 0;
+      }
+      if (!reader.readDouble(tly)) {
+        tly = 0;
+      }
+      if (!reader.readDouble(brx)) {
+        brx = 0;
+      }
+      if (!reader.readDouble(bry)) {
+        bry = 0;
+      }
       std::string _return;
-      _return = recognize();
+      _return = recognize(tlx,tly,brx,bry);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -278,12 +335,12 @@ std::vector<std::string> toolRecognizer_IDLServer::help(const std::string& funct
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="train") {
-      helpString.push_back("bool train(const std::string& label = \"\") ");
+      helpString.push_back("bool train(const std::string& label, const double tlx = 0, const double tly = 0, const double brx = 0, const double bry = 0) ");
       helpString.push_back("Command to train tools by their label ");
       helpString.push_back("@return true/false on success/failure to train classifiers. ");
     }
     if (functionName=="recognize") {
-      helpString.push_back("std::string recognize() ");
+      helpString.push_back("std::string recognize(const double tlx = 0, const double tly = 0, const double brx = 0, const double bry = 0) ");
       helpString.push_back("Checks whether the hand is full or empty ");
       helpString.push_back("@return true/false  corresponding to full or empty hand ");
     }

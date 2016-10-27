@@ -169,6 +169,7 @@ public:
     bool                        findPose();
     bool                        getToolFeats();
 
+
     // Get object information
     yarp::sig::Vector           objLoc();
     yarp::sig::Vector           objRot();
