@@ -108,6 +108,18 @@ service tool3DManager_IDLServer
      */
     Vector objRot();
 
+    /**
+     * Command to train tools by their label
+     * @return true/false on success/failure to train classifiers.
+     */
+    bool learn(1: string label, 2:i32 tlx = 0, 3:i32 tly = 0, 4:i32 brx = 0 , 5:i32 bry = 0);
+
+    /**
+     * Checks whether the hand is full or empty
+     * @return true/false  corresponding to full or empty hand
+     */
+    string check(1:i32 tlx = 0, 2:i32 tly = 0, 3:i32 brx = 0 , 4:i32 bry = 0);
+
     /****************************** ACTIONS **************************************/
 
     /**

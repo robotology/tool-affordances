@@ -91,6 +91,16 @@ public:
    */
   virtual yarp::sig::Vector objRot();
   /**
+   * Command to train tools by their label
+   * @return true/false on success/failure to train classifiers.
+   */
+  virtual bool learn(const std::string& label, const int32_t tlx = 0, const int32_t tly = 0, const int32_t brx = 0, const int32_t bry = 0);
+  /**
+   * Checks whether the hand is full or empty
+   * @return true/false  corresponding to full or empty hand
+   */
+  virtual std::string check(const int32_t tlx = 0, const int32_t tly = 0, const int32_t brx = 0, const int32_t bry = 0);
+  /**
    * Adopt home position (optionally opens hands too)
    * @return true/false on success/failure
    */

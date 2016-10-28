@@ -95,6 +95,10 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     toolname = "";
     seg2D = true;
 
+    imgW = 320;
+    imgH = 240;
+    bbsize = 100;
+
     // Initialize effect measuring vectors
     target3DcoordsIni.resize(3, 0.0);
     target3DcoordsAfter.resize(3, 0.0);
@@ -116,12 +120,14 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     //rpc
     bool retRPC = true; 
     retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   // rpc in client to receive commands
-    retRPC = retRPC && rpcMotorAre.open(("/"+name+"/are:rpc").c_str());                // rpc server to query ARE
+    retRPC = retRPC && rpcAreCmd.open(("/"+name+"/are:rpc").c_str());                  // rpc server to query ARE
+    retRPC = retRPC && rpcAreGet.open(("/"+name+"/are:get").c_str());                  // rpc server to query ARE
     retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
     retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
     retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
     retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
+    retRPC = retRPC && rpcClassifier.open(("/"+name+"/clasif:rpc").c_str());           // rpc server to query objectFinder
 
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
@@ -152,8 +158,11 @@ bool Tool3DManager::interruptModule()
     rpcCmd.interrupt();
     rpcSimToolLoader.interrupt();
     rpcSimulator.interrupt();
-    rpcMotorAre.interrupt();
+    rpcAreCmd.interrupt();
     rpcAffMotor.interrupt();
+    rpcClassifier.interrupt();
+
+    rpc3Dexp.interrupt();
     rpcObjFinder.interrupt();
 
     return true;
@@ -169,8 +178,11 @@ bool Tool3DManager::close()
     rpcCmd.close();
     rpcSimToolLoader.close();
     rpcSimulator.close();
-    rpcMotorAre.close();
+    rpcAreCmd.close();
     rpcAffMotor.close();
+    rpcClassifier.close();
+
+    rpc3Dexp.close();
     rpcObjFinder.close();
 
 	running = false;
@@ -312,6 +324,19 @@ bool Tool3DManager::getToolFeats(){
     extractFeats();
     return true;
 }
+
+bool Tool3DManager::learn(const std::string &label)
+{
+    return trainClas(label);
+}
+
+string Tool3DManager::check()
+{
+    string label;
+    classify(label);
+    return label;
+}
+
 
 
 /***********************************************************************************/
@@ -619,7 +644,7 @@ bool Tool3DManager::graspToolExe(const std::string& tool)
     replyARE.clear();
     cmdARE.addString("tato");
     cmdARE.addString(hand);
-    rpcMotorAre.write(cmdARE,replyARE);
+    rpcAreCmd.write(cmdARE,replyARE);
     //Time::delay(2);
 
     // Close hand on tool grasp
@@ -628,14 +653,14 @@ bool Tool3DManager::graspToolExe(const std::string& tool)
     cmdARE.addString("hand");
     cmdARE.addString("close_hand_tool");
     cmdARE.addString(hand);
-    rpcMotorAre.write(cmdARE, replyARE);
+    rpcAreCmd.write(cmdARE, replyARE);
 
     // Check if grasp was successful
     cmdARE.clear();
     replyARE.clear();
     cmdARE.addString("get");
     cmdARE.addString("holding");
-    rpcMotorAre.write(cmdARE, replyARE);
+    rpcAreCmd.write(cmdARE, replyARE);
     if(!replyARE.get(0).asBool())
         return false;
 
@@ -1144,6 +1169,89 @@ bool Tool3DManager::extractFeats()
     return true;
 }
 
+bool Tool3DManager::trainClas(const std::string &label)
+{
+    Bottle cmdARE, replyARE;
+    cmdARE.clear();	replyARE.clear();
+    cmdARE.addString("observe");
+    rpcAreCmd.write(cmdARE,replyARE);
+
+    Bottle cmdAREget, replyAREget;
+    cmdAREget.clear();	replyAREget.clear();
+    cmdAREget.addString("get");
+    cmdAREget.addString("hand");
+    cmdAREget.addString("image");
+    rpcAreGet.write(cmdAREget,replyAREget);
+
+    int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
+    int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
+
+    Vector BB(4,0.0);
+    BB[0] = hand_u_left - bbsize/2;         // tlx
+    if (BB[0]< 0){        BB[0]= 0;    }
+    BB[1] = hand_v_left- bbsize/2;         // tly
+    if (BB[1]< 0){        BB[1]= 0;    }
+    BB[2] = hand_u_left + bbsize/2;         // brx
+    if (BB[2]> imgW){        BB[2]= imgW;    }
+    BB[3] = hand_v_left + bbsize/2;         // bry
+    if (BB[3]> imgH){        BB[3]= imgH;    }
+
+    Bottle cmdClas, replyClas;
+    cmdClas.clear();	replyClas.clear();
+    cmdClas.addString("train");
+    cmdClas.addString(label);
+    cmdClas.addInt(BB[0]);
+    cmdClas.addInt(BB[1]);
+    cmdClas.addInt(BB[2]);
+    cmdClas.addInt(BB[3]);
+    rpcClassifier.write(cmdClas,replyClas);
+
+    return true;
+}
+
+bool Tool3DManager::classify(std::string &label)
+{
+    Bottle cmdARE, replyARE;
+    cmdARE.clear();	replyARE.clear();
+    cmdARE.addString("observe");
+    rpcAreCmd.write(cmdARE,replyARE);
+
+    Bottle cmdAREget, replyAREget;
+    cmdAREget.clear();	replyAREget.clear();
+    cmdAREget.addString("get");
+    cmdAREget.addString("hand");
+    cmdAREget.addString("image");
+    rpcAreGet.write(cmdAREget,replyAREget);
+
+    int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
+    int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
+
+    Vector BB(4,0.0);
+    BB[0] = hand_u_left - bbsize/2;         // tlx
+    if (BB[0]< 0){        BB[0]= 0;    }
+    BB[1] = hand_v_left- bbsize/2;         // tly
+    if (BB[1]< 0){        BB[1]= 0;    }
+    BB[2] = hand_u_left + bbsize/2;         // brx
+    if (BB[2]> imgW){        BB[2]= imgW;    }
+    BB[3] = hand_v_left + bbsize/2;         // bry
+    if (BB[3]> imgH){        BB[3]= imgH;    }
+
+    Bottle cmdClas, replyClas;
+    cmdClas.clear();	replyClas.clear();
+    cmdClas.addString("check");
+    cmdClas.addInt(BB[0]);
+    cmdClas.addInt(BB[1]);
+    cmdClas.addInt(BB[2]);
+    cmdClas.addInt(BB[3]);
+    rpcClassifier.write(cmdClas,replyClas);
+
+    label = replyClas.toString();
+
+    cout << "Hand is: " << label << endl;
+    return true;
+}
+
+
 // ===================================================================================================================================/
 /***************************************************   OBJECT LOCALIZATION   *********************************************************/
 // ===================================================================================================================================/
@@ -1159,14 +1267,14 @@ double Tool3DManager::findTableHeight(bool calib){
         cmdARE.addString("calib");
         cmdARE.addString("table");
         cmdARE.addString("left");
-        rpcMotorAre.write(cmdARE,replyARE);
+        rpcAreCmd.write(cmdARE,replyARE);
     }
 
     cout << "Retrieving table height data from ARE " << hand <<endl;
     cmdARE.clear();     replyARE.clear();
     cmdARE.addString("get");
     cmdARE.addString("table");
-    rpcMotorAre.write(cmdARE,replyARE);
+    rpcAreCmd.write(cmdARE,replyARE);
 
     double th = replyARE.get(0).asDouble();
 
@@ -1198,7 +1306,7 @@ bool Tool3DManager::trackObjExe()
     cmdAre.addString("track");
     cmdAre.addString("track");
     cmdAre.addString("no_sacc");
-    rpcMotorAre.write(cmdAre,replyAre);
+    rpcAreCmd.write(cmdAre,replyAre);
     fprintf(stdout,"tracking started %s:\n",replyAre.toString().c_str());
     */
     return true;
@@ -1267,7 +1375,7 @@ bool Tool3DManager::getObjLoc(Vector &coords3D)
         Bottle& boords_bot = cmdAre.addList();
         boords_bot.addDouble(coords2D[0]);
         boords_bot.addDouble(coords2D[1]);
-        rpcMotorAre.write(cmdAre,replyAre);
+        rpcAreCmd.write(cmdAre,replyAre);
 
 
         if (replyAre.size() >1){
@@ -1474,7 +1582,7 @@ void Tool3DManager::goHomeExe(const bool hands)
             cmdAre.addString("head");
             cmdAre.addString("arms");
         }
-        rpcMotorAre.write(cmdAre,replyAre);
+        rpcAreCmd.write(cmdAre,replyAre);
     }
     return;
 }
@@ -1589,7 +1697,7 @@ bool Tool3DManager::dragExe(const double theta, const double radius, const doubl
         cmdARE.addString("fixate");
         cmdARE.addString("block_eyes");
         cmdARE.addDouble(5.0);
-        rpcMotorAre.write(cmdARE, replyARE);
+        rpcAreCmd.write(cmdARE, replyARE);
     }
 
     // Perform drag action
@@ -1670,7 +1778,7 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
         cmdARE.addString("fixate");
         cmdARE.addString("block_eyes");
         cmdARE.addDouble(5.0);
-        rpcMotorAre.write(cmdARE, replyARE);
+        rpcAreCmd.write(cmdARE, replyARE);
     }
 
     cmdAMM.clear();replyAMM.clear();
@@ -1688,7 +1796,7 @@ bool Tool3DManager::drag3DExe(double x, double y, double z, double theta, double
         cmdARE.clear();
         replyARE.clear();
         cmdARE.addString("idle");
-        rpcMotorAre.write(cmdARE, replyARE);
+        rpcAreCmd.write(cmdARE, replyARE);
     }
 
     // Restore show tool coordinates

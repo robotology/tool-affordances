@@ -199,6 +199,18 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -69) (y -48))  )</geometry>
     </connection>
     <connection>
+        <from>/tool3DManager/clasif:rpc</from>
+        <to external="true">/graspChecker/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/are:get</from>
+        <to>/actionsRenderingEngine/get:io</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
         <from>/objects3DExplorer/visualizer:rpc</from>
         <to>/Xperience/show3D/rpc:i</to>
         <protocol>tcp</protocol>

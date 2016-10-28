@@ -65,18 +65,18 @@ protected:
     std::string                     camera;             //camera
     std::string                     robot;				//robot
     double                          tableHeight;        // height of the table with respect to the robot frame
-    std::vector<std::string>   models;             // Vector to contain all models considered in the experiment.
+    std::vector<std::string>        models;             // Vector to contain all models considered in the experiment.
 
     yarp::os::RpcServer         rpcCmd;                 //human rpc port (receive commands via rpc)
 
     yarp::os::RpcClient         rpcSimToolLoader;       //rpc for the simulator tool loader
     yarp::os::RpcClient         rpcSimulator;           //rpc for the simulator tool loader
-    yarp::os::RpcClient         rpcMotorAre;            //rpc motor port ARE
+    yarp::os::RpcClient         rpcAreCmd;            //rpc motor port ARE
+    yarp::os::RpcClient         rpcAreGet;            //rpc motor port ARE
     yarp::os::RpcClient         rpcAffMotor;            //rpc port to affMotor Module
+    yarp::os::RpcClient         rpcClassifier;          //rpc port to affMotor Module
 
-
-    yarp::os::RpcClient         rpcFeatExt;             //rpc connection to toolFeatExt to extract features from cloud
-    yarp::os::RpcClient         rpc3Dexp;               //rpc connection to toolFeatExt to extract features from cloud
+    yarp::os::RpcClient         rpc3Dexp;               //rpc connection to objects3Dexplroer to extract features from cloud
 
     yarp::os::RpcClient         rpcObjFinder;           //rpc connecting to object finder
 
@@ -88,7 +88,6 @@ protected:
     /* class variables */
 	// Flags
 	bool						running;
-
 
 
     yarp::sig::Vector			target3DcoordsIni;		// Keeps the target position in 3D before the action
@@ -110,6 +109,10 @@ protected:
     std::string                 toolname;
     bool                        seg2D;              // if false, seg is from 3D.
 
+    int                         imgH;
+    int                         imgW;
+    int                         bbsize;
+
 	
     /****  Protected Methods ******/
     // Tool loading and feature extraction
@@ -129,6 +132,9 @@ protected:
 
     bool                        exploreTool(Point3D &ttip);
     bool                        extractFeats();
+
+    bool                        trainClas(const std::string &label);
+    bool                        classify(std::string &label);
 
     double                      findOri();
     int                         findToolInd(const std::string &tool);
@@ -169,6 +175,8 @@ public:
     bool                        findPose();
     bool                        getToolFeats();
 
+    bool                        learn(const std::string &label);
+    std::string                 check();
 
     // Get object information
     yarp::sig::Vector           objLoc();

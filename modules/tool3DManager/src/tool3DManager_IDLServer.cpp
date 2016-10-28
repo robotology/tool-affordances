@@ -131,6 +131,31 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class tool3DManager_IDLServer_learn : public yarp::os::Portable {
+public:
+  std::string label;
+  int32_t tlx;
+  int32_t tly;
+  int32_t brx;
+  int32_t bry;
+  bool _return;
+  void init(const std::string& label, const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class tool3DManager_IDLServer_check : public yarp::os::Portable {
+public:
+  int32_t tlx;
+  int32_t tly;
+  int32_t brx;
+  int32_t bry;
+  std::string _return;
+  void init(const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class tool3DManager_IDLServer_goHome : public yarp::os::Portable {
 public:
   bool hands;
@@ -584,6 +609,66 @@ bool tool3DManager_IDLServer_objRot::read(yarp::os::ConnectionReader& connection
 }
 
 void tool3DManager_IDLServer_objRot::init() {
+}
+
+bool tool3DManager_IDLServer_learn::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(6)) return false;
+  if (!writer.writeTag("learn",1,1)) return false;
+  if (!writer.writeString(label)) return false;
+  if (!writer.writeI32(tlx)) return false;
+  if (!writer.writeI32(tly)) return false;
+  if (!writer.writeI32(brx)) return false;
+  if (!writer.writeI32(bry)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_learn::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_learn::init(const std::string& label, const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry) {
+  _return = false;
+  this->label = label;
+  this->tlx = tlx;
+  this->tly = tly;
+  this->brx = brx;
+  this->bry = bry;
+}
+
+bool tool3DManager_IDLServer_check::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(5)) return false;
+  if (!writer.writeTag("check",1,1)) return false;
+  if (!writer.writeI32(tlx)) return false;
+  if (!writer.writeI32(tly)) return false;
+  if (!writer.writeI32(brx)) return false;
+  if (!writer.writeI32(bry)) return false;
+  return true;
+}
+
+bool tool3DManager_IDLServer_check::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readString(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void tool3DManager_IDLServer_check::init(const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry) {
+  _return = "";
+  this->tlx = tlx;
+  this->tly = tly;
+  this->brx = brx;
+  this->bry = bry;
 }
 
 bool tool3DManager_IDLServer_goHome::write(yarp::os::ConnectionWriter& connection) {
@@ -1073,6 +1158,26 @@ yarp::sig::Vector tool3DManager_IDLServer::objRot() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool tool3DManager_IDLServer::learn(const std::string& label, const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry) {
+  bool _return = false;
+  tool3DManager_IDLServer_learn helper;
+  helper.init(label,tlx,tly,brx,bry);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::learn(const std::string& label, const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+std::string tool3DManager_IDLServer::check(const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry) {
+  std::string _return = "";
+  tool3DManager_IDLServer_check helper;
+  helper.init(tlx,tly,brx,bry);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","std::string tool3DManager_IDLServer::check(const int32_t tlx, const int32_t tly, const int32_t brx, const int32_t bry)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool tool3DManager_IDLServer::goHome(const bool hands) {
   bool _return = false;
   tool3DManager_IDLServer_goHome helper;
@@ -1433,6 +1538,65 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "learn") {
+      std::string label;
+      int32_t tlx;
+      int32_t tly;
+      int32_t brx;
+      int32_t bry;
+      if (!reader.readString(label)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(tlx)) {
+        tlx = 0;
+      }
+      if (!reader.readI32(tly)) {
+        tly = 0;
+      }
+      if (!reader.readI32(brx)) {
+        brx = 0;
+      }
+      if (!reader.readI32(bry)) {
+        bry = 0;
+      }
+      bool _return;
+      _return = learn(label,tlx,tly,brx,bry);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "check") {
+      int32_t tlx;
+      int32_t tly;
+      int32_t brx;
+      int32_t bry;
+      if (!reader.readI32(tlx)) {
+        tlx = 0;
+      }
+      if (!reader.readI32(tly)) {
+        tly = 0;
+      }
+      if (!reader.readI32(brx)) {
+        brx = 0;
+      }
+      if (!reader.readI32(bry)) {
+        bry = 0;
+      }
+      std::string _return;
+      _return = check(tlx,tly,brx,bry);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeString(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "goHome") {
       bool hands;
       if (!reader.readBool(hands)) {
@@ -1740,6 +1904,8 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     helpString.push_back("getToolFeats");
     helpString.push_back("objLoc");
     helpString.push_back("objRot");
+    helpString.push_back("learn");
+    helpString.push_back("check");
     helpString.push_back("goHome");
     helpString.push_back("findTable");
     helpString.push_back("slide");
@@ -1832,6 +1998,16 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("yarp::sig::Vector objRot() ");
       helpString.push_back("Finds out the rotation of the object and returns its rotation values \n ");
       helpString.push_back("@return Vector bottle with object rotation ");
+    }
+    if (functionName=="learn") {
+      helpString.push_back("bool learn(const std::string& label, const int32_t tlx = 0, const int32_t tly = 0, const int32_t brx = 0, const int32_t bry = 0) ");
+      helpString.push_back("Command to train tools by their label ");
+      helpString.push_back("@return true/false on success/failure to train classifiers. ");
+    }
+    if (functionName=="check") {
+      helpString.push_back("std::string check(const int32_t tlx = 0, const int32_t tly = 0, const int32_t brx = 0, const int32_t bry = 0) ");
+      helpString.push_back("Checks whether the hand is full or empty ");
+      helpString.push_back("@return true/false  corresponding to full or empty hand ");
     }
     if (functionName=="goHome") {
       helpString.push_back("bool goHome(const bool hands = 0) ");

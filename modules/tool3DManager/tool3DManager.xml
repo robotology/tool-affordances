@@ -54,6 +54,11 @@
         </output>
         <output port_type="service">
             <type>rpc</type>
+            <port>/tool3DManager/are:get</port>
+            <description> Send commands to the Actions Rendering Engine module</description>
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
             <port>/tool3DManager/simToolLoader:rpc</port>
             <description> Send commands to simtoolloader</description>
         </output>
@@ -76,6 +81,11 @@
             <type>rpc</type>
             <port>/tool3DManager/objFind:rpc</port>
             <description> Send commands to the objectFinder Module</description>
+        </output>
+        <output port_type="service">
+            <type>rpc</type>
+            <port>/tool3DManager/clasif:rpc</port>
+            <description> Send commands classifier module to learn hand (or tools)</description>
         </output>
         <output>
             <type>Bottle</type>

@@ -27,13 +27,13 @@ end
 -- Ask graspChecker whether the hand is full or empty
 function check_grasp()    
     -- Call graspChekcer module to ask classifier to check if its full or empty
-    local cmdGC = yarp.Bottle()    
-    local repGC = yarp.Bottle()
-    cmdGC:addString("check")
-    gc_rpc:write(cmdGC, repGC)
-    --pm_print("check_grasp  " .. repGC:toString())
+    local cmdT3D = yarp.Bottle()    
+    local repT3D = yarp.Bottle()
+    cmdT3D:addString("check")
+    T3D_rpc:write(cmdT3D, repT3D)
+    --pm_print("check_grasp  " .. repT3D:toString())
 
-    return repGC  
+    return repT3D
 end
 
 function get_ar_closed()
@@ -61,10 +61,10 @@ PortMonitor.create = function(options)
 
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
-    gc_rpc = yarp.Port()
+    t3De_rpc = yarp.Port()
     ar_rpc:open("...")
     ar_rpc_io:open("...")
-    gc_rpc:open("...")
+    t3De_rpc:open("...")
 
     ret = yarp.NetworkBase_connect(ar_rpc:getName(), "/actionsRenderingEngine/rpc")
     if ret == false then
@@ -78,9 +78,9 @@ PortMonitor.create = function(options)
         return false
     end
 
-    ret = yarp.NetworkBase_connect(gc_rpc:getName(), "/graspChecker/rpc:i")
+    ret = yarp.NetworkBase_connect(t3De_rpc:getName(), "/tool3DManager/rpc:i")
     if ret == false then 	
-        pm_print("cannot connect to /graspChecker/rpc:i")
+        pm_print("cannot connect to /tool3DManager/rpc:i")
         return false
     end
     prev_cmd_time = yarp.Time_now()
@@ -122,6 +122,7 @@ PortMonitor.accept = function(thing)
         return false
     end
 
+    --[[
     -- If the hand is closed (not on HOME), look at it
     if observing_hand == false then
         AR_CMD:clear()
@@ -130,6 +131,7 @@ PortMonitor.accept = function(thing)
         mod_cmd = true
         return true    
     end
+    ]]--
 
     -- if all conditions are met and the robot is observing the hand:
     -- check whether we have an object in the hand or not
