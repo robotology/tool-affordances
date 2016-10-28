@@ -9,7 +9,7 @@
     </module>
     <module>
         <name>objects3DExplorer</name>
-        <parameters></parameters>
+        <parameters>--from realTools.ini</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 652.455) (y 304.087))</geometry>
@@ -58,21 +58,21 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 0 --y 0 --compact</parameters>
+        <parameters>--x 50 --y 0 --compact</parameters>
         <node>icub22</node>
         <prefix>/toolFinder</prefix>
         <geometry>(Pos (x 958.459) (y 243.525))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 350 --out /out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 400 --out /out --y 0 --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/disp</prefix>
         <geometry>(Pos (x 968.411) (y 515.022))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 700 --out /out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 750 --out /out --y 0 --p 50 --compact</parameters>
         <node>icub22</node>
         <prefix>/seg</prefix>
         <geometry>(Pos (x 1554.59) (y 472.318))</geometry>

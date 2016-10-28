@@ -296,22 +296,9 @@ function ask_tool(tool_name)
     pm_print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
-    cmd:addString("graspTool")
-    tmanager_rpc:write(cmd, rep)
-  
-    pm_print("set the tool name")
-    cmd:clear()
-    rep:clear()
-    cmd:addString("setToolName")
+    cmd:addString("getToolAlign")
     cmd:addString(tool_name)
-    tmanager_rpc:write(cmd, rep)
- 
-    pm_print("find the tool pose")
-    cmd:clear()
-    rep:clear()
-    cmd:addString("findPose")
-    tmanager_rpc:write(cmd, rep)
-    
+    tmanager_rpc:write(cmd, rep)   
 end
 
 

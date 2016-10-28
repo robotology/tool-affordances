@@ -209,14 +209,15 @@ PortMonitor.accept = function(thing)
     if get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y) ~= nil then 
         --say("I need a tool. Give me the shovel, please!")
         --ask_tool("STI3") -- Yellow shovel
-        
+        pm_print("Saying: 'I need a tool, Give me the stick, please!'")
         say("I need a tool. Give me the stick, please!")
-        ask_tool("STI3") -- 2-MArkes stick
+        ask_tool("STI3") -- Markers stick
 
         --say("I need a tool. Give me the rake, please!")
         --ask_tool("real/rakeBlue")
     else
         say("I need a tool. Give me the rake, please!")
+        pm_print("Saying: 'I need a tool, Give me the rake, please!'")
         ask_tool("RAK2")  -- Blue rake
     end
 

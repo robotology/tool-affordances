@@ -46,6 +46,16 @@ function get_ar_closed()
     return rep
 end
 
+function go_home_left()
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:addString("home")
+    cmd:addString("left")
+    ar_cmd:write(cmd, rep)
+    --pm_print("get_ar_closed :" .. rep:toString())
+    return rep
+end
+
 
 PortMonitor.create = function(options)    
     -- setting constrasint 
@@ -54,21 +64,27 @@ PortMonitor.create = function(options)
     pm_print('created')
 
     --PortMonitor.setConstraint("e_taken")
-
-    mod_cmd = false
     observing_hand = false
-    AR_CMD = yarp.Bottle()
 
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
-    t3De_rpc = yarp.Port()
+    ar_cmd = yarp.Port()
+    T3D_rpc = yarp.Port()
+
     ar_rpc:open("...")
     ar_rpc_io:open("...")
-    t3De_rpc:open("...")
+    ar_cmd:open("...")    
+    T3D_rpc:open("...")
 
     ret = yarp.NetworkBase_connect(ar_rpc:getName(), "/actionsRenderingEngine/rpc")
     if ret == false then
         pm_print("cannot connect to /actionsRenderingEngine/rpc!")
+        return false
+    end
+
+    ret = yarp.NetworkBase_connect(ar_cmd:getName(), "/actionsRenderingEngine/cmd:io")
+    if ret == false then
+        pm_print("cannot connect to /actionsRenderingEngine/cmd:io!")
         return false
     end
 
@@ -78,7 +94,7 @@ PortMonitor.create = function(options)
         return false
     end
 
-    ret = yarp.NetworkBase_connect(t3De_rpc:getName(), "/tool3DManager/rpc:i")
+    ret = yarp.NetworkBase_connect(T3D_rpc:getName(), "/tool3DManager/rpc:i")
     if ret == false then 	
         pm_print("cannot connect to /tool3DManager/rpc:i")
         return false
@@ -100,7 +116,7 @@ PortMonitor.accept = function(thing)
     pm_print(" Accept " )
     -- e_taken is set when wither the object is in "reachable position", or there is no object and the robot is in home position. 
     -- slow down the commands to the action rendering port
-    if (yarp.Time_now() - prev_cmd_time) < 10.0 then return false end
+    if (yarp.Time_now() - prev_cmd_time) < 1.0 then return false end
 
 
     pm_print(" About to get status " )
@@ -137,20 +153,18 @@ PortMonitor.accept = function(thing)
     -- check whether we have an object in the hand or not
     observing_hand = false
     status = check_grasp()
-    pm_print("graspChecker returned: " .. status:toString())
-    lefthand_holding = (status:toString() == "[ok]")
+    pm_print("The grasp check by T3DM returned: " .. status:toString())
+    object_in_hand = (status:toString() == "[ok]")
 
     -- if the hand is empty, go home
-    if lefthand_holding == false then
-        AR_CMD:clear()
-        AR_CMD:addString("home")
-        AR_CMD:addString("head")
-        AR_CMD:addString("arms")  
-        mod_cmd = true 
-        return true
+    if object_in_hand == false then
+        pm_print("Hand is empty, going home " )
+        go_home_left()
+        return false
 
     --if the hand is full, accept drop-away command
     else
+       pm_print("Hand is full, dropping away " )
        return true
     end
 end
@@ -162,10 +176,10 @@ end
 PortMonitor.update = function(thing)
 
     prev_cmd_time = yarp.Time_now()
-
     pm_print("Time: " .. prev_cmd_time)
+--[[
     -- in order to observe hand, we modify the ARE command
-    --[[if mod_cmd == true then
+    if mod_cmd == true then
         th = yarp.Things()
         th:setPortWriter(AR_CMD)
         mod_cmd = false
@@ -173,18 +187,10 @@ PortMonitor.update = function(thing)
         pm_print("Thing: " .. AR_CMD:toString())        
         return th
     end
-        ]]--
---[[
+]]--
     PortMonitor.unsetEvent("e_taken")
     pm_print("dropping away")
     return thing
-        ]]--
-
-    th = yarp.Things()
-    bot:clear()
-    bot:addString("observe")
-    th:setPortWriter(bot)
-    return th
 end
 
 

@@ -134,7 +134,7 @@ protected:
     bool                        extractFeats();
 
     bool                        trainClas(const std::string &label);
-    bool                        classify(std::string &label);
+    bool                        classify();
 
     double                      findOri();
     int                         findToolInd(const std::string &tool);
@@ -176,7 +176,7 @@ public:
     bool                        getToolFeats();
 
     bool                        learn(const std::string &label);
-    std::string                 check();
+    bool                        check();
 
     // Get object information
     yarp::sig::Vector           objLoc();

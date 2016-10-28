@@ -327,14 +327,13 @@ bool Tool3DManager::getToolFeats(){
 
 bool Tool3DManager::learn(const std::string &label)
 {
+    cout << " Received 'learn' " << label << endl;
     return trainClas(label);
 }
 
-string Tool3DManager::check()
+bool Tool3DManager::check()
 {
-    string label;
-    classify(label);
-    return label;
+    return classify();
 }
 
 
@@ -1171,10 +1170,13 @@ bool Tool3DManager::extractFeats()
 
 bool Tool3DManager::trainClas(const std::string &label)
 {
+    cout << " Sending 'observe' command to ARE " << endl;
     Bottle cmdARE, replyARE;
     cmdARE.clear();	replyARE.clear();
     cmdARE.addString("observe");
     rpcAreCmd.write(cmdARE,replyARE);
+
+    cout << " Getting hand reference frame from ARE get." << endl;
 
     Bottle cmdAREget, replyAREget;
     cmdAREget.clear();	replyAREget.clear();
@@ -1183,8 +1185,15 @@ bool Tool3DManager::trainClas(const std::string &label)
     cmdAREget.addString("image");
     rpcAreGet.write(cmdAREget,replyAREget);
 
-    int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
-    int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
+    cout << " ARE replied: " << replyAREget.toString() << endl;
+
+    int hand_u_left = replyAREget.get(0).asInt();
+    int hand_v_left = replyAREget.get(1).asInt();
+
+    cout << " Hand ref frame at : " << hand_u_left << ", " << hand_v_left << endl;
+
+    //int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
+    //int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
 
     Vector BB(4,0.0);
     BB[0] = hand_u_left - bbsize/2;         // tlx
@@ -1195,6 +1204,8 @@ bool Tool3DManager::trainClas(const std::string &label)
     if (BB[2]> imgW){        BB[2]= imgW;    }
     BB[3] = hand_v_left + bbsize/2;         // bry
     if (BB[3]> imgH){        BB[3]= imgH;    }
+
+    cout << " Bounding Box is: " << BB[0] <<", " << BB[1] <<", " << BB[2] <<", " << BB[3] << endl;
 
     Bottle cmdClas, replyClas;
     cmdClas.clear();	replyClas.clear();
@@ -1206,15 +1217,20 @@ bool Tool3DManager::trainClas(const std::string &label)
     cmdClas.addInt(BB[3]);
     rpcClassifier.write(cmdClas,replyClas);
 
+    cout << " Classifier trained with label " << label << endl;
+
     return true;
 }
 
-bool Tool3DManager::classify(std::string &label)
+bool Tool3DManager::classify()
 {
+    cout << " Sending 'observe' command to ARE " << endl;
     Bottle cmdARE, replyARE;
     cmdARE.clear();	replyARE.clear();
     cmdARE.addString("observe");
     rpcAreCmd.write(cmdARE,replyARE);
+
+    cout << " Getting hand reference frame from ARE get." << endl;
 
     Bottle cmdAREget, replyAREget;
     cmdAREget.clear();	replyAREget.clear();
@@ -1223,8 +1239,15 @@ bool Tool3DManager::classify(std::string &label)
     cmdAREget.addString("image");
     rpcAreGet.write(cmdAREget,replyAREget);
 
-    int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
-    int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
+    cout << " ARE replied: " << replyAREget.toString() << endl;
+
+    int hand_u_left = replyAREget.get(0).asInt();
+    int hand_v_left = replyAREget.get(1).asInt();
+
+    cout << " Hand ref frame at : " << hand_u_left << ", " << hand_v_left << endl;
+
+    //int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
+    //int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
 
     Vector BB(4,0.0);
     BB[0] = hand_u_left - bbsize/2;         // tlx
@@ -1236,6 +1259,8 @@ bool Tool3DManager::classify(std::string &label)
     BB[3] = hand_v_left + bbsize/2;         // bry
     if (BB[3]> imgH){        BB[3]= imgH;    }
 
+    cout << " Bounding Box is: " << BB[0] <<", " << BB[1] <<", " << BB[2] <<", " << BB[3] << endl;
+
     Bottle cmdClas, replyClas;
     cmdClas.clear();	replyClas.clear();
     cmdClas.addString("check");
@@ -1245,10 +1270,18 @@ bool Tool3DManager::classify(std::string &label)
     cmdClas.addInt(BB[3]);
     rpcClassifier.write(cmdClas,replyClas);
 
-    label = replyClas.toString();
+    cout << " Classifier replied: " << replyClas.toString() << endl;
 
-    cout << "Hand is: " << label << endl;
-    return true;
+    bool answer;
+    if (strcmp (replyClas.toString().c_str(),"[ok]") == 0)
+        answer = true;
+    else
+        answer = false;
+
+    //answer = false;
+
+    return answer;
+
 }
 
 
