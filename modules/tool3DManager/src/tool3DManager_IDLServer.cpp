@@ -1408,8 +1408,7 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "graspTool") {
       std::string tool;
       if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
+        tool = "unknown";
       }
       bool _return;
       _return = graspTool(tool);
@@ -1904,7 +1903,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure of grasping and loading the named tool ");
     }
     if (functionName=="graspTool") {
-      helpString.push_back("bool graspTool(const std::string& tool) ");
+      helpString.push_back("bool graspTool(const std::string& tool = \"unknown\") ");
       helpString.push_back("Communicates with ARE and KM to grasp a tool and move it to the center. ");
       helpString.push_back("@return true/false on success/failure ");
     }

@@ -626,10 +626,12 @@ bool Tool3DManager::setSeg(bool seg){
 
 
 /**********************************************************/
-bool Tool3DManager::graspToolExe(const std::string& tool)
+bool Tool3DManager::graspToolExe(const std::string &tool)
 {
     Bottle cmdAMM, replyAMM;               // bottles for Affordance Motor Module
     Bottle cmdARE, replyARE;               // bottles for actionsRenderingEngine
+    Bottle cmd3DE, reply3DE;                 // bottles for objects3DExplorer
+
 
     // Remove any end effector extension that might be.
     cmdAMM.clear();replyAMM.clear();
@@ -663,13 +665,27 @@ bool Tool3DManager::graspToolExe(const std::string& tool)
     if(!replyARE.get(0).asBool())
         return false;
 
+    string tool_name = tool;
     // Query O3DE to load model 3D Pointcloud.
-    if (!load3Dmodel(tool)){
+    if (tool == "unknown"){
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("cmd3DE");
+        rpcAreCmd.write(cmdARE, reply3DE);
+        if (reply3DE.get(0).asString() != "[ack]" ){
+            cout << "Coudln't recognize the tool." << endl;
+            return false;
+        }
+        tool_name = reply3DE.get(1).asString();
+        cout << "Tool recognized as " << tool_name << endl;
+    }
+
+
+
+    if (!load3Dmodel(tool_name)){
         cout << "Coudln't load the tool." << endl;
         return false;
     }
 
-    //lookToolExe();
     goHomeExe();
 
     return true;
@@ -706,14 +722,15 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
     cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;    
     rpc3Dexp.write(cmd3DE, reply3DE);
 
-    if (reply3DE.get(0).asString() != "[ack]" ){
+    if (reply3DE.get(0).asString() == "[ack]" ){
+        toolname = cloudName;
+        cout << "Cloud " << cloudName << " loaded" << endl;
+        return true;
+    }else {
         cout << "objects3DExplorer coudln't load the tool." << endl;
+        cout << "Check the spelling of the name, or, if the tool has no known model, try 'exploreTool'." << endl;
         return false;
     }
-
-    toolname = cloudName;
-    cout << "Cloud " << cloudName << " loaded" << endl;
-    return true;
 }
 
 

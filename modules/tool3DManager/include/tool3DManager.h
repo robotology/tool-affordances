@@ -168,7 +168,7 @@ public:
     bool                        loadModel(const std::string &tool);
     bool                        getToolParam(const std::string& tool, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        getToolAlign(const std::string &tool);
-    bool                        graspTool(const std::string &tool);
+    bool                        graspTool(const std::string &tool = "unknown");
     bool                        lookTool();
     bool                        explore();
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
