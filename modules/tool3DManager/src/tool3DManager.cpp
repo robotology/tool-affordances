@@ -261,9 +261,9 @@ bool Tool3DManager::getToolAlign(const string &tool){
 }
 
 
-bool Tool3DManager::explore(){
+bool Tool3DManager::explore(const string &tool){
     bool ok;
-    ok = exploreTool(tooltip);
+    ok = exploreTool(tool, tooltip);
 
     cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
@@ -669,8 +669,10 @@ bool Tool3DManager::graspToolExe(const std::string &tool)
     // Query O3DE to load model 3D Pointcloud.
     if (tool == "unknown"){
         cmd3DE.clear();   reply3DE.clear();
-        cmd3DE.addString("cmd3DE");
-        rpcAreCmd.write(cmdARE, reply3DE);
+        cmd3DE.addString("recog");
+        rpc3Dexp.write(cmd3DE, reply3DE);
+
+        cout << "Reply from Classifier: " << reply3DE.toString() << endl;
         if (reply3DE.get(0).asString() != "[ack]" ){
             cout << "Coudln't recognize the tool." << endl;
             return false;
@@ -728,7 +730,7 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
         return true;
     }else {
         cout << "objects3DExplorer coudln't load the tool." << endl;
-        cout << "Check the spelling of the name, or, if the tool has no known model, try 'exploreTool'." << endl;
+        cout << "Check the spelling of the name, or, if the tool has no known model, try 'explore (tool)'." << endl;
         return false;
     }
 }
@@ -1072,7 +1074,7 @@ bool Tool3DManager::findPoseParamExe(Point3D &ttip, const double graspOr, const 
 
 
 /**********************************************************/
-bool Tool3DManager::exploreTool(Point3D &ttip)
+bool Tool3DManager::exploreTool(const string &tool, Point3D &ttip)
 {
     // Query object3DExplorer to find the tooltip
     cout << "Finding out tooltoltip by exploration and symmetry" << endl;
@@ -1080,6 +1082,7 @@ bool Tool3DManager::exploreTool(Point3D &ttip)
 
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("exploreTool");
+    cmd3DE.addString(tool);
     cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;

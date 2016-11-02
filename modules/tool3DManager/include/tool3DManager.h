@@ -130,7 +130,7 @@ protected:
     bool                        findPoseAlignExe(Point3D &ttip, double &ori, double &displ, double &tilt);
     bool                        addToolTip(const Point3D ttip);
 
-    bool                        exploreTool(Point3D &ttip);
+    bool                        exploreTool(const std::string &tool, Point3D &ttip);
     bool                        extractFeats();
 
     bool                        trainClas(const std::string &label);
@@ -170,7 +170,7 @@ public:
     bool                        getToolAlign(const std::string &tool);
     bool                        graspTool(const std::string &tool = "unknown");
     bool                        lookTool();
-    bool                        explore();
+    bool                        explore(const std::string &tool);
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();

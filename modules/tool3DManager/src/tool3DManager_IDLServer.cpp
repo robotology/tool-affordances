@@ -73,8 +73,9 @@ public:
 
 class tool3DManager_IDLServer_explore : public yarp::os::Portable {
 public:
+  std::string tool;
   bool _return;
-  void init();
+  void init(const std::string& tool);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -452,8 +453,9 @@ void tool3DManager_IDLServer_graspTool::init(const std::string& tool) {
 
 bool tool3DManager_IDLServer_explore::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("explore",1,1)) return false;
+  if (!writer.writeString(tool)) return false;
   return true;
 }
 
@@ -467,8 +469,9 @@ bool tool3DManager_IDLServer_explore::read(yarp::os::ConnectionReader& connectio
   return true;
 }
 
-void tool3DManager_IDLServer_explore::init() {
+void tool3DManager_IDLServer_explore::init(const std::string& tool) {
   _return = false;
+  this->tool = tool;
 }
 
 bool tool3DManager_IDLServer_lookTool::write(yarp::os::ConnectionWriter& connection) {
@@ -1064,12 +1067,12 @@ bool tool3DManager_IDLServer::graspTool(const std::string& tool) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::explore() {
+bool tool3DManager_IDLServer::explore(const std::string& tool) {
   bool _return = false;
   tool3DManager_IDLServer_explore helper;
-  helper.init();
+  helper.init(tool);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::explore()");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::explore(const std::string& tool)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1421,8 +1424,13 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "explore") {
+      std::string tool;
+      if (!reader.readString(tool)) {
+        reader.fail();
+        return false;
+      }
       bool _return;
-      _return = explore();
+      _return = explore(tool);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1908,8 +1916,8 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="explore") {
-      helpString.push_back("bool explore() ");
-      helpString.push_back("Communicates with O3DE to explore the tool and get the tooltip without a model ");
+      helpString.push_back("bool explore(const std::string& tool) ");
+      helpString.push_back("Communicates with O3DE to explore the tool, and save its 2D and 3D information. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="lookTool") {

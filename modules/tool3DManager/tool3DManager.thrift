@@ -66,10 +66,10 @@ service tool3DManager_IDLServer
     bool graspTool(1:string tool = "unknown");
 
     /**
-     * Communicates with O3DE to explore the tool and get the tooltip without a model
+     * Communicates with O3DE to explore the tool, and save its 2D and 3D information.
      * @return true/false on success/failure
      */
-    bool explore();
+    bool explore(1:string tool);
 
     /**
      * Communicates with KM  move the tool to the center.

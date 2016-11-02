@@ -56,10 +56,10 @@ public:
    */
   virtual bool graspTool(const std::string& tool = "unknown");
   /**
-   * Communicates with O3DE to explore the tool and get the tooltip without a model
+   * Communicates with O3DE to explore the tool, and save its 2D and 3D information.
    * @return true/false on success/failure
    */
-  virtual bool explore();
+  virtual bool explore(const std::string& tool);
   /**
    * Communicates with KM  move the tool to the center.
    * @return true/false on success/failure
