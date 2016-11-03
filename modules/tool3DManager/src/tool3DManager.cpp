@@ -261,9 +261,9 @@ bool Tool3DManager::getToolAlign(const string &tool){
 }
 
 
-bool Tool3DManager::explore(const string &tool){
+bool Tool3DManager::explore(const string &tool, const string &exp_mode){
     bool ok;
-    ok = exploreTool(tool, tooltip);
+    ok = exploreTool(tool, exp_mode, tooltip);
 
     cout <<  "Tool loaded and pose and tooltip found at (" <<tooltip.x <<", " << tooltip.y << "," <<tooltip.z <<  ") !" << endl;
 
@@ -912,7 +912,11 @@ bool Tool3DManager::getToolParamExe(const string &tool, const double graspOr, co
 bool Tool3DManager::getToolAlignExe(const string& tool)
 {
     int toolI = findToolInd(tool);
-    if (toolI < 0){     cout << "Tool label not found" << endl;        return false;}
+    if (toolI < 0){
+        cout << "Tool label not found" << endl;
+        toolI = -1;
+        // return false (when dealing only with premodelled tools)
+    }
     cout << endl<< "Grasping tool " << tool << " with index " << toolI << endl;
 
     bool ok;
@@ -1074,7 +1078,7 @@ bool Tool3DManager::findPoseParamExe(Point3D &ttip, const double graspOr, const 
 
 
 /**********************************************************/
-bool Tool3DManager::exploreTool(const string &tool, Point3D &ttip)
+bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point3D &ttip)
 {
     // Query object3DExplorer to find the tooltip
     cout << "Finding out tooltoltip by exploration and symmetry" << endl;
@@ -1083,6 +1087,7 @@ bool Tool3DManager::exploreTool(const string &tool, Point3D &ttip)
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("exploreTool");
     cmd3DE.addString(tool);
+    cmd3DE.addString(exp_mode);
     cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
@@ -1090,6 +1095,10 @@ bool Tool3DManager::exploreTool(const string &tool, Point3D &ttip)
         cout << "There was some error exploring the tool." << endl;
         return false;
     }
+
+    // In case the exploration whas 2D and no model was loaded.
+    load3Dmodel(tool);
+
 
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("findPlanes");

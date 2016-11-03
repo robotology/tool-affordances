@@ -49,7 +49,7 @@ public:
    * - Find pose and tooltip with align method (by findPose)
    * @return true/false on success/failure of grasping and loading the named tool
    */
-  virtual bool getToolAlign(const std::string& tool);
+  virtual bool getToolAlign(const std::string& tool = "unknown");
   /**
    * Communicates with ARE and KM to grasp a tool and move it to the center.
    * @return true/false on success/failure
@@ -57,9 +57,11 @@ public:
   virtual bool graspTool(const std::string& tool = "unknown");
   /**
    * Communicates with O3DE to explore the tool, and save its 2D and 3D information.
+   * @ param tool: name to give to the explored tool
+   * @ param exp_mode: Exploration mode, can be '2D', '3D' or 'both'.
    * @return true/false on success/failure
    */
-  virtual bool explore(const std::string& tool);
+  virtual bool explore(const std::string& tool, const std::string& exp_mode = "both");
   /**
    * Communicates with KM  move the tool to the center.
    * @return true/false on success/failure

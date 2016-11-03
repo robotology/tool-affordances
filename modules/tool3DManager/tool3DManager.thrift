@@ -57,7 +57,7 @@ service tool3DManager_IDLServer
      * - Find pose and tooltip with align method (by findPose)
      * @return true/false on success/failure of grasping and loading the named tool
      */
-    bool getToolAlign(1:string tool);
+    bool getToolAlign(1:string tool = "unknown");
 
     /**
      * Communicates with ARE and KM to grasp a tool and move it to the center.
@@ -67,9 +67,11 @@ service tool3DManager_IDLServer
 
     /**
      * Communicates with O3DE to explore the tool, and save its 2D and 3D information.
+     * @ param tool: name to give to the explored tool
+     * @ param exp_mode: Exploration mode, can be '2D', '3D' or 'both'.
      * @return true/false on success/failure
      */
-    bool explore(1:string tool);
+    bool explore(1:string tool, 2:string exp_mode = "both" );
 
     /**
      * Communicates with KM  move the tool to the center.

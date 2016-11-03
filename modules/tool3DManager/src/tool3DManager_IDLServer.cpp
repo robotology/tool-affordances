@@ -74,8 +74,9 @@ public:
 class tool3DManager_IDLServer_explore : public yarp::os::Portable {
 public:
   std::string tool;
+  std::string exp_mode;
   bool _return;
-  void init(const std::string& tool);
+  void init(const std::string& tool, const std::string& exp_mode);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -453,9 +454,10 @@ void tool3DManager_IDLServer_graspTool::init(const std::string& tool) {
 
 bool tool3DManager_IDLServer_explore::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("explore",1,1)) return false;
   if (!writer.writeString(tool)) return false;
+  if (!writer.writeString(exp_mode)) return false;
   return true;
 }
 
@@ -469,9 +471,10 @@ bool tool3DManager_IDLServer_explore::read(yarp::os::ConnectionReader& connectio
   return true;
 }
 
-void tool3DManager_IDLServer_explore::init(const std::string& tool) {
+void tool3DManager_IDLServer_explore::init(const std::string& tool, const std::string& exp_mode) {
   _return = false;
   this->tool = tool;
+  this->exp_mode = exp_mode;
 }
 
 bool tool3DManager_IDLServer_lookTool::write(yarp::os::ConnectionWriter& connection) {
@@ -1067,12 +1070,12 @@ bool tool3DManager_IDLServer::graspTool(const std::string& tool) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::explore(const std::string& tool) {
+bool tool3DManager_IDLServer::explore(const std::string& tool, const std::string& exp_mode) {
   bool _return = false;
   tool3DManager_IDLServer_explore helper;
-  helper.init(tool);
+  helper.init(tool,exp_mode);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::explore(const std::string& tool)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::explore(const std::string& tool, const std::string& exp_mode)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1395,8 +1398,7 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "getToolAlign") {
       std::string tool;
       if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
+        tool = "unknown";
       }
       bool _return;
       _return = getToolAlign(tool);
@@ -1425,12 +1427,16 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "explore") {
       std::string tool;
+      std::string exp_mode;
       if (!reader.readString(tool)) {
         reader.fail();
         return false;
       }
+      if (!reader.readString(exp_mode)) {
+        exp_mode = "both";
+      }
       bool _return;
-      _return = explore(tool);
+      _return = explore(tool,exp_mode);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1903,7 +1909,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure of loading the tool with correct pose ");
     }
     if (functionName=="getToolAlign") {
-      helpString.push_back("bool getToolAlign(const std::string& tool) ");
+      helpString.push_back("bool getToolAlign(const std::string& tool = \"unknown\") ");
       helpString.push_back("Performs the sequence to get the tool: \n ");
       helpString.push_back("- Grasp (through ARE) ");
       helpString.push_back("- Load tool in objects3Dexplorer (by setToolName) ");
@@ -1916,8 +1922,10 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="explore") {
-      helpString.push_back("bool explore(const std::string& tool) ");
+      helpString.push_back("bool explore(const std::string& tool, const std::string& exp_mode = \"both\") ");
       helpString.push_back("Communicates with O3DE to explore the tool, and save its 2D and 3D information. ");
+      helpString.push_back("@ param tool: name to give to the explored tool ");
+      helpString.push_back("@ param exp_mode: Exploration mode, can be '2D', '3D' or 'both'. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="lookTool") {

@@ -122,7 +122,7 @@ protected:
 
     bool                        getToolSimExe(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
     bool                        getToolParamExe(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
-    bool                        getToolAlignExe(const std::string& tool);
+    bool                        getToolAlignExe(const std::string& tool = "unknown");
     bool                        regraspExe(Point3D &newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
 
 
@@ -130,7 +130,7 @@ protected:
     bool                        findPoseAlignExe(Point3D &ttip, double &ori, double &displ, double &tilt);
     bool                        addToolTip(const Point3D ttip);
 
-    bool                        exploreTool(const std::string &tool, Point3D &ttip);
+    bool                        exploreTool(const std::string &tool, const std::string &exp_mode, Point3D &ttip);
     bool                        extractFeats();
 
     bool                        trainClas(const std::string &label);
@@ -170,7 +170,7 @@ public:
     bool                        getToolAlign(const std::string &tool);
     bool                        graspTool(const std::string &tool = "unknown");
     bool                        lookTool();
-    bool                        explore(const std::string &tool);
+    bool                        explore(const std::string &tool, const std::string &exp_mode = "both");
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
     bool                        findPose();
     bool                        getToolFeats();
