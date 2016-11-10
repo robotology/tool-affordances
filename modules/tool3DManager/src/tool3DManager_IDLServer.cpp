@@ -65,7 +65,7 @@ public:
 class tool3DManager_IDLServer_graspTool : public yarp::os::Portable {
 public:
   std::string tool;
-  bool _return;
+  std::string _return;
   void init(const std::string& tool);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
@@ -440,7 +440,7 @@ bool tool3DManager_IDLServer_graspTool::write(yarp::os::ConnectionWriter& connec
 bool tool3DManager_IDLServer_graspTool::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
-  if (!reader.readBool(_return)) {
+  if (!reader.readString(_return)) {
     reader.fail();
     return false;
   }
@@ -448,7 +448,7 @@ bool tool3DManager_IDLServer_graspTool::read(yarp::os::ConnectionReader& connect
 }
 
 void tool3DManager_IDLServer_graspTool::init(const std::string& tool) {
-  _return = false;
+  _return = "";
   this->tool = tool;
 }
 
@@ -1060,12 +1060,12 @@ bool tool3DManager_IDLServer::getToolAlign(const std::string& tool) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::graspTool(const std::string& tool) {
-  bool _return = false;
+std::string tool3DManager_IDLServer::graspTool(const std::string& tool) {
+  std::string _return = "";
   tool3DManager_IDLServer_graspTool helper;
   helper.init(tool);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::graspTool(const std::string& tool)");
+    yError("Missing server method '%s'?","std::string tool3DManager_IDLServer::graspTool(const std::string& tool)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1415,12 +1415,12 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       if (!reader.readString(tool)) {
         tool = "unknown";
       }
-      bool _return;
+      std::string _return;
       _return = graspTool(tool);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeBool(_return)) return false;
+        if (!writer.writeString(_return)) return false;
       }
       reader.accept();
       return true;
@@ -1917,7 +1917,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure of grasping and loading the named tool ");
     }
     if (functionName=="graspTool") {
-      helpString.push_back("bool graspTool(const std::string& tool = \"unknown\") ");
+      helpString.push_back("std::string graspTool(const std::string& tool = \"unknown\") ");
       helpString.push_back("Communicates with ARE and KM to grasp a tool and move it to the center. ");
       helpString.push_back("@return true/false on success/failure ");
     }

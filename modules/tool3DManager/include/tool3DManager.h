@@ -116,12 +116,12 @@ protected:
 	
     /****  Protected Methods ******/
     // Tool loading and feature extraction
-    bool                        graspToolExe(const std::string& tool);
+    std::string                 graspToolExe(const std::string& tool = "unknown");
     bool                        lookToolExe();
     bool                        load3Dmodel(const std::string& tool);
 
     bool                        getToolSimExe(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0);
-    bool                        getToolParamExe(const std::string& tool, const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
+    bool                        getToolParamExe(const std::string& tool= "unknown", const double graspOr = 0.0, const double graspDisp = 0.0, const double graspTilt = 45.0,  const double graspShift = 0.0);
     bool                        getToolAlignExe(const std::string& tool = "unknown");
     bool                        regraspExe(Point3D &newTooltip, const double deg = 0.0, const double disp = 0.0, const double tilt = 45.0, const double Z = 0.0);
 
@@ -166,9 +166,9 @@ public:
 
     // tool load and information
     bool                        loadModel(const std::string &tool);
+    std::string                 graspTool(const std::string& tool = "unknown");
     bool                        getToolParam(const std::string& tool, double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);
-    bool                        getToolAlign(const std::string &tool);
-    bool                        graspTool(const std::string &tool = "unknown");
+    bool                        getToolAlign(const std::string &tool);    
     bool                        lookTool();
     bool                        explore(const std::string &tool, const std::string &exp_mode = "both");
     bool                        regrasp(double deg = 0.0, double disp = 0.0, double tilt = 45.0, double shift = 0.0);

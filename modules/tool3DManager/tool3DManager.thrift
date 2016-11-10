@@ -63,7 +63,7 @@ service tool3DManager_IDLServer
      * Communicates with ARE and KM to grasp a tool and move it to the center.
      * @return true/false on success/failure
      */
-    bool graspTool(1:string tool = "unknown");
+    string graspTool(1:string tool = "unknown");
 
     /**
      * Communicates with O3DE to explore the tool, and save its 2D and 3D information.

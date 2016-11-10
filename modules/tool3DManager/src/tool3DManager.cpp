@@ -227,15 +227,16 @@ bool Tool3DManager::loadModel(const string &tool){
     return ok;
 }
 
-bool Tool3DManager::graspTool(const string &tool){
+string Tool3DManager::graspTool(const string &tool){
     bool ok;
+    string tool_loaded;
     if (robot=="icubSim"){
         cout << "Tool in sim is loaded, not grasped." << endl;
-        ok = false;
+        tool_loaded = "not_loaded";
     }else{
-        ok = graspToolExe(tool);
+        tool_loaded = graspToolExe(tool);
     }
-    return ok;
+    return tool_loaded;
 }
 
 bool Tool3DManager::getToolParam(const string &tool, double deg, double disp, double tilt, double shift){
@@ -626,12 +627,34 @@ bool Tool3DManager::setSeg(bool seg){
 
 
 /**********************************************************/
-bool Tool3DManager::graspToolExe(const std::string &tool)
+bool Tool3DManager::load3Dmodel(const string &cloudName)
+{
+    // Communicates with objects3DExplorer to load the corresponding Model
+    Bottle cmd3DE,reply3DE;                 // bottles for Objects3Dexplorer
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("loadCloud");
+    cmd3DE.addString(cloudName);
+    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    rpc3Dexp.write(cmd3DE, reply3DE);
+
+    if (reply3DE.get(0).asString() == "[ack]" ){
+        toolname = cloudName;
+        cout << "Cloud " << cloudName << " loaded" << endl;
+        return true;
+    }else {
+        cout << "objects3DExplorer coudln't load the tool." << endl;
+        cout << "Check the spelling of the name, or, if the tool has no known model, try 'explore (tool)'." << endl;
+        return false;
+    }
+}
+
+
+/**********************************************************/
+string Tool3DManager::graspToolExe(const std::string &tool)
 {
     Bottle cmdAMM, replyAMM;               // bottles for Affordance Motor Module
     Bottle cmdARE, replyARE;               // bottles for actionsRenderingEngine
     Bottle cmd3DE, reply3DE;                 // bottles for objects3DExplorer
-
 
     // Remove any end effector extension that might be.
     cmdAMM.clear();replyAMM.clear();
@@ -663,7 +686,7 @@ bool Tool3DManager::graspToolExe(const std::string &tool)
     cmdARE.addString("holding");
     rpcAreCmd.write(cmdARE, replyARE);
     if(!replyARE.get(0).asBool())
-        return false;
+        return "not_loaded";
 
     string tool_name = tool;
     // Query O3DE to load model 3D Pointcloud.
@@ -674,23 +697,21 @@ bool Tool3DManager::graspToolExe(const std::string &tool)
 
         cout << "Reply from Classifier: " << reply3DE.toString() << endl;
         if (reply3DE.get(0).asString() != "[ack]" ){
-            cout << "Coudln't recognize the tool." << endl;
-            return false;
+            cout << "Couldn't recognize the tool." << endl;
+            return "not_loaded";
         }
         tool_name = reply3DE.get(1).asString();
         cout << "Tool recognized as " << tool_name << endl;
     }
 
-
-
     if (!load3Dmodel(tool_name)){
         cout << "Coudln't load the tool." << endl;
-        return false;
+        return "not_loaded" ;
     }
 
     goHomeExe();
 
-    return true;
+    return tool_name;
 }
 
 
@@ -710,29 +731,6 @@ bool Tool3DManager::lookToolExe()
     }
 
     return true;
-}
-
-
-/**********************************************************/
-bool Tool3DManager::load3Dmodel(const string &cloudName)
-{    
-    // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
-    Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
-    cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("loadCloud");
-    cmd3DE.addString(cloudName);
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;    
-    rpc3Dexp.write(cmd3DE, reply3DE);
-
-    if (reply3DE.get(0).asString() == "[ack]" ){
-        toolname = cloudName;
-        cout << "Cloud " << cloudName << " loaded" << endl;
-        return true;
-    }else {
-        cout << "objects3DExplorer coudln't load the tool." << endl;
-        cout << "Check the spelling of the name, or, if the tool has no known model, try 'explore (tool)'." << endl;
-        return false;
-    }
 }
 
 
@@ -798,7 +796,6 @@ bool Tool3DManager::getToolSimExe(const string &tool, const double graspOr,const
             return false;
         }
 
-        //string cloudName = "sim/"+ tool;
         cout << "Loading cloud model: " << tool  << " in O3DE." << endl;
 
         // Query toolFeatExt to load model to load 3D Pointcloud.
@@ -866,19 +863,17 @@ bool Tool3DManager::getToolSimExe(const string &tool, const double graspOr,const
 /**********************************************************/
 bool Tool3DManager::getToolParamExe(const string &tool, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
-
-    int toolI = findToolInd(tool);
-    if (toolI < 0){     cout << "Tool label not found" << endl;        return false;}
-    cout << endl<< "Grasping tool " << tool << " with index " << toolI << endl;
-
-    bool ok;
-    ok = graspToolExe(tool);
-    if (!ok){
+    string tool_loaded;
+    tool_loaded = graspToolExe(tool);
+    if (tool_loaded == "not_loaded"){
         cout << "iCub couldn't grasp the tool properly" << endl;
         return false;
     }
-    cout <<  "Tool grasped!" << endl;
+    int toolI = findToolInd(tool_loaded);
 
+    cout <<  "Tool  "<< tool_loaded << " grasped!" << endl;
+
+    bool ok;
     // Query objects3DExplorer to load model to load 3D Pointcloud.
     cout << "Querying objectd3DExplorer to set tooltip based on the folllowing parameters." << endl;
     cout << " -- orientation: "<< graspOr << endl << " -- displacement: " << graspDisp << endl << " -- tilt: " << graspTilt  <<endl << " -- shift: " << graspShift << endl;
@@ -911,22 +906,15 @@ bool Tool3DManager::getToolParamExe(const string &tool, const double graspOr, co
 /**********************************************************/
 bool Tool3DManager::getToolAlignExe(const string& tool)
 {
-    int toolI = findToolInd(tool);
-    if (toolI < 0){
-        cout << "Tool label not found" << endl;
-        toolI = -1;
-        // return false (when dealing only with premodelled tools)
-    }
-    cout << endl<< "Grasping tool " << tool << " with index " << toolI << endl;
-
-    bool ok;
-    ok = graspToolExe(tool);
-    if (!ok){
+    string tool_loaded;
+    tool_loaded = graspToolExe(tool);
+    if (tool_loaded == "not_loaded"){
         cout << "iCub couldn't grasp the tool properly" << endl;
         return false;
     }
-    cout <<  "Tool grasped!" << endl;
+    int toolI = findToolInd(tool_loaded);
 
+    bool ok;
     double ori, displ, tilt;
     ok = findPoseAlignExe(tooltip, ori, displ, tilt);
     if (!ok){
@@ -1224,6 +1212,7 @@ bool Tool3DManager::trainClas(const std::string &label)
     //int hand_u_left = replyAREget.get(0).asList()->get(0).asInt();
     //int hand_v_left = replyAREget.get(0).asList()->get(1).asInt();
 
+
     Vector BB(4,0.0);
     BB[0] = hand_u_left - bbsize/2;         // tlx
     if (BB[0]< 0){        BB[0]= 0;    }
@@ -1235,6 +1224,7 @@ bool Tool3DManager::trainClas(const std::string &label)
     if (BB[3]> imgH){        BB[3]= imgH;    }
 
     cout << " Bounding Box is: " << BB[0] <<", " << BB[1] <<", " << BB[2] <<", " << BB[3] << endl;
+
 
     Bottle cmdClas, replyClas;
     cmdClas.clear();	replyClas.clear();

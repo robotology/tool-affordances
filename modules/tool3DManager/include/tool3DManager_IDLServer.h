@@ -54,7 +54,7 @@ public:
    * Communicates with ARE and KM to grasp a tool and move it to the center.
    * @return true/false on success/failure
    */
-  virtual bool graspTool(const std::string& tool = "unknown");
+  virtual std::string graspTool(const std::string& tool = "unknown");
   /**
    * Communicates with O3DE to explore the tool, and save its 2D and 3D information.
    * @ param tool: name to give to the explored tool
