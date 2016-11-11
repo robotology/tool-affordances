@@ -1,5 +1,5 @@
 --
--- Copyright (C) 2012 IITRBCS
+-- Copyright (C) 2016 IIT iCub-facility
 -- Authors: Ali Paikan, Tanis Mar
 -- CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 --
@@ -33,6 +33,7 @@ PortMonitor.create = function(options)
     tmanager_rpc = yarp.Port()
     wlbodey_rpc = yarp.Port()
     ispeak_port = yarp.Port()
+
     ar_rpc:open("...")
     ar_rpc_io:open("...")
     o3de_rpc:open("...")

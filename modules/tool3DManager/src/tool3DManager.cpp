@@ -120,14 +120,14 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     //rpc
     bool retRPC = true; 
     retRPC = rpcCmd.open(("/"+name+"/rpc:i").c_str());					   			   // rpc in client to receive commands
-    retRPC = retRPC && rpcAreCmd.open(("/"+name+"/are:rpc").c_str());                  // rpc server to query ARE
-    retRPC = retRPC && rpcAreGet.open(("/"+name+"/are:get").c_str());                  // rpc server to query ARE
+    retRPC = retRPC && rpcAreCmd.open(("/"+name+"/are:rpc").c_str());                  // rpc server to query ARE for cmds
+    retRPC = retRPC && rpcAreGet.open(("/"+name+"/are:get").c_str());                  // rpc server to query ARE for gets
     retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
     retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
     retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
     retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
-    retRPC = retRPC && rpcClassifier.open(("/"+name+"/clasif:rpc").c_str());           // rpc server to query objectFinder
+    retRPC = retRPC && rpcClassifier.open(("/"+name+"/clasif:rpc").c_str());           // rpc server to query graspClassifier
 
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
