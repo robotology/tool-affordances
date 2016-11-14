@@ -1085,11 +1085,12 @@ bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point
     }
 
     // In case the exploration whas 2D and no model was loaded.
-    load3Dmodel(tool);
+    if (exp_mode == "2D")
+        load3Dmodel(tool);
 
 
     cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findPlanes");
+    cmd3DE.addString("makecanon");
     cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
     cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
