@@ -30,6 +30,11 @@ public:
    */
   virtual bool setnumact(const int32_t numAct);
   /**
+   * Sets the labels for all teh possible actions
+   * @return true/false on success/failure
+   */
+  virtual bool setactlabels(const yarp::os::Bottle& labels);
+  /**
    * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.
    * @return the index of the active (new or not) label
    */

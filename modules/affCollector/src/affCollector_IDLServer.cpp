@@ -31,6 +31,15 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class affCollector_IDLServer_setactlabels : public yarp::os::Portable {
+public:
+  yarp::os::Bottle labels;
+  bool _return;
+  void init(const yarp::os::Bottle& labels);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class affCollector_IDLServer_setlabel : public yarp::os::Portable {
 public:
   std::string label;
@@ -220,6 +229,29 @@ bool affCollector_IDLServer_setnumact::read(yarp::os::ConnectionReader& connecti
 void affCollector_IDLServer_setnumact::init(const int32_t numAct) {
   _return = false;
   this->numAct = numAct;
+}
+
+bool affCollector_IDLServer_setactlabels::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setactlabels",1,1)) return false;
+  if (!writer.write(labels)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_setactlabels::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_setactlabels::init(const yarp::os::Bottle& labels) {
+  _return = false;
+  this->labels = labels;
 }
 
 bool affCollector_IDLServer_setlabel::write(yarp::os::ConnectionWriter& connection) {
@@ -575,6 +607,16 @@ bool affCollector_IDLServer::setnumact(const int32_t numAct) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool affCollector_IDLServer::setactlabels(const yarp::os::Bottle& labels) {
+  bool _return = false;
+  affCollector_IDLServer_setactlabels helper;
+  helper.init(labels);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool affCollector_IDLServer::setactlabels(const yarp::os::Bottle& labels)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 int32_t affCollector_IDLServer::setlabel(const std::string& label) {
   int32_t _return = 0;
   affCollector_IDLServer_setlabel helper;
@@ -755,6 +797,22 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       }
       bool _return;
       _return = setnumact(numAct);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "setactlabels") {
+      yarp::os::Bottle labels;
+      if (!reader.read(labels)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = setactlabels(labels);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1015,6 +1073,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     helpString.push_back("start");
     helpString.push_back("quit");
     helpString.push_back("setnumact");
+    helpString.push_back("setactlabels");
     helpString.push_back("setlabel");
     helpString.push_back("getlabel");
     helpString.push_back("updateAff");
@@ -1045,6 +1104,11 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     if (functionName=="setnumact") {
       helpString.push_back("bool setnumact(const int32_t numAct) ");
       helpString.push_back("Allows to modify online the number of possible actions ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="setactlabels") {
+      helpString.push_back("bool setactlabels(const yarp::os::Bottle& labels) ");
+      helpString.push_back("Sets the labels for all teh possible actions ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="setlabel") {

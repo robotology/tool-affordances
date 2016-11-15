@@ -65,6 +65,7 @@ protected:
     std::string filepath;   // path for the memory file
     std::string filename;    // name for the memory file
 
+    std::vector < std::string>  act_labels;
     std::vector < std::string>  knownLabels;                        // maps string labels to index in affordance matrix
     std::vector < std::vector < std::vector <double> > > affHist;   // Keeps track of all effects, for all acts and all labels: affHist[labI][act].push_back(eff)
     std::vector < std::vector < double> > knownAffs;                // Saves learned success rates: knownAffs[labI][act] = mean(affHist[labI][act] (along recorded effects))
@@ -83,6 +84,7 @@ public:
     
     // RPC Accesible methods
     bool                        setnumact(const int numAct);
+    bool                        setactlabels(const &yarp::os::Bottle);
     int                         setlabel(const std::string& label = "tool");
     std::string                 getlabel();
 

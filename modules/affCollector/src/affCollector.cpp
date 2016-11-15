@@ -43,6 +43,8 @@ bool  AffCollector::configure(ResourceFinder &rf)
     numAct = rf.check("numAct",Value(6)).asInt();
     binAff = rf.check("binary",Value(false)).asBool();
 
+    act_labels.resize(numAct,"act");              //initialize with #numact empty strings
+
     //open ports
     bool ret = true;
     ret = ret && affInPort.open(("/"+name+"/aff:i").c_str());     // Receives pairs of action-effect information to update affordance information
@@ -165,6 +167,18 @@ bool AffCollector::setnumact(const int num)
     return true;
 }
 
+bool AffCollector::setactlabels(const Bottle& labels)
+{
+    numAct = labels.size();
+    act_labels.clear();
+    for (i = 0; i < numAct ; i++){
+        string act_label = labels.get(i).asString();
+        act_labels.push_back(act_label);
+    }
+    return true;
+}
+
+
 int AffCollector::setlabel(const std::string& label)
 {
     // Look for label in known labels vector.
@@ -286,12 +300,27 @@ Bottle  AffCollector::getAffs(const std::string& label)
             labI = std::distance(knownLabels.begin(), it);                  // return position of found element
         }
     }
-    affs.addString(knownLabels[labI]);
-    Bottle& affLab = affs.addList();
-    for (int a =0; a < knownAffs[labI].size(); a++){
-        affLab.addDouble(knownAffs[labI][a]);
-    }
 
+    // Return affordances of given tool-pose label
+    if (labI < 0)       // No tool has been selected yet
+    {
+        affs.addString("no_aff");
+    }else{
+        affs.addString(knownLabels[labI]);
+
+        /*
+        Bottle& affLab = affs.addList();
+        for (int a =0; a < knownAffs[labI].size(); a++){
+            affLab.addDouble(knownAffs[labI][a]);
+        }
+        */
+
+        Property &affProps = affs.addDict();
+        for (int a =0; a < knownAffs[labI].size(); a++){
+            affProps.put(act_labels[a],knownAffs[labI][a]);
+        }
+
+    }
     return affs;
 }
 
@@ -380,7 +409,7 @@ string AffCollector::selectTool(const int act)
     // Check the case where its called before any affordances are learnt
     if (knownAffs.size() <1){
         cout << "No afordance have been learnt yet" << endl;
-        return "noAff";
+        return "no_tool";
     }
 
     //Find the tool label with higher success rate for particular action

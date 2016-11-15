@@ -227,8 +227,7 @@ bool Tool3DManager::loadModel(const string &tool){
     return ok;
 }
 
-string Tool3DManager::graspTool(const string &tool){
-    bool ok;
+string Tool3DManager::graspTool(const string &tool){    
     string tool_loaded;
     if (robot=="icubSim"){
         cout << "Tool in sim is loaded, not grasped." << endl;
