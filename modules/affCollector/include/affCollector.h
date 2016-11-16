@@ -84,7 +84,7 @@ public:
     
     // RPC Accesible methods
     bool                        setnumact(const int numAct);
-    bool                        setactlabels(const &yarp::os::Bottle);
+    bool                        setactlabels(const yarp::os::Bottle);
     int                         setlabel(const std::string& label = "tool");
     std::string                 getlabel();
 

@@ -167,11 +167,11 @@ bool AffCollector::setnumact(const int num)
     return true;
 }
 
-bool AffCollector::setactlabels(const Bottle& labels)
+bool AffCollector::setactlabels(const Bottle labels)
 {
     numAct = labels.size();
     act_labels.clear();
-    for (i = 0; i < numAct ; i++){
+    for (int i = 0; i < numAct ; i++){
         string act_label = labels.get(i).asString();
         act_labels.push_back(act_label);
     }

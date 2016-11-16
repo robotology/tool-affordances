@@ -28,6 +28,33 @@ ZOFFSET         = 0.0       -- m
 --              X  V                      |    
 --                                       0.0            -- area is dsipalced to right to help tool actions
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-------------------------------   INTERACTION FLOW   ----------------------------------
+
+-- Explore objects
+    -- act on those possible without tool (bottom)
+  -- Option user:
+    -- select tool to act on further ones (probabilistaclly) --> from affCollector selectTool()
+    -- ask for tool
+        -- check if tool is the given one or not
+        -- if yes: say 'thanks'
+        -- if not: say 'this is not the tool I asked for'
+        -- Check tool affordances (from affCollector)
+            -- If required affordance available: do action (even if its another tool, but say 'i ll do it anyway') 
+            -- If required affordance not available: ask for another tool (and say 'I cant do anyhitng with this tool')
+    -- Do action
+    -- Observe effect -> Update affCollector.
+    -- Loop
+
+  -- Option vision (FURTHER DEVELOPMENT):
+    -- look to tool rack
+    -- detect and recognize tools
+    -- call affCollector to get affrodances of each tool in the possible poses
+    -- Ask user to give best tool (or reach for it)
+
+------------------------------------------------------------------------------------------
+-- DEFINES
+
 -- LIMIT LINES
 MIN_X = -0.6        -- meter
 MAX_X = -0.1
@@ -122,10 +149,8 @@ ispeak_rpc:open("/affExplorer/ispeak:rpc")
 affcollect_rpc:open("/affExplorer/affcol:rpc")
 
 -- Connect
-if robot == "icub" then
-    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
-    if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
-end
+ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
+if ret == false then print("cannot connect  from /lbpExtract/blobs:o") end
 
 ret = yarp.NetworkBase_connect(port_acteff:getName(), "/affCollector/aff:i")
 if ret == false then print("cannot connect to /affCollector/aff:i") end
@@ -142,58 +167,18 @@ if ret == false then print("cannot connect to /tool3DManager/rpc:i") end
 ret = yarp.NetworkBase_connect(ar_rpc_io:getName(), "/actionsRenderingEngine/cmd:io")
 if ret == false then print("cannot connect to /actionsRenderingEngine/cmd:io") end
 
--- XXX till here
+ret = yarp.NetworkBase_connect(ispeak_port:getName(), "/iSpeak")
+if ret == false then print("cannot connect to /iSpeak!")  end
 
--- Before exploring, check if it has a tool (received by rpc as label) 
--- If it doesnt, 
-    --> ask for tool from list (so it can load the model)
-    --> do alignment and get pose
-    --> tell affCollector to setlabel  of tool-pose
--- When it has it:
-    -- >xx find objects at blobs
-    --> xx decide action (random based on zone)
-    --> xx perform action
-    --> observe effect (success/fail) -> update affCollector (action , effect)
-    --> Do around 60 times, until each action is done about 10 times (more or less)
-    --> Ask to change tool(-pose) and repeat
-
--- XXX have to change for:
-
--- Explore objects
-    -- act on those possible without tool (bottom)
-  -- Option user:
-    -- select tool to act on further ones (probabilistaclly) --> from affCollector selectTool()
-    -- ask for tool
-        -- check if tool is the given one or not
-        -- if yes: say 'thanks'
-        -- if not: say 'this is not the tool I asked for'
-        -- Check tool affordances (from affCollector)
-            -- If required affordance available: do action (even if its another tool, but say 'i ll do it anyway') 
-            -- If required affordance not available: ask for another tool (and say 'I cant do anyhitng with this tool')
-    -- Do action
-    -- Observe effect -> Update affCollector.
-    -- Loop
-
-  -- Option vision (FURTHER DEVELOPMENT):
-    -- look to tool rack
-    -- detect and recognize tools
-    -- call affCollector to get affrodances of each tool in the possible poses
-    -- Ask user to give best tool (or reach for it)
-
-
----------------- Modifiable variables for module flow:: 
-
-bin_aff = false
-SIM = false
 
  ------------------------------ Initialization -----------------------------
 print("Module running ... ")
 t0 = yarp.Time_now()
 math.randomseed( os.time() )
-state = "no_tool"
+state = "observe"
 --state = "do_action"
 object_list = {}                        -- for keeping the memory of objects
-object = {}                             -- targeted object
+target_object = {}                             -- targeted object
 tp_trial_count = 0
 go_home()
 
@@ -216,9 +201,10 @@ while state ~= "exit" do
         if blobs ~= nil and blobs:size() >= 0 then    
             if update_objects(object_list, blobs) == true then           -- updates objects in memory
                 -- decide which object and corresponding action
-                object =  target_object(object_list)
-                if object ~= nil then
-                    if object.task == "take_hand" or object.task == "drag_left_hand" then
+                target_object =  target_object(object_list)
+                action = target_object.task;
+                if target_object ~= nil then
+                    if action == "take_hand" or action == "drag_left_hand" then
                         state = "do_action"             -- these actiosn do not need tools
                     else        
                         state = "check_affordance"      -- check if tool affords, or which tool to ask for
@@ -232,7 +218,7 @@ while state ~= "exit" do
     -- see if the desired task is doable
     if state == "check_affordance" then
         print("State = ",state)
-        if check_affordance(object.task) then   -- task is doable with present tool
+        if check_affordance(action) then   -- task is doable with present tool
             state = "do_action"
         else
             state = "select_tool"               -- task is NOT doable with present tool
@@ -243,56 +229,65 @@ while state ~= "exit" do
     -- Select a tool and get it
     if state == "select_tool" then
         print("State = ",state)
-        tool_selected = select_tool(object.task)         
+        tool_selected = select_tool(action)         
         print("Tool Selected:", tool_selected)
 
         if tool_selected  ~= "no_tool" then 
-            tool_pose = ask_for_tool(tool_selected)   
-            if tool_pose ~= "invalid" then
-                -- XXX XXX Set tool received as active label on affCollector 
-                -- XXX XXX Check if the tool given (tool_pose) is the same as asked for (tool_selected)
-                -- If yes say thanks, and do action
-                --  otherwise complain, and
-                -- check affordance for given task.
-                -- If action is doable, do it, otherwise ask for another tool 
-                if 
-
-                set_tool_label(tool_pose)         
-                print("Tool-Pose:",tool_pose)
-                state = "do_action"
+            tool_given = ask_for_tool(tool_selected)   -- Grasps and recognizes tool
+            print("Tool given: ", tool_given)
+            if tool_given ~= "invalid" then
+                set_tool_label(tool_given)    --  Set tool received as active label on affCollector 
+                -- Check if the tool given (tool_pose) is the same as asked for (tool_selected)
+                if (tool_given == tool_selected) then 
+                    say("Thanks!")      
+                    print("Thanks!")
+                    go_home()
+                    state = "observe"
+                else
+                    say("Not the tool I asked for")      
+                    print("Not the tool I asked for...")
+                    if check_affordance(action) then
+                        print("...but I can do the action")
+                        say(" but I will do the action", action, " anyway")
+                        go_home()
+                        state = "observe"
+                    else
+                        print("... and its not useful")
+                        say("and I can not do the action", action) 
+                        state = "select_tool"                        
+                    end
+                end                
                 go_home()
+            else
+                print("Could not get the tool, lets try again")
             end
         else
             print("Tool Selection unsuccessful")
+            go_home()
             state = "observe"
         end
     end
 
 
-    -- Find object, perform action      
+    --  Object has been found and affrodance checked -> perform action    
     if state ==  "do_action" then
-        print("State = ", state)
-        local blobs = port_blobs:read(false)
-        if blobs ~= nil and blobs:size() >= 0 then    
-            if update_objects(blobs) == true then           -- updates the global variable objects (objects in memory)
-                object = object_list[1]               -- for exploring we assume there is only one object on the table
-                act_i = explore(object)                     -- find the location of the object and select action
-                action = find_key(ACTION_LIST, act_i)
-                if act_i >= 0 then 
-                    print("Performing action ", action)
-                    local actOK = perform_action(action, object)
-                    if actOK then
-                        print("Action Performed: ", action)
-                        state = "comp_effect"       
-                    else
-                        print("Action ", action, "could not be executed" )             
-                    end           -- Perform selected action
+        print("Performing action ", action)
+        local actOK = perform_action(action, target_object)
+        if actOK then
+            print("Action Performed: ", action)
+            -- state = "comp_effect"
+            state = "observe"  
+        else
+            print("Action ", action, "could not be executed" )             
+            end           -- Perform selected action
                 end
                 --go_home()
             end
         end 
     end
 
+
+--[[
     --  Observe and save effect  
     if state == "comp_effect" then
         print("")
@@ -316,6 +311,7 @@ while state ~= "exit" do
             end
         end
     end  
+]]--
 
     yarp.Time_delay(0.2) -- acts as getPeriod()
 end

@@ -69,19 +69,19 @@ end
 
 --/---------------------------------------------------------------------/
 function get_3d_pos(object_list)
-    print(" Getting 3D position of " , #object_list, " objects")
+    print(" Getting 3D position of " .. #object_list .. " objects")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("s2c")
     for i=1,#object_list do
-        print("Object ", i," at 2D ", object_list[i].u ,",", object_list[i].v  )
+        print("Object " .. i .." at 2D " .. object_list[i].u .. "," .. object_list[i].v  )
         local obj = cmd:addList()
         obj:addDouble(object_list[i].u)
         obj:addDouble(object_list[i].v)
     end
     ar_rpc_io:write(cmd, rep)
-    print("rep = ", rep:toString())        
+    print("rep = " .. rep:toString())        
     
     for i=0,rep:size()-1 do
         bt = rep:get(i):asList()  
@@ -90,12 +90,12 @@ function get_3d_pos(object_list)
             object_list[i+1].x = bt:get(0):asDouble()
             object_list[i+1].y = bt:get(1):asDouble()
             object_list[i+1].z = bt:get(2):asDouble()+0.04
-            print("Object ", i+1," at 3D ", object_list[i+1].x ,",", object_list[i+1].y ,",", object_list[i+1].z )
+            print("Object " ..  i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
         else
             object_list[i+1].x = rep:get(0):asDouble()
             object_list[i+1].y = rep:get(1):asDouble()
             object_list[i+1].z = rep:get(2):asDouble()+0.04
-            print("Object ", i+1," at 3D ", object_list[i+1].x ,",", object_list[i+1].y ,",", object_list[i+1].z )
+            print("Object " .. i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
             return true        
         end
     end
@@ -146,28 +146,28 @@ function target_object(object_list)
     local obj
     obj = get_object_in_zone(object_list, REACHABLE_ZONE_X, REACHABLE_ZONE_Y)
     if obj ~= nil then 
-         print("Reachable object selected:", obj.x, obj.y, obj.z) 
+         print("Reachable object selected:" .. obj.x .. obj.y .. obj.z) 
          return obj
     end
 
     -- Second, objects pushable with hand
     obj = get_object_in_zone(object_list, BOTTOMRIGHT_ZONE_X, BOTTOMRIGHT_ZONE_Y)
     if obj ~= nil then
-         print("Pushable by hand object seletected:", obj.x, obj.y, obj.z) 
+         print("Pushable by hand object seletected:" .. obj.x .. obj.y .. obj.z) 
          return obj
     end
 
     -- Third, pullable with tool from right side
     obj = get_object_in_zone(object_list, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y)
     if obj ~= nil then
-         print("Object on up right zone selected:", obj.x, obj.y, obj.z) 
+         print("Object on up right zone selected:" .. obj.x .. obj.y .. obj.z) 
          return obj
     end
 
     -- Third, pullable with tool from left side
     obj = get_object_in_zone(object_list, UPLEFT_ZONE_X, UPLEFT_ZONE_Y)
     if obj ~= nil then
-         print("Object on up left zone selected", obj.x, obj.y, obj.z) 
+         print("Object on up left zone selected" .. obj.x .. obj.y .. obj.z) 
          return obj
     end
 
@@ -255,7 +255,7 @@ function select_task(obj)
         end
     end
 
-    print("[object] in zone ", zone ,":", obj.x, obj.y, obj.z, " requires action " , act)
+    print("[object] in zone ".. zone .. ":" .. obj.x .. obj.y .. obj.z .. " requires action " , act)
 
     return  act
 end
@@ -281,7 +281,7 @@ function check_affordance(task, thres)
     end
 
     aff_rate = aff_value:asDouble()
-    print("Returned aff_rate for task" , task , " is ", aff_rate)
+    print("Returned aff_rate for task" .. task .. " is " .. aff_rate)
     if (aff_rate < thres)then
         return false
     end
@@ -293,7 +293,7 @@ end
 function select_tool(task)
     -- get index of desired task
     local act_i = find_key(TOOL_ACTIONS, task)
-    print("task ", task, " has index ", act_i)
+    print("task ".. task .. " has index ".. act_i)
 
     -- Call affCollector to return the best tool's label for a given task
     local cmd = yarp.Bottle()    
@@ -303,7 +303,7 @@ function select_tool(task)
     affcollect_rpc:write(cmd, rep)
 
     local tool = rep:get(0):asString()
-    print("Tool selected is ", tool)
+    print("Tool selected is " .. tool)
 
     return tool
 end
@@ -327,32 +327,32 @@ end
 --/---------------------------------------------------------------------/
 function ask_for_tool(tool_name)
 
-    say("Give me the " .. tool_name)
+    speak("Give me the " .. tool_name)
 
     tool_file = "real/" .. tool_name
-    print("Tool file: ", tool_file)
+    print("Tool file: " .. tool_file)
 
     print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
     tmanager_rpc:write(cmd, rep)
-    print("--Reply", rep:get(0):asString())
+    print("--Reply" .. rep:get(0):asString())
     local tool_loaded = rep:get(0):asString()
     if tool_loaded == "not_loaded" then  return "invalid"   end
 
-    say("I have the tool " .. tool_loaded)
+    speak("I have the tool " .. tool_loaded)
  
     print("find the tool pose")
     cmd:clear()
     rep:clear()    
     cmd:addString("findPose")
-    print("--Sending", cmd:toString())
+    print("--Sending".. cmd:toString())
     tmanager_rpc:write(cmd, rep)
-    print("Reply", rep:toString())
+    print("Reply".. rep:toString())
     local reply = rep:get(0):asString()
     if reply ~= "ok" then  
-        say("I could not find the pose" )
+        speak("I could not find the pose" )
         print("I could not find the pose" )
         return "invalid"   
     end 
@@ -361,14 +361,14 @@ function ask_for_tool(tool_name)
     cmd:clear()
     rep:clear()
     cmd:addString("getOri")
-    print("--Sending", cmd:toString())
+    print("--Sending".. cmd:toString())
     o3de_rpc:write(cmd, rep) 
-    print("--Reply", rep:toString())
+    print("--Reply".. rep:toString())
    
     local deg
     if rep:get(1):asDouble() then 
         deg = rep:get(1):asDouble()
-        print("Deg", deg)
+        print("Deg:".. deg)
     else
         print("Orientation couldnt be retreived" )
         return "invalid"   
@@ -380,12 +380,12 @@ function ask_for_tool(tool_name)
         return "invalid"       
     end 
 
-    say("I have the tool in pose " .. pose)
+    speak("I have the tool in pose " .. pose)
 
     tool_pose = tool_loaded .. "_" .. pose
 
-    print("Deg: ", deg, " -> Pose", pose)
-    print("Tool", tool_loaded , " oriented ", pose, " -> tool-pose " , tool_pose)
+    print("Deg: ".. deg ..  " -> Pose", pose)
+    print("Tool".. tool_loaded .. " oriented ".. pose.. " -> tool-pose " .. tool_pose)
 
     return tool_pose
 end
@@ -401,6 +401,13 @@ function go_home()
     cmd:addString("head")
     cmd:addString("arms")  
     ar_rpc_io:write(cmd, rep)
+end
+
+function speak(msg)
+    local cmd = yarp.Bottle()    
+    cmd:addString(msg)
+    ispeak_port:write(cmd)
+    yarp.Time_delay(1.0)
 end
 
 --/---------------------------------------------------------------------/
@@ -430,7 +437,7 @@ function save_effect(act_i, eff)
     bot:addInt(act_i)
     bot:addDouble(eff)
     
-    print("Sending: acteff_bot ", bot:toString())
+    print("Sending: acteff_bot ".. bot:toString())
     port_acteff:write(bot)
 end
 
@@ -467,9 +474,9 @@ function set_tool_label(tool_pose)
     local rep = yarp.Bottle()
     cmd:addString("setlabel")
     cmd:addString(tool_pose)
-    --print("Sending: ", cmd:toString())
+    --print("Sending: ".. cmd:toString())
     affcollect_rpc:write(cmd, rep)
-    --print("Received:", rep:toString())
+    --print("Received:".. rep:toString())
     print("label ", tool_pose, "set in affCollector")
     return true
 end
@@ -499,15 +506,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then
-            cmd:addDouble(object.x - 0.04)
-            cmd:addDouble(object.y)
-            cmd:addDouble(object.z)
-        else
-            cmd:addDouble(object.x - 0.10)
-            cmd:addDouble(object.y)
-            cmd:addDouble(object.z + 0.00)
-        end
+        cmd:addDouble(object.x - 0.10)
+        cmd:addDouble(object.y)
+        cmd:addDouble(object.z + 0.00)
         cmd:addDouble(270)
         cmd:addDouble(math.abs(object.x -(CENTER_X + 0.07)))
         print(cmd:toString())
@@ -518,15 +519,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then
-            cmd:addDouble(object.x - 0.04)
-            cmd:addDouble(object.y + 0.04)
-            cmd:addDouble(object.z + 0.01)
-        else
-            cmd:addDouble(object.x - 0.05)
-            cmd:addDouble(object.y + 0.07)
-            cmd:addDouble(object.z + 0.01)
-        end
+        cmd:addDouble(object.x - 0.05)
+        cmd:addDouble(object.y + 0.07)
+        cmd:addDouble(object.z + 0.01)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (CENTER_Y - 0.10)))
         print(cmd:toString())
@@ -552,15 +547,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then
-            cmd:addDouble(object.x - 0.04)
-            cmd:addDouble(object.y - 0.04)
-            cmd:addDouble(object.z + 0.01)
-        else
-            cmd:addDouble(object.x - 0.06)
-            cmd:addDouble(object.y - 0.02)
-            cmd:addDouble(object.z + 0.01)
-        end
+        cmd:addDouble(object.x - 0.06)
+        cmd:addDouble(object.y - 0.02)
+        cmd:addDouble(object.z + 0.01)
         cmd:addDouble(0)
         cmd:addDouble(math.abs(object.y - (CENTER_Y + 0.10)))
         print(cmd:toString())
@@ -571,15 +560,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then
-            cmd:addDouble(object.x - 0.04)
-            cmd:addDouble(object.y - 0.04)
-            cmd:addDouble(object.z + 0.01)
-        else
-            cmd:addDouble(object.x - 0.06)
-            cmd:addDouble(object.y - 0.02)
-            cmd:addDouble(object.z + 0.01)
-        end
+        cmd:addDouble(object.x - 0.06)
+        cmd:addDouble(object.y - 0.02)
+        cmd:addDouble(object.z + 0.01)
         cmd:addDouble(315)
         local a = math.abs(object.y - (CENTER_Y + 0.10))
         local b = math.abs(object.x - (CENTER_X + 0.05))
@@ -592,15 +575,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then 
-            cmd:addDouble(object.x + 0.04)
-            cmd:addDouble(object.y)
-            cmd:addDouble(object.z)
-        else
-            cmd:addDouble(object.x + 0.04)
-            cmd:addDouble(object.y)
-            cmd:addDouble(object.z)
-        end
+        cmd:addDouble(object.x + 0.04)
+        cmd:addDouble(object.y)
+        cmd:addDouble(object.z)
         cmd:addDouble(90)
         cmd:addDouble(math.abs(object.x -(CENTER_X - 0.07)))        
         print(cmd:toString())
@@ -611,15 +588,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()    
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        if SIM then
-            cmd:addDouble(object.x + 0.04)
-            cmd:addDouble(object.y + 0.04)
-            cmd:addDouble(object.z)
-        else
-            cmd:addDouble(object.x + 0.03)
-            cmd:addDouble(object.y + 0.02)
-            cmd:addDouble(object.z)
-        end
+        cmd:addDouble(object.x + 0.03)
+        cmd:addDouble(object.y + 0.02)
+        cmd:addDouble(object.z)
         cmd:addDouble(135)
         local a = math.abs(object.y - (CENTER_Y - 0.07))
         local b = math.abs(object.x - (CENTER_X - 0.07))
