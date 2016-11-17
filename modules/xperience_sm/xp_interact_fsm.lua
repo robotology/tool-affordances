@@ -4,6 +4,18 @@ event_table = {
    clean     = "e_clean",
    }
 
+--[[
+STATE MACHINE :
+
+         /------------------------always---------------------| 
+        \/                                                   /\
+     |OBSERVE|----always-----> |CHECK_AFF|----doable-----> |DO_ACTION|
+         /\                        \
+         |                          \not doable
+         |                          \/
+         |-------tool ok--------|TOOL_SELECT|<--->tool not ok
+]]--
+
 interact_fsm = rfsm.state{
 
    ----------------------------------
@@ -11,35 +23,34 @@ interact_fsm = rfsm.state{
    ----------------------------------
    SUB_OBSERVE = rfsm.state{
            entry=function()
-                 print("State = ",state)
+                 print("State = "..state)
                  print("in substate OBSERVE, checking objects on the table!")
            end,
 
            doo = function()
-               while true do
-                    local blobs = port_blobs:read(false)
-                    if blobs ~= nil and blobs:size() >= 0 then    
-                        if update_objects(object_list, blobs) == true then           -- updates objects in memory
-                            -- decide which object and corresponding action
-                            target_object =  target_object(object_list)
-                            action = target_object.task;
-                            if target_object ~= nil then
-                                if action == "take_hand" or action == "drag_left_hand" then
-                                    rfsm.send_events(fsm,'e_action')
-                                    state = "do_action"             -- these actiosn do not need tools
-                                else        
-                                    state = "check_affordance"      -- check if tool affords
-                                    rfsm.send_events(fsm,'e_checkaff')
-                                end
+               while true do   
+                    if update_objects(object_list) == true then           -- updates objects in memory
+                        -- decide which object and corresponding action
+                        target_object = select_object(object_list)
+                        print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
+                        action = target_object.task;
+                        if target_object ~= nil then
+                            if action == "take_hand" or action == "drag_left_hand" then
+                                rfsm.send_events(fsm,'e_action')
+                                state = "do_action"             -- these actiosn do not need tools
+                            else        
+                                state = "check_affordance"      -- check if tool affords
+                                rfsm.send_events(fsm,'e_checkaff')
                             end
-                         end
+                        end
                      end
+
 
 
 --[[
                     XXX eventually make a previous state "WAIT" where it waits for 'clean' or 'stop'
                     result = SM_Reco_Grammar(speechRecog_port, grammar)
-                    print("received REPLY: ", result:toString() )
+                    print("received REPLY: ".. result:toString() )
                     local cmd =  result:get(1):asString()
                     rfsm.send_events(fsm, event_table[cmd])
 ]]--
@@ -56,7 +67,7 @@ interact_fsm = rfsm.state{
 
    SUB_CHECKAFF = rfsm.state{
             entry=function()
-                speak(ispeak_port,"I am checking if I can do the action")
+                speak("I am checking if I can do the action")
                 print("State = " .. state)
                 if check_affordance(action) then   -- task is doable with present tool
                     state = "do_action"
@@ -66,26 +77,26 @@ interact_fsm = rfsm.state{
                     state = "select_tool"               -- task is NOT doable with present tool
                     speak("I need a tool ")
                     rfsm.send_events(fsm,'e_select')
-                end                
+                end 
             end
    },
 
    SUB_SELECT = rfsm.state{
            entry=function()
-                print("State = ",state)
+                print("State = "..state)
                 tool_selected = select_tool(action)         
-                print("Tool Selected:", tool_selected)
+                print("Tool Selected:".. tool_selected)
 
                 if tool_selected  ~= "no_tool" then 
                     tool_given = ask_for_tool(tool_selected)   -- Grasps and recognizes tool
-                    print("Tool given: ", tool_given)
+                    print("Tool given: " .. tool_given)
                     if tool_given ~= "invalid" then
                         set_tool_label(tool_given)    --  Set tool received as active label on affCollector 
                         -- Check if the tool given (tool_pose) is the same as asked for (tool_selected)
                         if (tool_given == tool_selected) then 
                             speak("Thanks!")      
                             print("Thanks!")
-                            go_home()
+                            go_home(0)
                             state = "observe"
                             rfsm.send_events(fsm,'e_observe')
                         else
@@ -94,31 +105,49 @@ interact_fsm = rfsm.state{
                             if check_affordance(action) then
                                 print("...but I can do the action")
                                 speak(" but I will do the action", action, " anyway")
-                                go_home()
+                                go_home(0)
                                 state = "observe"
+                                rfsm.send_events(fsm,'e_observe')
                             else
                                 print("... and its not useful")
                                 speak("and I can not do the action", action) 
-                                state = "select_tool"                        
+                                state = "select_tool"            
+                                --rfsm.send_events(fsm,'e_done')            
                             end
                         end                
-                        go_home()
                     else
                         print("Could not get the tool, lets try again")
+                        state = "select_tool"
+                        rfsm.send_events(fsm,'e_observe')
                     end
                 else
-                    print("Tool Selection unsuccessful")
-                    go_home()
+                    print("Could not select a proper tool")
                     state = "observe"
                 end
+                go_home(0)                
            end
    },
 
 
+   SUB_ACTION = rfsm.state{
+          entry=function()
+                print("State = "..state)
+                print("Performing action ", action)
+                local actOK = perform_action(action, target_object)
+                if actOK then
+                    print("Action Performed: ", action)
+                    -- state = "comp_effect"
+                    state = "observe"  
+                else
+                    print("Action ", action, "could not be executed")                                
+                end 
+          end
+   },
+
 
    SUB_EXIT = rfsm.state{
            entry=function()
-                   speak(ispeak_port, "Ok, bye bye")
+                   speak("Ok, bye bye")
                    rfsm.send_events(fsm, 'e_observe_done')
            end
    },
@@ -140,7 +169,7 @@ interact_fsm = rfsm.state{
 
    -- From state SELECT
    rfsm.transition { src='SUB_SELECT', tgt='SUB_OBSERVE', events={ 'e_observe' } },
-   rfsm.transition { src='SUB_SELECT', tgt='SUB_SELECT', events={ 'e_observe' } },
+   --rfsm.transition { src='SUB_SELECT', tgt='SUB_SELECT', events={ 'e_done' } },
 
    -- From state ACTION
    rfsm.transition { src='SUB_ACTION', tgt='SUB_OBSERVE', events={ 'e_done' } },

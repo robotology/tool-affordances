@@ -8,9 +8,11 @@ return rfsm.state {
    ----------------------------------
    ST_INITPORTS = rfsm.state{
            entry=function()
+                print("Opening ports ... ")
                 -- Open ports
-                ret = port_blobs:open("/affXperience/blobs:i")
-                ret = ret and port_acteff:open("/affXperience/act_eff:o")
+                ret = blobs_port:open("/affXperience/blobs:i")
+                ret = ret and acteff_port:open("/affXperience/act_eff:o")
+                ret = ret and ispeak_port:open("/affXperience/ispeak:o")
                 ret = ret and speechRecog_port:open("/affXperience/speechRecog")
                 if ret == false then
                     print("\nERROR OPENING PORTS\n")
@@ -21,7 +23,6 @@ return rfsm.state {
                 ret = ar_rpc_io:open("/affXperience/are:rpc")
                 ret = ret and o3de_rpc:open("/affXperience/o3de:rpc")
                 ret = ret and tmanager_rpc:open("/affXperience/t3dm:rpc")
-                ret = ret and ispeak_rpc:open("/affXperience/ispeak:rpc")
                 ret = ret and affcollect_rpc:open("/affXperience/affcol:rpc")
                 if ret == false then
                     print("\nERROR OPENING RPC PORTS\n")
@@ -35,9 +36,11 @@ return rfsm.state {
    ----------------------------------
    ST_CONNECTPORTS = rfsm.state{
            entry=function()
+                    print("Connecting ports ... ")
                     -- Connect
-                    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o",port_blobs:getName())
-                    ret = ret and yarp.NetworkBase_connect(port_acteff:getName(), "/affCollector/aff:i")
+--[[
+                    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName())
+                    ret = ret and yarp.NetworkBase_connect(acteff_port:getName(), "/affCollector/aff:i")
                     ret = ret and yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
                     ret = ret and yarp.NetworkBase_connect(affcollect_rpc:getName(), "/affCollector/rpc:i")
                     ret = ret and yarp.NetworkBase_connect(tmanager_rpc:getName(), "/tool3DManager/rpc:i")
@@ -48,33 +51,17 @@ return rfsm.state {
                         print("\n\nERROR WITH CONNECTIONS, PLEASE CHECK\n\n")
                         rfsm.send_events(fsm, 'e_error')
                     end
+]]--
            end
    },
-   --[[
-   ----------------------------------
-   -- state RETREIVEMEMORY         --
-   ----------------------------------
-   ST_RETREIVEMEMORY = rfsm.state{
-           entry=function()
-                   ret = true
-                   ret = ret and (IH_Expand_vocab(object_port, objects) == "OK")
-                   
-                   if ret == false then
-                           rfsm.send_events(fsm, 'e_error')
-                   end
-           end
-           },
+
 
    ----------------------------------
    -- state INITVOCABS             --
    ----------------------------------
    ST_INITVOCABS = rfsm.state{
            entry=function()
-                   ret = true
-                   for key, word in pairs(objects) do
-                           ret = ret and (SM_RGM_Expand(speechRecog_port, "#Object", word) == "OK")
-                   end
-
+                   print("Initializing vocabs ... ")
                    SM_Expand_asyncrecog(speechRecog_port, "icub-stop-now")
 
                    if ret == false then
@@ -82,15 +69,31 @@ return rfsm.state {
                    end
            end
    },
-]]--
+
+
    ----------------------------------
    -- state HOME                   --
    ----------------------------------
    ST_HOME = rfsm.state{
            entry=function()
+               print("Module running ... ")
+               t0 = yarp.Time_now()
+               math.randomseed( os.time() )
+               if set_act_labels(TOOL_ACTIONS) then 
+                   print("Action labels set properly ")
+               else
+                   print("Prbolems setting action labels ")
+               end
+
+
+               object_list = {}                        -- for keeping the memory of objects
+               target_object = {}                             -- targeted object
+               state = "observe"
                print("everything is fine, going home!")
+               go_home(1)
+
                speak("Ready")
-               go_home()
+
            end
    },
 
@@ -112,15 +115,15 @@ return rfsm.state {
            entry=function()
                    print("Closing...")
                    -- close ports
-                   port_blobs:close()
-                   port_acteff:close()
+                   blobs_port:close()
+                   acteff_port:close()
+                   ispeak_port:close()
                    speechRecog_port:close()
 
                    -- close rpcs
                    ar_rpc_io:close()
                    o3de_rpc:close()
                    tmanager_rpc:close()
-                   ispeak_rpc:close()
                    affcollect_rpc:close()
 
                    shouldExit = true;
@@ -133,27 +136,22 @@ return rfsm.state {
    --------------------------------------------
    ST_INTERACT = interact_fsm,
 
-
    ----------------------------------
    -- setting the transitions      --
    ----------------------------------
 
    rfsm.transition { src='initial', tgt='ST_INITPORTS' },
-   rfsm.transition { src='ST_INITPORTS', tgt='ST_CONNECTPORTS', events={ 'e_connect' } },
+   rfsm.transition { src='ST_INITPORTS', tgt='ST_CONNECTPORTS', events={ 'e_done' } },
    rfsm.transition { src='ST_INITPORTS', tgt='ST_FATAL', events={ 'e_error' } },
 
 
    rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_FINI', events={ 'e_error' } },
-   rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_HOME', events={ 'e_done' } },
+   rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_INITVOCABS', events={ 'e_done' } },
+   
+   rfsm.transition { src='ST_INITVOCABS', tgt='ST_FINI', events={ 'e_error' } },
+   rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },   
 
    rfsm.transition { src='ST_HOME', tgt='ST_INTERACT', events={ 'e_done' } },
-   rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_observe_done' } },
+   rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_done' } },
 
-   --rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_FINI', events={ 'e_error' } },
-   --rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_RETREIVEMEMORY', events={ 'e_done' } },
-   --rfsm.transition { src='ST_RETREIVEMEMORY', tgt='ST_INITVOCABS', events={ 'e_done' } },
-   
-   --rfsm.transition { src='ST_RETREIVEMEMORY', tgt='ST_FINI', events={ 'e_error' } },
-   --rfsm.transition { src='ST_INITVOCABS', tgt='ST_FINI', events={ 'e_error' } },
-   --rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },   
 }

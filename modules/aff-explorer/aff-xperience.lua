@@ -37,10 +37,10 @@ ZOFFSET         = 0.0       -- m
     -- select tool to act on further ones (probabilistaclly) --> from affCollector selectTool()
     -- ask for tool
         -- check if tool is the given one or not
-        -- if yes: say 'thanks'
-        -- if not: say 'this is not the tool I asked for'
+        -- if yes: speak 'thanks'
+        -- if not: speak 'this is not the tool I asked for'
         -- Check tool affordances (from affCollector)
-            -- If required affordance available: do action (even if its another tool, but say 'i ll do it anyway') 
+            -- If required affordance available: do action (even if its another tool, but speak 'i ll do it anyway') 
             -- If required affordance not available: ask for another tool (and say 'I cant do anyhitng with this tool')
     -- Do action
     -- Observe effect -> Update affCollector.
@@ -176,11 +176,9 @@ print("Module running ... ")
 t0 = yarp.Time_now()
 math.randomseed( os.time() )
 state = "observe"
---state = "do_action"
 object_list = {}                        -- for keeping the memory of objects
 target_object = {}                             -- targeted object
-tp_trial_count = 0
-go_home()
+go_home(1)
 
 
 
@@ -239,31 +237,31 @@ while state ~= "exit" do
                 set_tool_label(tool_given)    --  Set tool received as active label on affCollector 
                 -- Check if the tool given (tool_pose) is the same as asked for (tool_selected)
                 if (tool_given == tool_selected) then 
-                    say("Thanks!")      
+                    speak("Thanks!")      
                     print("Thanks!")
-                    go_home()
+                    go_home(0)
                     state = "observe"
                 else
-                    say("Not the tool I asked for")      
+                    speak("Not the tool I asked for")      
                     print("Not the tool I asked for...")
                     if check_affordance(action) then
                         print("...but I can do the action")
-                        say(" but I will do the action", action, " anyway")
-                        go_home()
+                        speak(" but I will do the action", action, " anyway")
+                        go_home(0)
                         state = "observe"
                     else
                         print("... and its not useful")
-                        say("and I can not do the action", action) 
+                        speak("and I can not do the action", action) 
                         state = "select_tool"                        
                     end
                 end                
-                go_home()
+                go_home(0)
             else
                 print("Could not get the tool, lets try again")
             end
         else
             print("Tool Selection unsuccessful")
-            go_home()
+            go_home(0)
             state = "observe"
         end
     end
@@ -281,7 +279,7 @@ while state ~= "exit" do
             print("Action ", action, "could not be executed" )             
             end           -- Perform selected action
                 end
-                --go_home()
+                --go_home(0)
             end
         end 
     end

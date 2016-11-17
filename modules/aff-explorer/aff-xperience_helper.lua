@@ -104,7 +104,6 @@ end
 
 
 --/---------------------------------------------------------------------/
--- Updates tasks on global variable object_list
 function update_tasks(object_list)
     for i=1,#object_list do
         local obj = object_list[i]
@@ -226,30 +225,30 @@ function select_task(obj)
     local act = "no_act"
     -- based on the positon, choose action at random among the 2 possible on each zone
     if zone == "OUT" then
-        say("Object out of reach!")
+        speak("Object out of reach!")
         print("Objects out of limits!!")
         return nil
     end
 
     if zone == "BOTTOMLEFT" then
-        say("Object reachable!")
+        speak("Object reachable!")
         print("Objects reachable!!")
         act = "take_hand"
         return 
     end
     if zone == "BOTTOMRIGHT" then
-        say("Object bottomright!")
+        speak("Object bottomright!")
         print("Object bottomright!!")
         act ="drag_left_hand"
     end
     if zone == "UPLEFT" then
-        say("Object upleft!")
+        speak("Object upleft!")
         print("Object upleft!!")
         act = "drag_down_right"
         end
     end
     if zone == "UPRIGHT" then
-        say("Object upright!")
+        speak("Object upright!")
         print("Object upright!!")
         act = "drag_down"
         end
@@ -393,14 +392,13 @@ end
 
 
 --/---------------------------------------------------------------------/
-function go_home()   
+function go_home(hands)   
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:clear()
-    cmd:addString("home")
-    cmd:addString("head")
-    cmd:addString("arms")  
-    ar_rpc_io:write(cmd, rep)
+    cmd:addString("goHome")
+    cmd:addBool(hands)
+    tmanager:write(cmd, rep)
 end
 
 function speak(msg)

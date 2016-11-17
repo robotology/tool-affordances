@@ -97,35 +97,44 @@ TOOL_LIST = {"HOE1", "HOE2","HOE3","HOK1","HOK2", "HOK3", "RAK1", "RAK2", "RAK3"
 -------------------------------------------------------------------------------------------------
 -------------------              GRAMMAR                ----------------
 
--- XXX XXX
--- defining objects and actions vocabularies
-objects = {"Octopus", "Lego", "Toy", "Ladybug", "Turtle", "Car", "Bottle", "Box"}
-actions = {"{point at}", "{what is this}"}
-
--- defining speech grammar for Menu
-grammar = "Return to home position | Calibrate on table | Where is the #Object | Take the #Object | Grasp the #Object | See you soon  | I will teach you a new object | "
-       .."Touch the #Object | Push the #Object | Let me show you how to reach the #Object with your right arm | Let me show you how to reach the #Object with your left arm | "
-        .."Forget #Object | Forget all objects | Execute a plan | What is this | This is a #Object | Explore the #Object "
+tool_list_grammar = {HOE1 = "hoe square",
+                     HOE2 = "hoe diamond",
+                     HOE3 = "hoe metal",
+                     HOK1 = "one corner hook",
+                     HOK2 = "edgy hook",
+                     HOK3 = "all round hook",
+                     RAK1 = "big rake",
+                     RAK2 = "blue rake",
+                     RAK3 = "green rake",
+                     SHO1 = "green shovel",
+                     SHO2 = "orange shovel",
+                     SHO3 = "yellow shovel",
+                     STI1 = "tube stick",
+                     STI2 = "flat stick",
+                     STI3 = "markers stick"}
 
 -- defining speech grammar for Reward
 grammar_reward = "Yes you are | No here it is | Skip it"
 
--- defining speech grammar for teaching a new object
-grammar_track = "There you go | Skip it"
-
--- defining speech grammar for what function (ack)
-grammar_whatAck = "Yes you are | No you are not | Skip it | Wrong this is a #Object"
-
--- defining speech grammar for what function (nack)
-grammar_whatNack = "This is a #Object | Skip it"
-
--- defining speech grammar teach reach
-grammar_teach = "Yes I do | No I do not | Finished"
 
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
 require("yarp")
 require("rfsm")
+
+yarp.Network()
+
+-- Declare ports
+blobs_port = yarp.BufferedPortBottle()
+ispeak_port = yarp.BufferedPortBottle()
+acteff_port = yarp.Port()
+speechRecog_port = yarp.Port()
+
+--rpc
+ar_rpc_io = yarp.RpcClient()
+o3de_rpc = yarp.RpcClient()
+tmanager_rpc = yarp.RpcClient()
+affcollect_rpc = yarp.RpcClient()
 
 rf = yarp.ResourceFinder()
 rf:setVerbose(false)
@@ -138,43 +147,7 @@ fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
 rfsm.run(fsm)
 
---explore_helper_file = rf:findFile("aff-xperience_helper.lua")
---if explore_helper_file == "" then
---    print("Cannot find aff-xperience_helper.lua")
---    return false 
---end
---dofile(explore_helper_file)
-
---yarp_helper_file = rf:findFile("yarp_helper.lua")
---if yarp_helper_file == "" then
---    print("Cannot find yarp_helper.lua")
---    return false 
---end
---dofile(yarp_helper_file)
-
-yarp.Network()
-
--- Declare ports
-port_blobs = yarp.BufferedPortBottle()
-port_acteff = yarp.Port()
-
---rpc
-ar_rpc_io = yarp.RpcClient()
-o3de_rpc = yarp.RpcClient()
-tmanager_rpc = yarp.RpcClient()
-ispeak_rpc = yarp.RpcClient()
-affcollect_rpc = yarp.RpcClient()
-
--- Initialization
-print("Module running ... ")
-t0 = yarp.Time_now()
-math.randomseed( os.time() )
-object_list = {}                        -- for keeping the memory of objects
-target_object = {}                      -- targeted object
-go_home()
-
 shouldExit = false
-
 repeat
     rfsm.run(fsm)
     yarp.Time_delay(0.1)
