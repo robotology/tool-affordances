@@ -6,6 +6,7 @@ set(appname AffordancesProject)
 
 file(GLOB modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*.xml)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
+file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.txt)
 file(GLOB temps ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
 ##file(GLOB apps ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml)
 file(GLOB monitors ${CMAKE_CURRENT_SOURCE_DIR}/scripts/monitors/*.lua)         

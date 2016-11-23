@@ -82,7 +82,7 @@ REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}
 -- ACTION LIST
 TASK_LIST = {"no_act", "drag_down","drag_down_right", "drag_left", "drag_right", "take_hand", "drag_left_hand"}
 
-TOOL_ACTIONS = {"drag_down","drag_down_right", "drag_left", "drag_right"}
+TOOL_ACTIONS = {"drag_left", "drag_down","drag_down_right", "drag_right"}
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 

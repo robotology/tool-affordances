@@ -33,10 +33,15 @@ service affCollector_IDLServer
     bool setnumact(1: i32 numAct);
 
     /**
-     * Sets the labels for all teh possible actions
+     * Sets the labels for all the possible actions
      * @return true/false on success/failure
      */
     bool setactlabels(1: Bottle labels);
+
+    /**
+     * Returns the labels of all possible actions
+     */
+    Bottle getactlabels();
 
     /**
      * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.

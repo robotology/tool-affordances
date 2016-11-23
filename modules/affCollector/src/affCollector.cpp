@@ -95,6 +95,7 @@ bool  AffCollector::updateModule()
     // read if there is any new affordance data. If so, update aff for active label
     Bottle *affBottle = affInPort.read(false);
     if (affBottle!=NULL){
+        cout << "Affordance read" << endl;
         int act = affBottle->get(0).asInt();
         double eff = affBottle->get(1).asDouble();
         updateAff(act, eff);
@@ -103,12 +104,14 @@ bool  AffCollector::updateModule()
     // read if there is any new label.
     Bottle *labelBottle = labelsInPort.read(false);
     if (labelBottle!=NULL){
+        cout << "Label read" << endl;
         string label = labelBottle->get(0).asString();
         setlabel(label);
     }
 
     // Stream affordances of active label
     if (activeLabel >=0) {
+        cout << "Streaming affordance" << endl;
         Bottle &affBotOut = affOutPort.prepare();
         affBotOut.clear();
         affBotOut = getAffs();
@@ -167,15 +170,27 @@ bool AffCollector::setnumact(const int num)
     return true;
 }
 
-bool AffCollector::setactlabels(const Bottle labels)
+bool AffCollector::setactlabels(const Bottle &labels)
 {
     numAct = labels.size();
     act_labels.clear();
     for (int i = 0; i < numAct ; i++){
         string act_label = labels.get(i).asString();
+        cout << "adding action label " << act_label << endl;
         act_labels.push_back(act_label);
     }
     return true;
+}
+
+Bottle AffCollector::getactlabels()
+{
+    Bottle labs;
+    for (int i = 0; i < numAct ; i++){
+        string act_label = act_labels[i];
+        labs.addString(act_label);
+        cout << "action label read " << act_label << endl;
+    }
+    return labs;
 }
 
 
@@ -229,6 +244,10 @@ double AffCollector::updateAff(const int act, const double eff, const int labI)
     int label;
     if (labI < 0){
         label = activeLabel;
+        if (activeLabel < 0){
+            cout << "No label set yet" << endl;
+            return -1;
+        }
     }else {
         label = labI;
     }
@@ -673,6 +692,18 @@ bool AffCollector::savetofile(const string& fileN)
 
     ofstream fileHist;
     fileHist.open ((filepath  + file_name).c_str());
+
+    // Write first the action labels
+    fileHist << "[action labels]";
+    fileHist << "\n";
+    for (int a = 0; a<act_labels.size();a++){      // write action labels
+        fileHist << act_labels[a];
+        fileHist << "\n";
+    }
+
+
+    fileHist << "[tool labels]";
+    fileHist << "\n";
     for (int l=0; l<knownLabels.size();l++){      // along labels
         fileHist << knownLabels[l];
         fileHist << "\n";
@@ -709,6 +740,25 @@ bool AffCollector::readfile(const std::string& fileN)
     ifstream fileHist((filepath + file_name).c_str());
     std::string line;
 
+    // Read action labels first
+    int cnt_act = 0;
+    act_labels.clear();
+    getline(fileHist, line);                 // Read first line to check if action labels are available
+    if(line == "[action labels]"){
+        while (getline(fileHist, line))          //read line by line (action-wise)
+        {
+            if(line == "[tool labels]"){
+                cout<< "All action labels read" << endl;
+                numAct = cnt_act;
+                break;
+            } else{
+                act_labels.push_back(line);
+                cnt_act ++;
+            }
+        }
+    }     // If the action labels are not given, skip that part.
+
+
     int cnt = 0;
     affHist.clear();
     knownLabels.clear();
@@ -722,6 +772,7 @@ bool AffCollector::readfile(const std::string& fileN)
         //cout << "Read line : " << line << endl;
         if (cnt == 0){                        // Read the name first
             knownLabels.push_back(line);
+            cout << "Label : " << line << endl;
             affHist.push_back(vector<vector<double> >(0));      // Initialize the matrix (vec<vec>>) for first action data
             cnt++;
             continue;
@@ -731,12 +782,13 @@ bool AffCollector::readfile(const std::string& fileN)
         std::istringstream iss(line);
         double read_eff;
         while (iss >> read_eff){
-            actVec.push_back(read_eff);
+            actVec.push_back(read_eff);            
         }
         if (actVec.size() == 0){
             actVec.push_back(-1.0);
         }
 
+        cout << "Effects: " << line << endl;
         affHist.back().push_back(actVec);
 
         //cout << " - Saved #effects: " << actVec.size() <<endl;
@@ -750,7 +802,9 @@ bool AffCollector::readfile(const std::string& fileN)
 
     knownAffs.clear();
     knownAffsVar.clear();
+    cout << "computing success rate from known affs " <<endl;
     compRateFromHist(affHist,knownAffs);
+    cout << "computing variance from known affs " <<endl;
     compVarFromHist(affHist,knownAffsVar);
 
     activeLabel = knownLabels.size()-1;
@@ -772,7 +826,7 @@ bool AffCollector::quit()
 /***************** Helper Functions *************************************/
 double AffCollector::vecAvg (const vector<double>& vec )
 {
-    double return_value = 0.0;
+    double sum_accum = 0.0;
     int n = vec.size();
     int bad_i = 0;
 
@@ -781,11 +835,11 @@ double AffCollector::vecAvg (const vector<double>& vec )
         if (vec[i] < -0.01) {       // Do not include negative values (unknown or wrong samples)
             bad_i++;
         }else{
-            return_value += vec[i];
+            sum_accum += vec[i];
         }
     }
-
-    return ( return_value / (n-bad_i));
+    //cout << "Vector average is: " << ( sum_accum / (n-bad_i)) << endl;
+    return ( sum_accum / (n-bad_i));
 }
 
 double AffCollector::vecVar (const vector<double>& vec)
@@ -803,7 +857,7 @@ double AffCollector::vecVar (const vector<double>& vec)
             sum += (vec[j] - mean)*(vec[j] - mean);
         }
     }
-
+    //cout << "Vector variance is: " << sum/(n - bad_i) << endl;
     return sum/(n - bad_i);
 
 
@@ -813,12 +867,13 @@ bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<d
 {
     for(int l = 0; l<hist.size(); l++)
     {
+        //cout << "Computing avg for hist " << l <<endl;
         vector<double> affInit(numAct,-1.0);
         affs.push_back(affInit);           // Add aff Vector corresponding to that label
 
         for(int a= 0; a<numAct; a++){
             affs[l][a] = vecAvg(hist[l][a]);
-        }
+        }        
     }
 }
 

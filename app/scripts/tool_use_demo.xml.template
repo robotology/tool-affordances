@@ -1,0 +1,258 @@
+<application>
+    <name>TOOL_USE_DEMO_APP</name>
+    <module>
+        <name>tool3DManager</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 311.542) (y 179.392))</geometry>
+    </module>
+    <module>
+        <name>objects3DExplorer</name>
+        <parameters>--from realTools.ini</parameters>
+        <node>icub22</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 652.455) (y 304.087))</geometry>
+    </module>
+    <module>
+        <name>SFM</name>
+        <parameters></parameters>
+        <node>icub-cuda</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 629.939) (y 751.737))</geometry>
+    </module>
+    <module>
+        <name>actionsRenderingEngine</name>
+        <parameters>--motor::block_eyes 5.0</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1590.35) (y 243.45))</geometry>
+    </module>
+    <module>
+        <name>affMotor</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 665.036) (y 142.117))</geometry>
+    </module>
+    <module>
+        <name>affCollector</name>
+        <parameters>--filename affs_XPERIENCE.txt</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 665.036) (y 142.117))</geometry>
+    </module>
+    <module>
+        <name>lbpExtract</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1234.1) (y 324.22))</geometry>
+    </module>
+    <module>
+        <name>seg2cloud</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 640.124) (y 533.434))</geometry>
+    </module>
+    <module>
+        <name>show3D</name>
+        <parameters></parameters>
+        <node>icub22</node>
+        <prefix>/Xperience</prefix>
+        <geometry>(Pos (x 962.742) (y 309.28))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 50 --y 0 --compact</parameters>
+        <node>icub22</node>
+        <prefix>/toolFinder</prefix>
+        <geometry>(Pos (x 958.459) (y 243.525))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 400 --out /out --y 0 --p 50 --compact</parameters>
+        <node>icub22</node>
+        <prefix>/disp</prefix>
+        <geometry>(Pos (x 968.411) (y 515.022))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 750 --out /out --y 0 --p 50 --compact</parameters>
+        <node>icub22</node>
+        <prefix>/seg</prefix>
+        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
+    </module>
+    <module>
+        <name>iSpeak</name>
+        <parameters>--package acapela-tts</parameters>
+        <node>icub-win1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
+    </module>
+    <module>
+        <name>drop-away.lua</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <deployer>lua</deployer>
+        <geometry>(Pos (x 1223.88) (y 697.435))</geometry>
+    </module>
+    <module>
+        <name>xp_main.lua</name>
+        <parameters> </parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 665.036) (y 142.117))</geometry>
+    </module>
+
+    <connection>
+        <from>/tool3DManager/obj3Dexp:rpc</from>
+        <to>/objects3DExplorer/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/objrec:rpc</from>
+        <to>/seg2cloud/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 0)) ((x -86) (y -48))  )</geometry>
+    </connection>
+    <connection>
+        <from>/seg2cloud/pnt:o</from>
+        <to>/objects3DExplorer/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -48)) ((x -119) (y -32))  )</geometry>
+    </connection>
+    <connection>
+        <from>/seg2cloud/SFM:rpc</from>
+        <to>/SFM/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y 16)) ((x -69) (y 48))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to>/seg2cloud/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 69) (y -48)) ((x -86) (y -16))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/affMotor:rpc</from>
+        <to>/affMotor/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 107) (y -16)) ((x -86) (y -32))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/img:o</from>
+        <to>/toolFinder/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -64)) ((x -85) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/are:rpc</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 797.655) (y 264.671)) ((x 107) (y -112)) ((x -134) (y -176))  )</geometry>
+    </connection>
+    <connection>
+        <from>/seg2cloud/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from>/seg/out</from>
+        <to>/seg2cloud/seed:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/disp/out</from>
+        <to>/seg2cloud/seed:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/seg2cloud/seg:rpc</from>
+        <to>/lbpExtract/rpc:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+        <from>/lbpExtract/segmentedlbp:o</from>
+        <to>/seg/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 87) (y 48)) ((x -85) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from>/actionsRenderingEngine/wbd:rpc</from>
+        <to>/wholeBodyDynamics/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/objects3DExplorer/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/lbpExtract/image:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/seg2cloud/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -86) (y 16))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/SFM/left:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -69) (y -48))  )</geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/clasif:rpc</from>
+        <to external="true">/graspChecker/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
+        <from>/tool3DManager/are:get</from>
+        <to>/actionsRenderingEngine/get:io</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/visualizer:rpc</from>
+        <to>/Xperience/show3D/rpc:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 32)) ((x -79) (y -16))  )</geometry>
+    </connection>
+    <connection>
+        <from>/objects3DExplorer/clouds:o</from>
+        <to>/Xperience/show3D/clouds:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -32)) ((x -79) (y 16))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/SFM/right:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 324.572) (y 500.127)) ((x -69) (y -16))  )</geometry>
+    </connection>
+
+    <connection>
+        <from external="true">/drop-away/cmd:o</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop_clas</protocol>
+        <geometry>(Pos ((x 1105.57) (y 77.0148)) ((x 1217.19) (y 116.719)) ((x -134) (y -176))  )</geometry>
+    </connection>
+    <connection>
+        <from>/lbpExtract/blobs:o</from>
+        <to>/actionsRenderingEngine/cmd:io</to>
+        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_take</protocol>
+        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
+    </connection>
+</application>
