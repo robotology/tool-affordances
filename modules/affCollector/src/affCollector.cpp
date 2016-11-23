@@ -865,9 +865,9 @@ double AffCollector::vecVar (const vector<double>& vec)
 
 bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)
 {
-    for(int l = 0; l<hist.size(); l++)
+    for(int l = 0; l<hist.size()-1; l++)
     {
-        //cout << "Computing avg for hist " << l <<endl;
+        cout << "Computing avg for hist " << l <<endl;
         vector<double> affInit(numAct,-1.0);
         affs.push_back(affInit);           // Add aff Vector corresponding to that label
 
@@ -875,11 +875,13 @@ bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<d
             affs[l][a] = vecAvg(hist[l][a]);
         }        
     }
+
+    return true;
 }
 
 bool  AffCollector::compVarFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affsVar)
 {
-    for(int l = 0; l<hist.size(); l++)
+    for(int l = 0; l<hist.size()-1; l++)
     {
         vector<double> affInit(numAct,-1.0);
         affsVar.push_back(affInit);           // Add aff Vector corresponding to that label
@@ -888,6 +890,7 @@ bool  AffCollector::compVarFromHist(const std::vector<std::vector<std::vector<do
             affsVar[l][a] = vecVar(hist[l][a]);
         }
     }
+    return true;
 }
 
 
