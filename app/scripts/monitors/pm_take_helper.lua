@@ -7,7 +7,7 @@
 OBJECT_MEMORY   = 0.5       -- seconds   
 SENSITIVITY     = 0.8       -- 80 percent
 XOFFSET         = 0.0       -- m
-YOFFSET         = -0.01     -- m
+YOFFSET         = 0.01     -- m
 ZOFFSET         = 0.0       -- m
 
 --                  -0.4                   0.0                       0.4     Y ->
@@ -296,9 +296,17 @@ function ask_tool(tool_name)
     pm_print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
-    cmd:addString("getToolAlign")
+    cmd:addString("graspTool")
     cmd:addString(tool_name)
     tmanager_rpc:write(cmd, rep)   
+
+    pm_print("find the pose")
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:addString("findPose")
+    tmanager_rpc:write(cmd, rep)   
+
+
 end
 
 

@@ -10,20 +10,20 @@ return rfsm.state {
            entry=function()
                 print("Opening ports ... ")
                 -- Open ports
-                ret = blobs_port:open("/affXperience/blobs:i")
-                ret = ret and acteff_port:open("/affXperience/act_eff:o")
-                ret = ret and ispeak_port:open("/affXperience/ispeak:o")
-                ret = ret and speechRecog_port:open("/affXperience/speechRecog")
+                ret = blobs_port:open("/xperience_sm/blobs:i")
+                ret = ret and acteff_port:open("/xperience_sm/act_eff:o")
+                ret = ret and ispeak_port:open("/xperience_sm/ispeak:o")
+                ret = ret and speechRecog_port:open("/xperience_sm/speechRecog")
                 if ret == false then
                     print("\nERROR OPENING PORTS\n")
                     rfsm.send_events(fsm, 'e_error')
                 end
 
                 -- rpc
-                ret = ar_rpc_io:open("/affXperience/are:rpc")
-                ret = ret and o3de_rpc:open("/affXperience/o3de:rpc")
-                ret = ret and tmanager_rpc:open("/affXperience/t3dm:rpc")
-                ret = ret and affcollect_rpc:open("/affXperience/affcol:rpc")
+                ret = ar_rpc_io:open("/xperience_sm/are:rpc")
+                ret = ret and o3de_rpc:open("/xperience_sm/o3de:rpc")
+                ret = ret and tmanager_rpc:open("/xperience_sm/t3dm:rpc")
+                ret = ret and affcollect_rpc:open("/xperience_sm/affcol:rpc")
                 if ret == false then
                     print("\nERROR OPENING RPC PORTS\n")
                     rfsm.send_events(fsm, 'e_error')
@@ -38,7 +38,6 @@ return rfsm.state {
            entry=function()
                     print("Connecting ports ... ")
                     -- Connect
---[[
                     ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName())
                     ret = ret and yarp.NetworkBase_connect(acteff_port:getName(), "/affCollector/aff:i")
                     ret = ret and yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
@@ -51,7 +50,6 @@ return rfsm.state {
                         print("\n\nERROR WITH CONNECTIONS, PLEASE CHECK\n\n")
                         rfsm.send_events(fsm, 'e_error')
                     end
-]]--
            end
    },
 
