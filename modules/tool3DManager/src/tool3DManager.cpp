@@ -1084,36 +1084,40 @@ bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point
     }
 
     // In case the exploration whas 2D and no model was loaded.
-    if (exp_mode == "2D")
+    if (exp_mode == "2D"){
         load3Dmodel(tool);
+        ttip.x = 0.17;
+        ttip.y = -0.17;
+        ttip.z = 0.0;
+    }else{
 
 
-    cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("makecanon");
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
-    rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "Main planes could not be computed." << endl;
-        return false;
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("makecanon");
+        cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+        rpc3Dexp.write(cmd3DE, reply3DE);
+        cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+        if (reply3DE.get(0).asString() != "[ack]" ){
+            cout << "Main planes could not be computed." << endl;
+            return false;
+        }
+
+        cmd3DE.clear();   reply3DE.clear();
+        cmd3DE.addString("findTooltipSym");
+        cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+        rpc3Dexp.write(cmd3DE, reply3DE);
+        cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+        if (reply3DE.get(0).asString() != "[ack]" ){
+            cout << "There was some estimating the tooltip." << endl;
+            return false;
+        }
+
+        Bottle ttBot = reply3DE.tail();
+
+        ttip.x = ttBot.get(0).asDouble();
+        ttip.y = ttBot.get(1).asDouble();
+        ttip.z = ttBot.get(2).asDouble();
     }
-
-    cmd3DE.clear();   reply3DE.clear();
-    cmd3DE.addString("findTooltipSym");
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
-    rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
-    if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "There was some estimating the tooltip." << endl;
-        return false;
-    }
-
-    Bottle ttBot = reply3DE.tail();
-
-    ttip.x = ttBot.get(0).asDouble();
-    ttip.y = ttBot.get(1).asDouble();
-    ttip.z = ttBot.get(2).asDouble();
-
     return true;
 }
 
