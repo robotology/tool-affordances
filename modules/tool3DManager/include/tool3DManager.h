@@ -198,7 +198,7 @@ public:
     bool                        runToolTrial(int numRep  = 1, const std::string& tool = "",  int numAct = 8);
     bool                        runExp(int toolIni, int toolEnd);
     bool                        selectAction(int goal = 1);
-    bool                        predExp(int goal = 1);
+    bool                        predExp(int toolini = 1, int goal = 1);
 
     // RF modules overrides
     bool						configure(yarp::os::ResourceFinder &rf);

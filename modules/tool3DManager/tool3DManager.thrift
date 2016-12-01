@@ -199,7 +199,7 @@ service tool3DManager_IDLServer
      * Runs full trials for all tool with indices between toolini and toolEnd. \n
      * @return true/false on success/failure to perform all actions
      */
-    bool runExp(1:string tool, 2: i32 toolEnd = 54);
+    bool runExp(1:i32 toolIni =1, 2: i32 toolEnd = 50);
 
     /**
      * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
@@ -212,6 +212,6 @@ service tool3DManager_IDLServer
      * Runs selectAction trials for all the test tools for given goal (1: maxDist, 2: Pull)
      * @return true/false on success/failure to perform actions selections
      */
-    bool predExp(1: i32 goal = 1);
+    bool predExp(1: i32 toolini = 1, 2: i32 goal = 1);
 
 }

@@ -557,13 +557,13 @@ bool Tool3DManager::selectAction(int goal)
     }
 }
 
-bool Tool3DManager::predExp(int goal)
+bool Tool3DManager::predExp(int toolini, int goal)
 {   // Remember that MATLAB has to be connected to YARP, and the right affordance models loaded.
 
     int numTools_test = 50;
     // List the tools to use for testing:
     if (robot == "icubSim"){
-        for (int testToolI = 1; testToolI < numTools_test; testToolI++ ){
+        for (int testToolI = toolini; testToolI < numTools_test; testToolI++ ){
             for ( int ori = -90; ori < 100; ori = ori + 90){            // This is a loop for {-90, 0, 90}            
                 string& tool = models[testToolI];       // Because tools are 1 indexed on the file, but 0 on sim
                 cout << "Attempting to load " << tool << endl;

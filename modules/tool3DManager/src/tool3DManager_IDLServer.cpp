@@ -261,10 +261,10 @@ public:
 
 class tool3DManager_IDLServer_runExp : public yarp::os::Portable {
 public:
-  std::string tool;
+  int32_t toolIni;
   int32_t toolEnd;
   bool _return;
-  void init(const std::string& tool, const int32_t toolEnd);
+  void init(const int32_t toolIni, const int32_t toolEnd);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -280,9 +280,10 @@ public:
 
 class tool3DManager_IDLServer_predExp : public yarp::os::Portable {
 public:
+  int32_t toolini;
   int32_t goal;
   bool _return;
-  void init(const int32_t goal);
+  void init(const int32_t toolini, const int32_t goal);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -930,7 +931,7 @@ bool tool3DManager_IDLServer_runExp::write(yarp::os::ConnectionWriter& connectio
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("runExp",1,1)) return false;
-  if (!writer.writeString(tool)) return false;
+  if (!writer.writeI32(toolIni)) return false;
   if (!writer.writeI32(toolEnd)) return false;
   return true;
 }
@@ -945,9 +946,9 @@ bool tool3DManager_IDLServer_runExp::read(yarp::os::ConnectionReader& connection
   return true;
 }
 
-void tool3DManager_IDLServer_runExp::init(const std::string& tool, const int32_t toolEnd) {
+void tool3DManager_IDLServer_runExp::init(const int32_t toolIni, const int32_t toolEnd) {
   _return = false;
-  this->tool = tool;
+  this->toolIni = toolIni;
   this->toolEnd = toolEnd;
 }
 
@@ -976,8 +977,9 @@ void tool3DManager_IDLServer_selectAction::init(const int32_t goal) {
 
 bool tool3DManager_IDLServer_predExp::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("predExp",1,1)) return false;
+  if (!writer.writeI32(toolini)) return false;
   if (!writer.writeI32(goal)) return false;
   return true;
 }
@@ -992,8 +994,9 @@ bool tool3DManager_IDLServer_predExp::read(yarp::os::ConnectionReader& connectio
   return true;
 }
 
-void tool3DManager_IDLServer_predExp::init(const int32_t goal) {
+void tool3DManager_IDLServer_predExp::init(const int32_t toolini, const int32_t goal) {
   _return = false;
+  this->toolini = toolini;
   this->goal = goal;
 }
 
@@ -1270,12 +1273,12 @@ bool tool3DManager_IDLServer::runToolTrial(const int32_t numRep, const std::stri
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::runExp(const std::string& tool, const int32_t toolEnd) {
+bool tool3DManager_IDLServer::runExp(const int32_t toolIni, const int32_t toolEnd) {
   bool _return = false;
   tool3DManager_IDLServer_runExp helper;
-  helper.init(tool,toolEnd);
+  helper.init(toolIni,toolEnd);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runExp(const std::string& tool, const int32_t toolEnd)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::runExp(const int32_t toolIni, const int32_t toolEnd)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1290,12 +1293,12 @@ bool tool3DManager_IDLServer::selectAction(const int32_t goal) {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool tool3DManager_IDLServer::predExp(const int32_t goal) {
+bool tool3DManager_IDLServer::predExp(const int32_t toolini, const int32_t goal) {
   bool _return = false;
   tool3DManager_IDLServer_predExp helper;
-  helper.init(goal);
+  helper.init(toolini,goal);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::predExp(const int32_t goal)");
+    yError("Missing server method '%s'?","bool tool3DManager_IDLServer::predExp(const int32_t toolini, const int32_t goal)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1764,17 +1767,16 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "runExp") {
-      std::string tool;
+      int32_t toolIni;
       int32_t toolEnd;
-      if (!reader.readString(tool)) {
-        reader.fail();
-        return false;
+      if (!reader.readI32(toolIni)) {
+        toolIni = 1;
       }
       if (!reader.readI32(toolEnd)) {
-        toolEnd = 54;
+        toolEnd = 50;
       }
       bool _return;
-      _return = runExp(tool,toolEnd);
+      _return = runExp(toolIni,toolEnd);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1799,12 +1801,16 @@ bool tool3DManager_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "predExp") {
+      int32_t toolini;
       int32_t goal;
+      if (!reader.readI32(toolini)) {
+        toolini = 1;
+      }
       if (!reader.readI32(goal)) {
         goal = 1;
       }
       bool _return;
-      _return = predExp(goal);
+      _return = predExp(toolini,goal);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -2026,7 +2032,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure to perfomr all actions on all toolPoses ");
     }
     if (functionName=="runExp") {
-      helpString.push_back("bool runExp(const std::string& tool, const int32_t toolEnd = 54) ");
+      helpString.push_back("bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 50) ");
       helpString.push_back("Runs full trials for all tool with indices between toolini and toolEnd. \n ");
       helpString.push_back("@return true/false on success/failure to perform all actions ");
     }
@@ -2037,7 +2043,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("@return true/false on success/failure to query matlab and perform action ");
     }
     if (functionName=="predExp") {
-      helpString.push_back("bool predExp(const int32_t goal = 1) ");
+      helpString.push_back("bool predExp(const int32_t toolini = 1, const int32_t goal = 1) ");
       helpString.push_back("Runs selectAction trials for all the test tools for given goal (1: maxDist, 2: Pull) ");
       helpString.push_back("@return true/false on success/failure to perform actions selections ");
     }

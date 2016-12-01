@@ -163,7 +163,7 @@ public:
    * Runs full trials for all tool with indices between toolini and toolEnd. \n
    * @return true/false on success/failure to perform all actions
    */
-  virtual bool runExp(const std::string& tool, const int32_t toolEnd = 54);
+  virtual bool runExp(const int32_t toolIni = 1, const int32_t toolEnd = 50);
   /**
    * Extracts OMS-EGI features from grasped tool and calls MATLAB to get the predicted effects of possible action
    * Then, chooses the best action for the given goal (1: maxDist, 2: Pull) \n
@@ -174,7 +174,7 @@ public:
    * Runs selectAction trials for all the test tools for given goal (1: maxDist, 2: Pull)
    * @return true/false on success/failure to perform actions selections
    */
-  virtual bool predExp(const int32_t goal = 1);
+  virtual bool predExp(const int32_t toolini = 1, const int32_t goal = 1);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
