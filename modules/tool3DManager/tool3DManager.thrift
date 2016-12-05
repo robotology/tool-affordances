@@ -33,7 +33,7 @@ service tool3DManager_IDLServer
      */
     bool setSeg(1: bool seg = false);
 
-    /****************************** TOOL LOADING AND INFORMATION **************************************/
+
 
     /**
      * Loads the tool on objects3DExplorer and changes name
@@ -122,7 +122,7 @@ service tool3DManager_IDLServer
      */
     bool check();
 
-    /****************************** ACTIONS **************************************/
+
 
     /**
      * Adopt home position (optionally opens hands too)
@@ -175,7 +175,7 @@ service tool3DManager_IDLServer
      */
     bool resetObj();
 
-    /*********************** EXPERIMENT ROUTINES ************************************/
+
 
     /**
      * Runs numAct actions for numPoses times, each time with a random tool in a random pose
