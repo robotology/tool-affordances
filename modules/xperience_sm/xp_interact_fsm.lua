@@ -29,15 +29,15 @@ interact_fsm = rfsm.state{
 
            doo = function()
                while true do   
-                    if update_objects(object_list) == true then           -- updates objects in memory
+                    if update_objects(object_list) == true then           -- updates objects in memory and associates task
                         -- decide which object and corresponding action
                         target_object = select_object(object_list)
-                        print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
-                        action = target_object.task;
                         if target_object ~= nil then
+                            print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
+                            action = target_object.task;
                             if action == "take_hand" or action == "drag_left_hand" then
                                 rfsm.send_events(fsm,'e_action')
-                                state = "do_action"             -- these actiosn do not need tools
+                                state = "do_action"             -- these actions do not need tools
                             else        
                                 state = "check_affordance"      -- check if tool affords
                                 rfsm.send_events(fsm,'e_checkaff')
@@ -59,12 +59,10 @@ interact_fsm = rfsm.state{
            end
    },
 
+
    ----------------------------------
-   -- states                       --
+   -- state SUB_CHECKAFF           --
    ----------------------------------
-
-
-
    SUB_CHECKAFF = rfsm.state{
             entry=function()
                 speak("I am checking if I can do the action")
@@ -81,6 +79,11 @@ interact_fsm = rfsm.state{
             end
    },
 
+
+
+   ----------------------------------
+   -- state SUB_SELECT             --
+   ----------------------------------
    SUB_SELECT = rfsm.state{
            entry=function()
                 print("State = "..state)
@@ -129,6 +132,9 @@ interact_fsm = rfsm.state{
    },
 
 
+   ----------------------------------
+   -- state SUB_ACTION             --
+   ----------------------------------
    SUB_ACTION = rfsm.state{
           entry=function()
                 print("State = "..state)

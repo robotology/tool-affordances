@@ -180,6 +180,11 @@ PortMonitor.accept = function(thing)
         local afford = get_tool_affordance()
         pm_print(afford:toString())
         local action = select_action(afford, "UPLEFT")
+        if action == nil then
+            pm_print("no reply from O3DE")
+            print("no reply from O3DE")
+            return false
+        end
         if action ~= "not_affordable" then
             pm_print("i am doing "..action)
             perform_action(action, upleft_obj)
@@ -194,6 +199,11 @@ PortMonitor.accept = function(thing)
         local afford = get_tool_affordance()
         pm_print(afford:toString())
         local action = select_action(afford, "UPRIGHT") 
+        if action == nil then
+            pm_print("no reply from O3DE")
+            print("no reply from O3DE")
+            return false
+        end
         if action ~= "not_affordable" then
             pm_print("i am doing "..action)
             perform_action(action, upright_obj)
@@ -210,7 +220,7 @@ PortMonitor.accept = function(thing)
     if get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y) ~= nil then 
         --say("I need a tool. Give me the shovel, please!")
         --ask_tool("STI3") -- Yellow shovel
-        pm_print("Saying: 'I need a tool, Give me the stick, please!'")
+        print("Saying: 'I need a tool, Give me the stick, please!'")
         say("I need a tool. Give me the stick, please!")
         ask_tool("STI3") -- Markers stick
 
@@ -218,7 +228,7 @@ PortMonitor.accept = function(thing)
         --ask_tool("real/rakeBlue")
     else
         say("I need a tool. Give me the rake, please!")
-        pm_print("Saying: 'I need a tool, Give me the rake, please!'")
+        print("Saying: 'I need a tool, Give me the rake, please!'")
         ask_tool("RAK2")  -- Blue rake
     end
 

@@ -661,6 +661,10 @@ string Tool3DManager::graspToolExe(const std::string &tool)
     cmdAMM.addString("remove");
     rpcAffMotor.write(cmdAMM, replyAMM);
 
+    cmd3DE.clear();   reply3DE.clear();
+    cmd3DE.addString("cleartool");
+    rpc3Dexp.write(cmd3DE, reply3DE);
+
     // Send commands to ARE to get the tool, close the hand and go to central position
     fprintf(stdout,"Reach me a tool please.\n");
     cmdARE.clear();
@@ -688,7 +692,7 @@ string Tool3DManager::graspToolExe(const std::string &tool)
         return "not_loaded";
 
     string tool_name = tool;
-    // Query O3DE to load model 3D Pointcloud.
+    // If no tool name is given, query O3DE to load model 3D Pointcloud.
     if (tool == "unknown"){
         cmd3DE.clear();   reply3DE.clear();
         cmd3DE.addString("recog");
@@ -1330,9 +1334,9 @@ double Tool3DManager::findTableHeight(bool calib){
     cmdARE.clear();     replyARE.clear();
     cmdARE.addString("get");
     cmdARE.addString("table");
-    rpcAreCmd.write(cmdARE,replyARE);
+    rpcAreGet.write(cmdARE,replyARE);
 
-    double th = replyARE.get(0).asDouble();
+    double th = replyARE.get(0).asList()->get(1).asDouble();
 
     cout << "Table height is " << th <<endl;
 

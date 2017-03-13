@@ -112,6 +112,12 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -48)) ((x -119) (y -32))  )</geometry>
     </connection>
     <connection>
+        <from>/seg2cloud/pnt2D:o</from>
+        <to>/objects3DExplorer/pts2D:i</to>
+        <protocol>tcp</protocol>
+        <geometry></geometry>
+    </connection>
+    <connection>
         <from>/seg2cloud/SFM:rpc</from>
         <to>/SFM/rpc</to>
         <protocol>tcp</protocol>

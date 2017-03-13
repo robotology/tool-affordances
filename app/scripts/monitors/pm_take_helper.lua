@@ -187,13 +187,17 @@ end
 
 -- XXX Add actions to push and push left the object
 
-function select_action(reply, zone_name) 
-   tool = reply:get(0):asString()
+function select_action(aff_reply, zone_name) 
+   tool = aff_reply:get(0):asString()
+   if tool == nil then
+        pm_print("no reply could be read from O3DE.")
+        return nil
+   end
    if tool == "no_aff" then 
-        print(reply:toString())
+        print(aff_reply:toString())
         return  "not_affordable" 
     end
-   affordance = reply:get(1):asDict()
+   affordance = aff_reply:get(1):asDict()
    --print(affordance:toString())
    if zone_name == "UPRIGHT" then	
         if affordance:check("drag_down") == true then return "drag_down" end
@@ -293,6 +297,7 @@ function perform_action(action, object)
 end
 
 function ask_tool(tool_name)
+
     pm_print("grasp the tool")
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()

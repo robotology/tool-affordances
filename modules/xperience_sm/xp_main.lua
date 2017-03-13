@@ -87,7 +87,8 @@ TOOL_ACTIONS = {"drag_left", "drag_down","drag_down_right", "drag_right"}
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 
 -- TOOL LIST
-TOOL_LIST = {"HOE1", "HOE2","HOE3","HOK1","HOK2", "HOK3", "RAK1", "RAK2", "RAK3",  "SHO1","SHO2","SHO3", "STI1","STI2","STI3"}
+--TOOL_LIST = {"HOE1", "HOE2","HOE3","HOK1","HOK2", "HOK3", "RAK1", "RAK2", "RAK3",  "SHO1","SHO2","SHO3", "STI1","STI2","STI3"}
+TOOL_LIST = {"HOE1", "HOK1", "RAK2", "SHO3", "STI3"}
 --rakeBlue = RAK2
 --rakeGreen = RAK3 
 --shovelGreen = SHO1
@@ -97,21 +98,27 @@ TOOL_LIST = {"HOE1", "HOE2","HOE3","HOK1","HOK2", "HOK3", "RAK1", "RAK2", "RAK3"
 -------------------------------------------------------------------------------------------------
 -------------------              GRAMMAR                ----------------
 
-tool_list_grammar = {HOE1 = "hoe square",
-                     HOE2 = "hoe diamond",
-                     HOE3 = "hoe metal",
-                     HOK1 = "one corner hook",
-                     HOK2 = "edgy hook",
-                     HOK3 = "all round hook",
-                     RAK1 = "big rake",
-                     RAK2 = "blue rake",
-                     RAK3 = "green rake",
-                     SHO1 = "green shovel",
-                     SHO2 = "orange shovel",
-                     SHO3 = "yellow shovel",
-                     STI1 = "tube stick",
-                     STI2 = "flat stick",
-                     STI3 = "markers stick"}
+--tool_list_grammar = {HOE1 = "hoe square",
+--                     HOE2 = "hoe diamond",
+--                     HOE3 = "hoe metal",
+--                     HOK1 = "one corner hook",
+--                     HOK2 = "edgy hook",
+--                     HOK3 = "all round hook",
+--                     RAK1 = "big rake",
+--                     RAK2 = "blue rake",
+--                     RAK3 = "green rake",
+--                     SHO1 = "green shovel",
+--                     SHO2 = "orange shovel",
+--                     SHO3 = "yellow shovel",
+--                     STI1 = "tube stick",
+--                     STI2 = "flat stick",
+--                     STI3 = "markers stick"}
+
+tool_list_grammar = {HOE1 = "hoe",
+                     HOK1 = "hook",
+                     RAK2 = "rake",
+                     SHO3 = "shovel",
+                     STI3 = "stick"}
 
 -- defining speech grammar for Reward
 grammar_reward = "Yes you are | No here it is | Skip it"

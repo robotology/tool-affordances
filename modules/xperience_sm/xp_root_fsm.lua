@@ -1,6 +1,7 @@
 
-dofile(rf:findFile("xp_interact_fsm.lua"))
-dofile(rf:findFile("xp_funcs.lua"))
+--dofile(rf:findFile("xp_interact_fsm.lua"))
+dofile("xp_interact_fsm.lua")
+--dofile(rf:findFile("xp_funcs.lua"))
 return rfsm.state {
 
    ----------------------------------
