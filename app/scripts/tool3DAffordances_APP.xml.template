@@ -212,7 +212,7 @@
     </connection>
     <connection>
         <from>/objects3DExplorer/classifier:rpc</from>
-        <to external="true">/toolRecognizer/rpc:i</to>
+        <to external="true">/onTheFlyRecognition/human:io</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 704) (y 575)) ((x 783) (y 489)) ((x 646) (y 661))  )</geometry>
     </connection>
