@@ -302,7 +302,9 @@ function ask_tool(tool_name)
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
-    cmd:addString(tool_name)
+    if tool_name ~= nil then 
+        cmd:addString(tool_name)
+    end
     tmanager_rpc:write(cmd, rep)   
 
     pm_print("find the pose")

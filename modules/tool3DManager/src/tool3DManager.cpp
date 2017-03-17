@@ -712,7 +712,7 @@ string Tool3DManager::graspToolExe(const std::string &tool)
         return "not_loaded" ;
     }
 
-    goHomeExe();
+    //goHomeExe();
 
     return tool_name;
 }

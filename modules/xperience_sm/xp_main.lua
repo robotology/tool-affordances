@@ -115,7 +115,7 @@ TOOL_LIST = {"HOE1", "HOK1", "RAK2", "SHO3", "STI3"}
 --                     STI3 = "markers stick"}
 
 tool_list_grammar = {HOE1 = "hoe",
-                     HOK1 = "hook",
+                     HOK3 = "hook",
                      RAK2 = "rake",
                      SHO3 = "shovel",
                      STI3 = "stick"}
