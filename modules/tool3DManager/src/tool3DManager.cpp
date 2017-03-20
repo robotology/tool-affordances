@@ -127,7 +127,9 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
     retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
-    retRPC = retRPC && rpcClassifier.open(("/"+name+"/clasif:rpc").c_str());           // rpc server to query graspClassifier
+    retRPC = retRPC && rpcGraspClass.open(("/"+name+"/graspClass:rpc").c_str());           // rpc server to query graspClassifier
+    retRPC = retRPC && rpcToolClass.open(("/"+name+"/toolClass:rpc").c_str());           // rpc server to query graspClassifier
+
 
 	if (!retRPC){
 		printf("Problems opening rpc ports\n");
@@ -160,7 +162,8 @@ bool Tool3DManager::interruptModule()
     rpcSimulator.interrupt();
     rpcAreCmd.interrupt();
     rpcAffMotor.interrupt();
-    rpcClassifier.interrupt();
+    rpcGraspClass.interrupt();
+    rpcToolClass.interrupt();
 
     rpc3Dexp.interrupt();
     rpcObjFinder.interrupt();
@@ -180,7 +183,8 @@ bool Tool3DManager::close()
     rpcSimulator.close();
     rpcAreCmd.close();
     rpcAffMotor.close();
-    rpcClassifier.close();
+    rpcGraspClass.close();
+    rpcToolClass.close();
 
     rpc3Dexp.close();
     rpcObjFinder.close();
@@ -328,7 +332,7 @@ bool Tool3DManager::getToolFeats(){
 bool Tool3DManager::learn(const std::string &label)
 {
     cout << " Received 'learn' " << label << endl;
-    return trainClas(label);
+    return trainGraspClas(label);
 }
 
 bool Tool3DManager::check()
@@ -1193,7 +1197,7 @@ bool Tool3DManager::extractFeats()
     return true;
 }
 
-bool Tool3DManager::trainClas(const std::string &label)
+bool Tool3DManager::trainGraspClas(const std::string &label)
 {
     cout << " Sending 'observe' command to ARE " << endl;
     Bottle cmdARE, replyARE;
@@ -1242,7 +1246,7 @@ bool Tool3DManager::trainClas(const std::string &label)
     cmdClas.addInt(BB[1]);
     cmdClas.addInt(BB[2]);
     cmdClas.addInt(BB[3]);
-    rpcClassifier.write(cmdClas,replyClas);
+    rpcGraspClass.write(cmdClas,replyClas);
 
     cout << " Classifier trained with label " << label << endl;
 
@@ -1295,7 +1299,7 @@ bool Tool3DManager::classify()
     cmdClas.addInt(BB[1]);
     cmdClas.addInt(BB[2]);
     cmdClas.addInt(BB[3]);
-    rpcClassifier.write(cmdClas,replyClas);
+    rpcGraspClass.write(cmdClas,replyClas);
 
     cout << " Classifier replied: " << replyClas.toString() << endl;
 

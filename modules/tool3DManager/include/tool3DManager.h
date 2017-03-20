@@ -74,7 +74,8 @@ protected:
     yarp::os::RpcClient         rpcAreCmd;            //rpc motor port ARE
     yarp::os::RpcClient         rpcAreGet;            //rpc motor port ARE
     yarp::os::RpcClient         rpcAffMotor;            //rpc port to affMotor Module
-    yarp::os::RpcClient         rpcClassifier;          //rpc port to affMotor Module
+    yarp::os::RpcClient         rpcGraspClass;          //rpc port to affMotor Module
+    yarp::os::RpcClient         rpcToolClass;          //rpc port to affMotor Module
 
     yarp::os::RpcClient         rpc3Dexp;               //rpc connection to objects3Dexplroer to extract features from cloud
 
@@ -133,7 +134,7 @@ protected:
     bool                        exploreTool(const std::string &tool, const std::string &exp_mode, Point3D &ttip);
     bool                        extractFeats();
 
-    bool                        trainClas(const std::string &label);
+    bool                        trainGraspClas(const std::string &label);
     bool                        classify();
 
     double                      findOri();

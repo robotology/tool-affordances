@@ -205,7 +205,7 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -69) (y -48))  )</geometry>
     </connection>
     <connection>
-        <from>/tool3DManager/clasif:rpc</from>
+        <from>/tool3DManager/graspClass:rpc</from>
         <to external="true">/graspChecker/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry></geometry>
@@ -223,7 +223,7 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 32)) ((x -79) (y -16))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/class:rpc</from>
+        <from>/objects3DExplorer/toolClass:rpc</from>
         <to external="true">/onTheFlyRecognition/human:io</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 704) (y 575)) ((x 783) (y 489)) ((x 646) (y 661))  )</geometry>
