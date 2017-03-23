@@ -81,6 +81,8 @@ PortMonitor.create = function(options)
     prev_cmd_time = yarp.Time_now()
     --PortMonitor.setTrigInterval(1.0)
     AR_CMD = yarp.Bottle()
+    cleanTable = false
+    tooFarSaid = false
 
     return true
 end
@@ -104,13 +106,28 @@ PortMonitor.accept = function(thing)
 
     --getStatus()
     blobs = thing:asBottle()
-    if blobs:size() == 0 then return false end
+    if blobs:size() == 0 then 
+        
+        return false
+ 
+    end
 
     local t_now = yarp.Time_now()
     leaky_integrate(blobs, t_now)
     forget_expired_objects()
 
-    if get_stable_objects_count(objects) == 0  then return false end
+    if get_stable_objects_count(objects) == 0  then
+        -- Chack if the table is clean AND its not moving around.
+--[[        if not leftarm_idle or lefthand_holding then 
+            if cleanTable == false then
+                cleanTable = true
+                say("The table is now clean, hurray!")
+            end
+        end]]--
+        return false    
+--    else
+--        cleanTable = false
+    end
 
     -- slow down the commands to the action rendering port
     if (yarp.Time_now() - prev_cmd_time) < 1.0 then return false end
@@ -165,6 +182,7 @@ PortMonitor.accept = function(thing)
     local btright_obj = get_object_in_zone(objects, BOTTOMRIGHT_ZONE_X, BOTTOMRIGHT_ZONE_Y)
     if btright_obj ~= nil then
         object_out_of_zone = false
+        tooFarSaid = false
         print("[pm_take] btright:", btright_obj.x, btright_obj.y, btright_obj.z) 
         local action = "drag_left_hand"
         pm_print("i am doing "..action)
@@ -176,6 +194,7 @@ PortMonitor.accept = function(thing)
     local upleft_obj = get_object_in_zone(objects, UPLEFT_ZONE_X, UPLEFT_ZONE_Y)
     if upleft_obj ~= nil then
         object_out_of_zone = false
+        tooFarSaid = false
         print("[pm_take] upleft:", upleft_obj.x, upleft_obj.y, upleft_obj.z) 
         local afford = get_tool_affordance()
         pm_print(afford:toString())
@@ -195,6 +214,7 @@ PortMonitor.accept = function(thing)
     local upright_obj = get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y)
     if upright_obj ~= nil then
         object_out_of_zone = false
+        tooFarSaid = false
         print("[pm_take] upright:", upright_obj.x, upright_obj.y, upright_obj.z) 
         local afford = get_tool_affordance()
         pm_print(afford:toString())
@@ -212,7 +232,11 @@ PortMonitor.accept = function(thing)
     end
     
     if object_out_of_zone == true then
-        pm_print("Objects are too far!!!")
+        if tooFarSaid == false then
+            say("Objects are too far!")
+            pm_print("Objects are too far!!!")
+            tooFarSaid = true
+        end
         return false
     end
 

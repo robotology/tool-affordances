@@ -200,12 +200,23 @@ function select_action(aff_reply, zone_name)
    affordance = aff_reply:get(1):asDict()
    --print(affordance:toString())
    if zone_name == "UPRIGHT" then	
-        if affordance:check("drag_down") == true then return "drag_down" end
-        if affordance:check("drag_left") == true then return "drag_left" end
+        if affordance:check("drag_down") == true then
+            say("I will drag down")
+            return "drag_down" 
+        end
+        say("I can't drag down")
+        if affordance:check("drag_left") == true then
+            say("I will drag left")
+            return "drag_left" 
+        end
         -- if affordance:check("drag_diag_left") == true then return "drag_diagl" end
     elseif zone_name == "UPLEFT" then        
-        if affordance:check("drag_diag_right") == true then return "drag_down_right" end
+        if affordance:check("drag_diag_right") == true then
+            say("I will drag down right") 
+            return "drag_down_right" 
+        end
     end
+    say("I can not do anything useful with this tool").
     return "not_affordable"
 end
 
@@ -216,7 +227,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.10)
         cmd:addDouble(object.y)
-        cmd:addDouble(object.z - 0.03)
+        cmd:addDouble(object.z - 0.04)
         cmd:addDouble(270)
         cmd:addDouble(math.abs(object.x -(BOTTOMRIGHT_ZONE_X.min + 0.05)))
         tmanager_rpc:write(cmd, rep)
@@ -243,7 +254,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.09)
         cmd:addDouble(object.y + 0.09)
-        cmd:addDouble(object.z - 0.01)
+        cmd:addDouble(object.z - 0.03)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10)))
         pm_print(cmd:toString())
@@ -256,7 +267,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.08)
         cmd:addDouble(object.y - 0.02)
-        cmd:addDouble(object.z - 0.01)
+        cmd:addDouble(object.z - 0.04)
         cmd:addDouble(315)
         local a = math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.13))
         local b = math.abs(object.x - (BOTTOMRIGHT_ZONE_X.min + 0.05))
@@ -308,12 +319,27 @@ function ask_tool(tool_name)
     tmanager_rpc:write(cmd, rep)   
 
     pm_print("find the pose")
-    local cmd = yarp.Bottle()    
-    local rep = yarp.Bottle()
+    cmd:clear()
+    rep:clear()
     cmd:addString("findPose")
-    tmanager_rpc:write(cmd, rep)   
+    tmanager_rpc:write(cmd, rep)
 
+    pm_print("getting orientation")
+    cmd:clear()
+    rep:clear()
+    cmd:addString("getOri")
+    o3de_rpc:write(cmd, rep)
 
+    local ori = rep:get(1):asDouble()  
+    if ori < -45 then
+        say(" oriented to the right")
+    end    
+    if ori > -45 and ori <45 then
+        say(" oriented to the front")
+    end      
+    if ori > 45 then
+        say(" oriented to the left")
+    end
 end
 
 
