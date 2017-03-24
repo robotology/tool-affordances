@@ -85,6 +85,15 @@ PortMonitor.create = function(options)
         --return false
     end
 
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:clear()
+    rep:clear()
+    cmd:addString("home")
+    cmd:addString("all")
+    ar_cmd:write(cmd, rep)
+    
+
     objects = {}            -- for keeping the memory of objects
     prev_cmd_time = yarp.Time_now()
     PortMonitor.setTrigInterval(2.0)
@@ -314,14 +323,14 @@ PortMonitor.trig = function()
 
     if leftarm_idle and not lefthand_holding then -- it is idle
         if cleanTableSec > 4 then       -- it waits for 3 seconds before considering that the table is clean
+            if tableClean == false then
+                say("The table is now clean, hurray!")
+                tableClean = true
+            end
             if holdingTool == true then     
                 -- ask ARE to drop tool
                 drop_tool()
                 holdingTool = false
-            end
-            if tableClean == false then
-                say("The table is now clean, hurray!")
-                tableClean = true
             end
             cleanTableSec = 0;                
         else

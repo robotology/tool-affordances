@@ -344,6 +344,8 @@ end
 
 function drop_tool()
 
+    say("Dropping the tool")
+
     local cmd = yarp.Bottle()    
     local rep = yarp.Bottle()
     cmd:clear()
@@ -356,13 +358,13 @@ function drop_tool()
     target:addDouble(0.0)
     cmd:addString("right")
     ar_cmd:write(cmd, rep)
-    say("Tool dropped")
-
 
     cmd:clear()
     rep:clear()
     cmd:addString("cleartool")
     o3de_rpc:write(cmd, rep)
+
+    say("I'm done")
 end
 
 
