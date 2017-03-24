@@ -29,12 +29,14 @@ PortMonitor.create = function(options)
 
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
+    ar_cmd = yarp.Port()
     o3de_rpc = yarp.Port()
     tmanager_rpc = yarp.Port()
     wlbodey_rpc = yarp.Port()
     ispeak_port = yarp.Port()
 
     ar_rpc:open("...")
+    ar_cmd:open("...")
     ar_rpc_io:open("...")
     o3de_rpc:open("...")
     tmanager_rpc:open("...")
@@ -44,6 +46,12 @@ PortMonitor.create = function(options)
     ret = yarp.NetworkBase_connect(ar_rpc:getName(), "/actionsRenderingEngine/rpc")
     if ret == false then
         pm_print("cannot connect to /actionsRenderingEngine/rpc!")
+        return false
+    end
+
+    ret = yarp.NetworkBase_connect(ar_cmd:getName(), "/actionsRenderingEngine/cmd:io")
+    if ret == false then
+        pm_print("cannot connect to /actionsRenderingEngine/cmd:io!")
         return false
     end
 
@@ -79,11 +87,12 @@ PortMonitor.create = function(options)
 
     objects = {}            -- for keeping the memory of objects
     prev_cmd_time = yarp.Time_now()
-    --PortMonitor.setTrigInterval(1.0)
+    PortMonitor.setTrigInterval(2.0)
     AR_CMD = yarp.Bottle()
-    cleanTable = false
+    cleanTableSec = 0
     tooFarSaid = false
-
+    holdingTool = false    
+    tableClean = false
     return true
 end
 
@@ -102,35 +111,29 @@ end
 
 
 PortMonitor.accept = function(thing)
-    AR_CMD:clear()
+    AR_CMD:clear()     
 
     --getStatus()
     blobs = thing:asBottle()
-    if blobs:size() == 0 then 
-        
-        return false
- 
-    end
+    if blobs:size() == 0 then return false end
 
     local t_now = yarp.Time_now()
     leaky_integrate(blobs, t_now)
     forget_expired_objects()
 
     if get_stable_objects_count(objects) == 0  then
-        -- Chack if the table is clean AND its not moving around.
---[[        if not leftarm_idle or lefthand_holding then 
-            if cleanTable == false then
-                cleanTable = true
-                say("The table is now clean, hurray!")
-            end
-        end]]--
-        return false    
---    else
---        cleanTable = false
+        return false  
     end
 
+    -- receiving blobs, so reset clean table counter
+    pm_print("reseting clean table counter")
+    cleanTableSec = 0;   
+    tableClean = false
+
     -- slow down the commands to the action rendering port
-    if (yarp.Time_now() - prev_cmd_time) < 1.0 then return false end
+    if (yarp.Time_now() - prev_cmd_time) < 1.0 then 
+        return false 
+    end
      
     get_3d_pos(objects)
 
@@ -240,9 +243,15 @@ PortMonitor.accept = function(thing)
         return false
     end
 
-    pm_print("I need a tool")
-    say("I need a tool.")
+    if holdingTool == false then 
+        pm_print("I need a tool")
+        say("I need a tool.")
+    else
+        pm_print("Give me another one")
+        say("Give me another one")
+    end
     ask_tool()
+    holdingTool= true
  --[[   if get_object_in_zone(objects, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y) ~= nil then 
         --say("I need a tool. Give me the shovel, please!")
         --ask_tool("STI3") -- Yellow shovel
@@ -280,6 +289,47 @@ PortMonitor.update = function(thing)
     return th
 end
 
---PortMonitor.trig = function()
---end
+
+--
+-- In this example, trig() is called periodically every second,
+-- and it counts up if the robot is idle AND not receiving blobs (looking at a clean table)
+-- If it is either moving, or receives blobs, it resets to 0.
+--
+PortMonitor.trig = function()
+    -- Check if the table is clean AND its not moving around.
+    status = get_ar_status()
+    if status:find("left_arm"):asString() == "idle" then 
+        leftarm_idle = true
+    else
+        leftarm_idle = false
+    end
+
+    status = get_ar_holding()
+    if status:toString() == "[ack]" then 
+        lefthand_holding = true
+    else
+        lefthand_holding = false
+    end
+
+
+    if leftarm_idle and not lefthand_holding then -- it is idle
+        if cleanTableSec > 4 then       -- it waits for 3 seconds before considering that the table is clean
+            if holdingTool == true then     
+                -- ask ARE to drop tool
+                drop_tool()
+                holdingTool = false
+            end
+            if tableClean == false then
+                say("The table is now clean, hurray!")
+                tableClean = true
+            end
+            cleanTableSec = 0;                
+        else
+            pm_print("counting up")
+            cleanTableSec = cleanTableSec + 2;
+        end
+    end
+    pm_print(cleanTableSec)
+end
+
 

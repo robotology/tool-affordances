@@ -177,17 +177,6 @@ PortMonitor.update = function(thing)
 
     prev_cmd_time = yarp.Time_now()
     pm_print("Time: " .. prev_cmd_time)
---[[
-    -- in order to observe hand, we modify the ARE command
-    if mod_cmd == true then
-        th = yarp.Things()
-        th:setPortWriter(AR_CMD)
-        mod_cmd = false
-        
-        pm_print("Thing: " .. AR_CMD:toString())        
-        return th
-    end
-]]--
     PortMonitor.unsetEvent("e_taken")
     pm_print("dropping away")
     return thing

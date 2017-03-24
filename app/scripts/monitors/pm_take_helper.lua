@@ -216,7 +216,7 @@ function select_action(aff_reply, zone_name)
             return "drag_down_right" 
         end
     end
-    say("I can not do anything useful with this tool").
+    say("I can not do anything useful with this tool")
     return "not_affordable"
 end
 
@@ -340,6 +340,29 @@ function ask_tool(tool_name)
     if ori > 45 then
         say(" oriented to the left")
     end
+end
+
+function drop_tool()
+
+    local cmd = yarp.Bottle()    
+    local rep = yarp.Bottle()
+    cmd:clear()
+    rep:clear()
+    cmd:addString("drop")
+    cmd:addString("over")
+    target = cmd:addList()
+    target:addDouble(-0.15)
+    target:addDouble(0.35)
+    target:addDouble(0.0)
+    cmd:addString("right")
+    ar_cmd:write(cmd, rep)
+    say("Tool dropped")
+
+
+    cmd:clear()
+    rep:clear()
+    cmd:addString("cleartool")
+    o3de_rpc:write(cmd, rep)
 end
 
 
