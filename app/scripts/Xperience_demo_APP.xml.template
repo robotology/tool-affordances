@@ -1,5 +1,5 @@
 <application>
-    <name>Xperience_toolAff_APP</name>
+    <name>Xperience_demo_APP</name>
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--motor::block_eyes 5.0</parameters>
@@ -60,63 +60,63 @@
     <module>
         <name>graspChecker</name>
         <parameters></parameters>
-        <node>pwrNode1</node>
+        <node>icub21</node>
         <prefix></prefix>
         <geometry></geometry>
     </module>
     <module>
         <name>caffeCoder</name>
         <parameters>--name caffeCoderGrasp</parameters>
-        <node>gpuNode</node>
+        <node>icub-cuda</node>
         <prefix></prefix>
         <geometry>(Pos (x 608.9) (y 495.9))</geometry>
     </module>
     <module>
         <name>dispBlobber</name>
         <parameters>--minBlobSize 1000</parameters>
-        <node>pwrNode1</node>
+        <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 310) (y 10))</geometry>
     </module>
     <module>
         <name>himrepClassifier</name>
         <parameters>--name himrepClassifierGrasp</parameters>
-        <node>pwrNode1</node>
+        <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 1085.9) (y 467.9))</geometry>
     </module>
     <module>
         <name>linearClassifierModule</name>
         <parameters>--name linearClassifierModuleGrasp --BufferSize 1 --CSVM 1.0 --databaseFolder GraspDatabase --WeightedSVM 1</parameters>
-        <node>pwrNode2</node>
+        <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 677.9) (y 342.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 900 --y 350  --name /graspViewer/crop --compact</parameters>
-        <node>console</node>
+        <parameters>--x 1100 --y 700  --name /graspViewer/crop --compact</parameters>
+        <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 794) (y 148.9))</geometry>
     </module>
 
     <module>
         <name>yarpview</name>
-        <parameters>--x 20 --y 0 --p 50 --name /toolFinder --compact</parameters>
+        <parameters>--x 80 --y 0 --p 50 --name /toolFinder --compact</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 958.459) (y 243.525))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 340 --out /out --y 0 --p 50 --name /disp --compact</parameters>
+        <parameters>--x 400 --out /outDisp --y 0 --p 50 --name /disp --compact</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 968.411) (y 515.022))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 700 --out /out --y 0 --p 50 --name /seg --compact</parameters>
+        <parameters>--x 720 --out /outSeg --y 0 --p 50 --name /seg --compact</parameters>
         <node>icub22</node>
         <prefix></prefix>
         <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
@@ -198,12 +198,12 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
     </connection>
     <connection>
-        <from>/seg/out</from>
+        <from>/outSeg</from>
         <to>/seg2cloud/seed:i</to>
         <protocol>tcp</protocol>
     </connection>
     <connection>
-        <from>/disp/out</from>
+        <from>/outDisp</from>
         <to>/seg2cloud/seed:i</to>
         <protocol>tcp</protocol>
     </connection>
