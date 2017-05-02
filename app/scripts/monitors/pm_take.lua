@@ -182,9 +182,9 @@ PortMonitor.accept = function(thing)
         AR_CMD:clear()
         AR_CMD:addString("take")
         pos = AR_CMD:addList()
-        pos:addDouble(closest_obj.x + XOFFSET)
-        pos:addDouble(closest_obj.y + YOFFSET)
-        pos:addDouble(closest_obj.z + ZOFFSET)        
+        pos:addDouble(closest_obj.x + X_GRASP_OFFSET)
+        pos:addDouble(closest_obj.y + Y_GRASP_OFFSET)
+        pos:addDouble(closest_obj.z + Z_GRASP_OFFSET)        
         return (leftarm_idle and not lefthand_holding)
     end
 
