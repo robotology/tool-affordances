@@ -65,7 +65,7 @@
         <geometry></geometry>
     </connection>
     <connection>
-        <from external="true">/objectFinder/imgOut:o</from>
+        <from external="true">/positionFilter/imgOut:o</from>
         <to external="true">/imgLoc</to>
         <protocol>mcast</protocol>
     </connection>

@@ -4,8 +4,8 @@
 
 # 2D Specific module
 add_subdirectory(affManager)
-add_subdirectory(feat2DExt)
-add_subdirectory(positionFilter) # No need to run in simulation
+#add_subdirectory(feat2DExt)         # requires openCV
+add_subdirectory(positionFilter)    # requires openCV
 
 # 3D exploration modules
 add_subdirectory(tool3DManager)
@@ -18,5 +18,5 @@ add_subdirectory(drop-away)
 
 # Generic modules
 add_subdirectory(affMotor)
-add_subdirectory(simtoolloader) #Use only in simulation
+add_subdirectory(simtoolloader)     #Use only in simulation
 add_subdirectory(affCollector)
