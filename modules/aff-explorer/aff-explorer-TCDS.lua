@@ -4,6 +4,9 @@
 -- Authors: Tanis Mar <tanis.mar@iit.it>
 -- Copy Policy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 
+-- Description
+-- Manager module (pseudo-state machine) to control the affordance exploration performed for the TCDS/ICRA 2017 experiment. 
+
 
 -- XXX All these consts could be set by ini file
 -- -- -- Declare consts.

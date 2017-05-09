@@ -4,6 +4,9 @@
 -- Authors: Tanis Mar <tanis.mar@iit.it>
 -- Copy Policy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 
+-- Description: 
+-- Manager module (pseudo state machine), to control the flow of tool use demo (aka Xperience).
+
 
 -- XXX All these consts could be set by ini file
 -- -- -- DEclare consts.

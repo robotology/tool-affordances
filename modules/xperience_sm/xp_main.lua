@@ -4,6 +4,9 @@
 -- Authors: Tanis Mar <tanis.mar@iit.it>
 -- Copy Policy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 
+-- Description:
+-- rFSM state machine controlling the flow of the tool use demo (aka Xperience demo).
+
 
 --                  -0.3                   0.05                     0.4    
 --                 _________________________|_________________________ -> Y
