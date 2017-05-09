@@ -8,7 +8,7 @@ The general learning schema consists of 3 phases:
 A diagram of the described learning schema can be observed below:
 ![learnSchema](/toolAffCycle_noToolSel.png)
 
-Moreover, it provides the motor and managing modules to run the tool use demo:
+Moreover, it provides the motor and managing modules to run the tool use demo (click image to see video on Youtube):
 [![tool use demo video](/tool_use_vidprof.png)](https://www.youtube.com/watch?v=_SBOM_jAWMQ)
 
 ## Theoretical background
@@ -66,6 +66,11 @@ Generic, used in all behaviors:
  * `affMotor`: Extension of [karmaMotor] (https://github.com/robotology/karma) which adds radial drag and diametral slide actions.
  * `simtoolloader`: Enables easy loading of tool models in the simulator on the robot's hand, allowing the user to decide the orientation, tilt and shift of the tool. Sample tool models are provided in `./modules/simtoolloader/app/models/`
  * `affCollector`: Accepts labels of objects/tool/categories, and for each, based on pairs action-effect, computes and updates the success rate of each label for each action.
+
+
+## Links to related repositories
+
+ * 3D tool representation as well as pose and tooltip estimation, used in the demo and in all experiments using 3D information, are provided by the modules on: https://github.com/robotology/tool-incorporation
 
 ## License
 Material included here is Copyright of _iCub Facility - Istituto Italiano di Tecnologia_
