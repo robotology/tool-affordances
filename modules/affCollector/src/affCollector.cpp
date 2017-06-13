@@ -32,7 +32,7 @@ bool  AffCollector::configure(ResourceFinder &rf)
 {
     // add and initialize the port to send out the features via thrift.
     string name = rf.check("name",Value("affCollector")).asString().c_str();
-    filename = rf.check("filename",Value("affFile.txt")).asString().c_str();
+    filename = rf.check("filename",Value("affs_XPERIENCE.txt")).asString().c_str();
     rf.setDefaultContext("AffordancesProject");
 
     string contextPath = "/share/ICUBcontrib/contexts/AffordancesProject/";

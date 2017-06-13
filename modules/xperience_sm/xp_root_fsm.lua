@@ -22,7 +22,7 @@ return rfsm.state {
 
                 -- rpc
                 ret = ar_rpc_io:open("/xperience_sm/are:rpc")
-                ret = ret and o3de_rpc:open("/xperience_sm/o3de:rpc")
+                ret = ret and o3de_rpc:open("/xperience_sm/toolinc:rpc")
                 ret = ret and tmanager_rpc:open("/xperience_sm/t3dm:rpc")
                 ret = ret and affcollect_rpc:open("/xperience_sm/affcol:rpc")
                 if ret == false then
@@ -85,7 +85,7 @@ return rfsm.state {
                end
 
 
-               object_list = {}                        -- for keeping the memory of objects
+               object_list = {}                               -- for keeping the memory of objects
                target_object = {}                             -- targeted object
                state = "observe"
                print("everything is fine, going home!")
@@ -133,7 +133,7 @@ return rfsm.state {
    --------------------------------------------
    -- state INTERACT  is defined in xp_interact_fsm.lua --
    --------------------------------------------
-   ST_INTERACT = interact_fsm,
+   ST_INTERACT = xp_interact_fsm,
 
    ----------------------------------
    -- setting the transitions      --

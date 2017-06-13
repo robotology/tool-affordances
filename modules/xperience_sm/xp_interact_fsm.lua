@@ -4,19 +4,7 @@ event_table = {
    clean     = "e_clean",
    }
 
---[[
-STATE MACHINE :
-
-         /------------------------always---------------------| 
-        \/                                                   /\
-     |OBSERVE|----always-----> |CHECK_AFF|----doable-----> |DO_ACTION|
-         /\                        \
-         |                          \not doable
-         |                          \/
-         |-------tool ok--------|TOOL_SELECT|<--->tool not ok
-]]--
-
-interact_fsm = rfsm.state{
+xp_interact_fsm = rfsm.state{
 
    ----------------------------------
    -- state SUB_OBSERVE               --
@@ -34,8 +22,7 @@ interact_fsm = rfsm.state{
                         target_object = select_object(object_list)
                         if target_object ~= nil then
                             print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
-                            action = target_object.task;
-                            if action == "take_hand" or action == "drag_left_hand" then
+                            if  target_object.zone == "BOTTOMRIGHT" or target_object.zone == "BOTTOMLEFT" then
                                 rfsm.send_events(fsm,'e_action')
                                 state = "do_action"             -- these actions do not need tools
                             else        
@@ -67,14 +54,20 @@ interact_fsm = rfsm.state{
             entry=function()
                 speak("I am checking if I can do the action")
                 print("State = " .. state)
-                if check_affordance(action) then   -- task is doable with present tool
+                if check_affordance(action) then        -- task is doable with tool present
                     state = "do_action"
                     speak("I can do action ", action)
                     rfsm.send_events(fsm,'e_action')
-                else
-                    state = "select_tool"               -- task is NOT doable with present tool
+                else                                    -- task is NOT doable with tool present (if at all)
+
+                    if tool_selection_flag then 
+                        state = "select_tool"           
+                        rfsm.send_events(fsm,'e_select')
+                    else    
+                        state = "ask_tool"
+                    end
                     speak("I need a tool ")
-                    rfsm.send_events(fsm,'e_select')
+
                 end 
             end
    },

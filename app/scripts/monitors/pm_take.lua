@@ -61,7 +61,7 @@ PortMonitor.create = function(options)
         return false
     end
 
-    ret = yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
+    ret = yarp.NetworkBase_connect(o3de_rpc:getName(), "/toolIncpororator/rpc:i")
     if ret == false then 	
         pm_print("cannot connect to /objects3DExplorer/rpc:i!")
         return false

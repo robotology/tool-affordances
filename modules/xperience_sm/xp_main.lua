@@ -23,23 +23,21 @@
 --              X  V                      |    
 --                                       0.0            -- area is dsipalced to right to help tool actions
 
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 -------------------------------   INTERACTION FLOW   ----------------------------------
 
 -- Explore objects
     -- act on those possible without tool (bottom)
   -- Option user:
-    -- select tool to act on further ones (probabilistaclly) --> from affCollector selectTool()
-    -- ask for tool
-        -- check if tool is the given one or not
-        -- if yes: say 'thanks'
-        -- if not: say 'this is not the tool I asked for'
-        -- Check tool affordances (from affCollector)
-            -- If required affordance available: do action (even if its another tool, but say 'i ll do it anyway') 
-            -- If required affordance not available: ask for another tool (and say 'I cant do anyhitng with this tool')
+    -- If objects only tool-reachable -> ask for a tool
+    -- Check tool affordances
+        -- from affCollector
+        -- from tool-affordances module
+    -- If any useful action possible: execute best action
+    -- If afforded actions not useful ask for another tool (and say 'I cant do anyhitng with this tool')
     -- Do action
     -- Observe effect -> Update affCollector.
-    -- Loop
+    -- GoTo explore objects
 
   -- Option vision (FURTHER DEVELOPMENT):
     -- look to tool rack
@@ -49,6 +47,8 @@
 
 ------------------------------------------------------------------------------------------
 -- DEFINES
+
+TOOL_SELECTION_FLAG = 0;
 
 -- Declare consts.
 OBJECT_MEMORY   = 0.5       -- seconds   
@@ -65,7 +65,8 @@ MAX_Y = 0.4
 CENTER_X = -0.41
 CENTER_Y = 0.05
 
--- ZONES
+-- ZONES (in order of priority)
+ZONES_LIST = {"BOTTOMLEFT", "BOTTOMRIGHT", "UPRIGHT", "UPLEFT"}
 -- UPRIGHT
 UPRIGHT_ZONE_X = {min=MIN_X, max=CENTER_X}
 UPRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
@@ -92,11 +93,6 @@ TOOL_ACTIONS = {"drag_left", "drag_down","drag_down_right", "drag_right"}
 -- TOOL LIST
 --TOOL_LIST = {"HOE1", "HOE2","HOE3","HOK1","HOK2", "HOK3", "RAK1", "RAK2", "RAK3",  "SHO1","SHO2","SHO3", "STI1","STI2","STI3"}
 TOOL_LIST = {"HOE1", "HOK1", "RAK2", "SHO3", "STI3"}
---rakeBlue = RAK2
---rakeGreen = RAK3 
---shovelGreen = SHO1
---shovelOrange = SHO2
---shovelYellow = SHO3
 
 -------------------------------------------------------------------------------------------------
 -------------------              GRAMMAR                ----------------
@@ -124,7 +120,7 @@ tool_list_grammar = {HOE1 = "hoe",
                      STI3 = "stick"}
 
 -- defining speech grammar for Reward
-grammar_reward = "Yes you are | No here it is | Skip it"
+-- grammar_reward = "Yes you are | No here it is | Skip it"
 
 
 
@@ -141,8 +137,8 @@ acteff_port = yarp.Port()
 speechRecog_port = yarp.Port()
 
 --rpc
-ar_rpc_io = yarp.RpcClient()
-o3de_rpc = yarp.RpcClient()
+are_rpc_io = yarp.RpcClient()
+toolinc_rpc = yarp.RpcClient()
 tmanager_rpc = yarp.RpcClient()
 affcollect_rpc = yarp.RpcClient()
 

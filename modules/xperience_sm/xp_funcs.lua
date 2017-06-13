@@ -88,17 +88,17 @@ function get_3d_pos(object_list)
     print("rep = " .. rep:toString())        
     
     for i=0,rep:size()-1 do
-        bt = rep:get(i):asList()  
+        bt = rep:get(i):asList()  -- read bottle from reply
         -- write in i+1 because we are moving values from a C vector (0-indexed) to a LUA vector (1-indexed)   
         if bt then
             object_list[i+1].x = bt:get(0):asDouble()
             object_list[i+1].y = bt:get(1):asDouble()
-            object_list[i+1].z = bt:get(2):asDouble()+0.04
+            object_list[i+1].z = bt:get(2):asDouble() + 0.04          --get position 4 cm above table (z+=0.04)
             print("Object " ..  i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
-        else
+        else                     -- single object, does not come wrapped in bottle
             object_list[i+1].x = rep:get(0):asDouble()
             object_list[i+1].y = rep:get(1):asDouble()
-            object_list[i+1].z = rep:get(2):asDouble()+0.04
+            object_list[i+1].z = rep:get(2):asDouble() + 0.04          --get position 4 cm above table (z+=0.04)
             print("Object " .. i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
             return true        
         end
@@ -131,12 +131,50 @@ function update_objects(object_list)
         print("object_list")
         -- get the 3D position
         get_3d_pos(object_list)
-        update_tasks(object_list)
+        -- and corrsponding zone
+        update_zone(object_list)      
+--        update_tasks(object_list)
         return true
     else
         return false
     end
 end
+
+
+--/---------------------------------------------------------------------/
+function get_object_zone(object)
+
+    if object.y > MAX_Y or object.y < MIN_Y or object.x> MAX_X or object.x < MIN_X then
+        return "OUT"
+    end
+
+    if object.y > CENTER_Y then
+        if object.x > CENTER_X then
+            return "BOTTOMRIGHT"  
+        end
+        if object.x < CENTER_X then
+            return "UPRIGHT"
+        end
+    else
+        if object.x > CENTER_X then
+            return "BOTTOMLEFT"  
+        end
+         if object.x < CENTER_X then
+            return "UPLEFT"
+        end
+    end
+end
+
+function update_zone(object_list)
+    for i=1,#object_list do
+        local obj = object_list[i]
+        local zone = get_object_zone(obj)          
+        object_list[i].zone = zone
+    end
+    return true
+end
+
+
 
 
 ----------------------------------
@@ -147,7 +185,7 @@ end
 function update_tasks(object_list)
     for i=1,#object_list do
         local obj = object_list[i]
-        local zone = get_object_zone(obj)
+        --local zone = get_object_zone(obj)
         local task = select_task(obj)                
         object_list[i].task = task
     end
@@ -160,33 +198,15 @@ end
 function select_object(object_list)
 
     -- Prioritize objects according to their location
-    -- First check if there are any reachable objects
-    local obj
-    obj = get_object_in_zone(object_list, REACHABLE_ZONE_X, REACHABLE_ZONE_Y)
-    if obj ~= nil then 
-         print("Reachable object selected:" .. obj.x .. obj.y .. obj.z) 
-         return obj
-    end
+    for i, zone_search in ZONES_LIST do
+        print("Looking for objects in zone " .. zone_search) 
 
-    -- Second, objects pushable with hand
-    obj = get_object_in_zone(object_list, BOTTOMRIGHT_ZONE_X, BOTTOMRIGHT_ZONE_Y)
-    if obj ~= nil then
-         print("Pushable by hand object seletected:" .. obj.x .. obj.y .. obj.z) 
-         return obj
-    end
-
-    -- Third, pullable with tool from right side
-    obj = get_object_in_zone(object_list, UPRIGHT_ZONE_X, UPRIGHT_ZONE_Y)
-    if obj ~= nil then
-         print("Object on up right zone selected:" .. obj.x .. obj.y .. obj.z) 
-         return obj
-    end
-
-    -- Third, pullable with tool from left side
-    obj = get_object_in_zone(object_list, UPLEFT_ZONE_X, UPLEFT_ZONE_Y)
-    if obj ~= nil then
-         print("Object on up left zone selected" .. obj.x .. obj.y .. obj.z) 
-         return obj
+        for j, obj in object_list do
+            if obj.zone == zone_search then
+                print("Target object in zone " .. zone_search .. " with coords" .. obj.x .. obj.y .. obj.z)
+                return obj
+            end
+        end
     end
 
     print("Objects are too far!!") 
@@ -211,30 +231,6 @@ function get_object_in_zone(object_list, ZONE_X, ZONE_Y)
     return object_list[closest_id]
 end
 
-
---/---------------------------------------------------------------------/
-function get_object_zone(object)
-
-    if object.y > MAX_Y or object.y < MIN_Y or object.x> MAX_X or object.x < MIN_X then
-        return "OUT"
-    end
-
-    if object.y > CENTER_Y then
-        if object.x > CENTER_X then
-            return "BOTTOMRIGHT"  
-        end
-        if object.x < CENTER_X then
-            return "UPRIGHT"
-        end
-    else
-        if object.x > CENTER_X then
-            return "BOTTOMLEFT"  
-        end
-        if object.x < CENTER_X then
-            return "UPLEFT"
-        end
-    end
-end
 
 
 --/---------------------------------------------------------------------/
@@ -341,8 +337,8 @@ function set_act_labels(TOOL_ACTIONS)
     local rep = yarp.Bottle()
     cmd:addString("setactlabels")
     local act_labels = cmd:addList()
-    for i=1,#TOOL_ACTIONS do
-        act_labels:addString(TOOL_ACTIONS[i])
+    for i, action in  ipairs(TOOL_ACTIONS) do
+        act_labels:addString(action)
     end
     affcollect_rpc:write(cmd, rep)
     return true
