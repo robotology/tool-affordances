@@ -9,7 +9,7 @@ A diagram of the described learning schema can be observed below:
 ![learnSchema](/toolAffCycle_noToolSel.png)
 
 Moreover, it provides the motor and managing modules to run the tool use demo (click image to see video on Youtube):
-[![tool use demo video](/tool_use_vidprof.png)](https://www.youtube.com/watch?v=_SBOM_jAWMQ)
+[![tool use demo video](/tool_use_vidprof.png)](https://www.youtube.com/watch?v=2Jmm4zel134)
 
 ## Use
 Most of the exploration actions can be executed either individually or in a cycle using the manager modules' commands, see affManager and tool3DManager help. For running full experimental exploration as well as for the behavior-based tool use demo, see the applications [here](https://github.com/robotology/tool-affordances/tree/master/app/scripts).
@@ -66,7 +66,7 @@ Table cleaning demo, involving zone dependent actions, tool incorporation and to
   The demo can also be coordinated by means of port-monitors, using the PMs in /app/scripts/monitors
  
 Generic, used in all behaviors: 
- * `affMotor`: Extension of [karmaMotor] (https://github.com/robotology/karma) which adds radial drag and diametral slide actions.
+ * `affMotor`: Extension of [karmaMotor](https://github.com/robotology/karma) which adds radial drag and diametral slide actions.
  * `simtoolloader`: Enables easy loading of tool models in the simulator on the robot's hand, allowing the user to decide the orientation, tilt and shift of the tool. Sample tool models are provided in `./modules/simtoolloader/app/models/`
  * `affCollector`: Accepts labels of objects/tool/categories, and for each, based on pairs action-effect, computes and updates the success rate of each label for each action.
 
