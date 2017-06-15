@@ -39,9 +39,14 @@ service affCollector_IDLServer
     bool setactlabels(1: Bottle labels);
 
     /**
-     * Returns the labels of all possible actions
+     * Returns the labels of all actions in the repertoire
      */
     Bottle getactlabels();
+
+    /**
+     * Returns the labels of all the known tools-poses
+     */
+    Bottle gettoollabels();
 
     /**
      * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.

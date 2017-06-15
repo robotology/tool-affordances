@@ -35,9 +35,13 @@ public:
    */
   virtual bool setactlabels(const yarp::os::Bottle& labels);
   /**
-   * Returns the labels of all possible actions
+   * Returns the labels of all actions in the repertoire
    */
   virtual yarp::os::Bottle getactlabels();
+  /**
+   * Returns the labels of all the known tools-poses
+   */
+  virtual yarp::os::Bottle gettoollabels();
   /**
    * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.
    * @return the index of the active (new or not) label

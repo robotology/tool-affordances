@@ -48,6 +48,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class affCollector_IDLServer_gettoollabels : public yarp::os::Portable {
+public:
+  yarp::os::Bottle _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 class affCollector_IDLServer_setlabel : public yarp::os::Portable {
 public:
   std::string label;
@@ -280,6 +288,26 @@ bool affCollector_IDLServer_getactlabels::read(yarp::os::ConnectionReader& conne
 }
 
 void affCollector_IDLServer_getactlabels::init() {
+}
+
+bool affCollector_IDLServer_gettoollabels::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("gettoollabels",1,1)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_gettoollabels::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.read(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void affCollector_IDLServer_gettoollabels::init() {
 }
 
 bool affCollector_IDLServer_setlabel::write(yarp::os::ConnectionWriter& connection) {
@@ -655,6 +683,16 @@ yarp::os::Bottle affCollector_IDLServer::getactlabels() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+yarp::os::Bottle affCollector_IDLServer::gettoollabels() {
+  yarp::os::Bottle _return;
+  affCollector_IDLServer_gettoollabels helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","yarp::os::Bottle affCollector_IDLServer::gettoollabels()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 int32_t affCollector_IDLServer::setlabel(const std::string& label) {
   int32_t _return = 0;
   affCollector_IDLServer_setlabel helper;
@@ -862,6 +900,17 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
     if (tag == "getactlabels") {
       yarp::os::Bottle _return;
       _return = getactlabels();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.write(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "gettoollabels") {
+      yarp::os::Bottle _return;
+      _return = gettoollabels();
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -1124,6 +1173,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     helpString.push_back("setnumact");
     helpString.push_back("setactlabels");
     helpString.push_back("getactlabels");
+    helpString.push_back("gettoollabels");
     helpString.push_back("setlabel");
     helpString.push_back("getlabel");
     helpString.push_back("updateAff");
@@ -1163,7 +1213,11 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     }
     if (functionName=="getactlabels") {
       helpString.push_back("yarp::os::Bottle getactlabels() ");
-      helpString.push_back("Returns the labels of all possible actions ");
+      helpString.push_back("Returns the labels of all actions in the repertoire ");
+    }
+    if (functionName=="gettoollabels") {
+      helpString.push_back("yarp::os::Bottle gettoollabels() ");
+      helpString.push_back("Returns the labels of all the known tools-poses ");
     }
     if (functionName=="setlabel") {
       helpString.push_back("int32_t setlabel(const std::string& label) ");
