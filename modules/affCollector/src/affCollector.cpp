@@ -111,7 +111,7 @@ bool  AffCollector::updateModule()
 
     // Stream affordances of active label
     if (activeLabel >=0) {
-        cout << "Streaming affordance" << endl;
+        //cout << "Streaming affordance" << endl;
         Bottle &affBotOut = affOutPort.prepare();
         affBotOut.clear();
         affBotOut = getAffs();
@@ -451,9 +451,16 @@ Bottle  AffCollector::getAffHist(const std::string& label, const int act )
 /**********************************************************/
 string AffCollector::selectTool(const int act)
 {
+
     // Check the case where its called before any affordances are learnt
     if (knownAffs.size() <1){
         cout << "No afordance have been learnt yet" << endl;
+        return "no_tool";
+    }
+
+    // Check the case where its called before any affordances are learnt
+    if (act > numAct){
+        cout << "Desired action index > number of actions in repertoire, which is " << numAct <<"." << endl;
         return "no_tool";
     }
 
@@ -894,9 +901,9 @@ double AffCollector::vecVar (const vector<double>& vec)
 
 bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)
 {
-    for(int l = 0; l<hist.size()-1; l++)
+    for(int l = 0; l<hist.size(); l++)
     {
-        //cout << "Computing avg for hist " << l <<endl;
+        cout << "Computing avg for hist " << l <<endl;
         vector<double> affInit(numAct,-1.0);
         affs.push_back(affInit);           // Add aff Vector corresponding to that label
 
