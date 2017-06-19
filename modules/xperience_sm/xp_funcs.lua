@@ -191,21 +191,21 @@ function select_object(object_list)
         end
     end
 
-    print("Objects are too far!!")
+    print("No stable objects found on table!")
     return nil
 end
 
 
 --/---------------------------------------------------------------------/
-function select_task(obj)
+function select_action(obj)
 
     local zone = obj.zone
-    local act = "no_act"
+    local act = "not_affordable"
 
     if zone == "OUT" then
         speak("Object out of reach!")
         print("Objects out of limits!!")
-        return nil
+        return "not_affordable"
     end
 
     -- Reachable by hand (no tool required)
@@ -222,10 +222,12 @@ function select_task(obj)
     end
 
     -- Rachable only by tool (need to check tool Affs)
+
+    -- Read tool affordances from tool-incorporator
     local aff_reply = get_tool_affordance()
     if aff_reply == nil then
         pm_print("no reply from affCollector.")
-        return nil
+        return "not_affordable"
     end
     pm_print(aff_reply:toString())
 
@@ -254,11 +256,40 @@ function select_task(obj)
             return "drag_left"
         end
     end
-        -- if affordance:check("drag_diag_left") == true then return "drag_diagl" end
 
     say("I can not do anything useful with this tool")
     return "not_affordable"
 end
+
+
+--/---------------------------------------------------------------------/
+function select_task(obj)
+
+    local zone = obj.zone
+
+    if zone == "BOTTOMLEFT" then
+        return  "take_hand"
+    end
+    if zone == "BOTTOMRIGHT" then
+        return "drag_left_hand"
+    end
+    if zone == "UPLEFT" then
+        return "drag_down_right"
+    end
+    if zone == "UPRIGHT" then
+        return "drag_down"
+    end
+
+    if zone == "OUT" then
+        speak("Object out of reach!")
+        print("Objects out of limits!!")
+        return nil
+    end
+
+    say("No task for this object")
+    return nil
+end
+
 
 
 --/---------------------------------------------------------------------/
@@ -391,14 +422,14 @@ end
 --/---------------------------------------------------------------------/
 function select_tool(task)
     -- get index of desired task
-    local act_i = find_key(TOOL_ACTIONS, task)
-    print("task ".. task .. " has index ".. act_i)
+    --local act_i = find_key(TOOL_ACTIONS, task)
+    --print("task ".. task .. " has index ".. act_i)
 
     -- Call affCollector to return the best tool's label for a given task
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("selectTool")
-    cmd:addInt(act_i-1)      -- Transform to C++ 0-indexing
+    cmd:addString(task)      -- Transform to C++ 0-indexing
     affcollect_rpc:write(cmd, rep)
 
     local tool = rep:get(0):asString()
@@ -435,21 +466,6 @@ function set_tool_label(tool_pose)
     return true
 end
 
---/---------------------------------------------------------------------/
-function deg2ori(deg)
-    if (deg > 45.0) and (deg < 135.0) then        -- oriented left
-        ori = "left"
-    elseif ((deg < 45.0) and (deg > -45.0)) then  -- oriented front
-        ori = "frnt";
-    elseif (deg > -135.0) and (deg < -45.0) then  -- oriented right
-        ori = "rght";
-    else
-        return "outx";
-    end
-    return ori
-end
-
-
 
 --/---------------------------------------------------------------------/
 function ask_for_tool(tool_name)
@@ -463,20 +479,22 @@ function ask_for_tool(tool_name)
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
+    if tool_name ~= nil then
+        speak("Give me the " .. tool_name)
+        cmd:addString(tool_name)
+    end
     tmanager_rpc:write(cmd, rep)
-    print("--Reply" .. rep:get(0):asString())
-    local tool_loaded = rep:get(0):asString()
-    if tool_loaded == "not_loaded" then  return "invalid"   end
 
-    speak("I have the tool " .. tool_loaded)
+    local tool_loaded = rep:get(0):asString()
+
+    if tool_loaded == "not_loaded" then  return "invalid"   end
 
     print("find the tool pose")
     cmd:clear()
     rep:clear()
     cmd:addString("findPose")
-    print("--Sending".. cmd:toString())
     tmanager_rpc:write(cmd, rep)
-    print("Reply".. rep:toString())
+
     local reply = rep:get(0):asString()
     if reply ~= "ok" then
         speak("I could not find the pose" )
@@ -484,13 +502,12 @@ function ask_for_tool(tool_name)
         return "invalid"
     end
 
-    print("get orientation")
+    print("getting orientation")
     cmd:clear()
     rep:clear()
     cmd:addString("getOri")
-    print("--Sending".. cmd:toString())
-    o3de_rpc:write(cmd, rep)
-    print("--Reply".. rep:toString())
+    toolinc_rpc:write(cmd, rep)
+    print("GetOri reply".. rep:toString())
 
     local deg
     if rep:get(1):asDouble() then
@@ -507,14 +524,29 @@ function ask_for_tool(tool_name)
         return "invalid"
     end
 
-    speak("I have the tool in pose " .. pose)
-
     tool_pose = tool_loaded .. "_" .. pose
 
     print("Deg: ".. deg ..  " -> Pose", pose)
     print("Tool".. tool_loaded .. " oriented ".. pose.. " -> tool-pose " .. tool_pose)
 
     return tool_pose
+end
+
+--/---------------------------------------------------------------------/
+function deg2ori(deg)
+    if (deg > 45.0) and (deg < 135.0) then        -- oriented left
+        ori = "left"
+        say(" oriented to the left")
+    elseif ((deg < 45.0) and (deg > -45.0)) then  -- oriented front
+        ori = "frnt";
+        speak(" oriented to the front")
+    elseif (deg > -135.0) and (deg < -45.0) then  -- oriented right
+        ori = "rght";
+        speak(" oriented to the right")
+    else
+        return "out";
+    end
+    return ori
 end
 
 

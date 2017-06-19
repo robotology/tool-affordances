@@ -188,7 +188,7 @@ Bottle AffCollector::getactlabels()
     for (int i = 0; i < numAct ; i++){
         string act_label = act_labels[i];
         labs.addString(act_label);
-        cout << "action label read " << act_label << endl;
+        cout << "action "<< i << " label " << act_label << endl;
     }
     return labs;
 }
@@ -449,7 +449,7 @@ Bottle  AffCollector::getAffHist(const std::string& label, const int act )
 
 
 /**********************************************************/
-string AffCollector::selectTool(const int act)
+string AffCollector::selectTool(const string& task)
 {
 
     // Check the case where its called before any affordances are learnt
@@ -458,8 +458,17 @@ string AffCollector::selectTool(const int act)
         return "no_tool";
     }
 
+    int act_i;
+    vector<string>::iterator it = std::find(act_labels.begin(), act_labels.end(), task);
+    if ( it == act_labels.end() ) { //Not found
+        cout << "Given action label not found" << endl;
+        return "no_tool";
+    }else{                          // Found
+        act_i = std::distance(act_labels.begin(), it);                  // return position of found element
+    }
+
     // Check the case where its called before any affordances are learnt
-    if (act > numAct){
+    if ((act_i > numAct)||(act_i < 0 )) {
         cout << "Desired action index > number of actions in repertoire, which is " << numAct <<"." << endl;
         return "no_tool";
     }
@@ -469,7 +478,7 @@ string AffCollector::selectTool(const int act)
     double bestRate = 0.0;
     for (int l =0; l < knownAffs.size(); l < l++)
     {
-        double succRate = knownAffs[l][act];
+        double succRate = knownAffs[l][act_i];
         if (succRate > bestRate){
             bestToolInd = l;
             bestRate = succRate;

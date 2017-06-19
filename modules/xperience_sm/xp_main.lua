@@ -1,4 +1,4 @@
-#!/usr/bin/lua 
+#!/usr/bin/lua
 
 -- Copyright: (C) 2016 iCub Facility - Istituto Italiano di Tecnologia (IIT)
 -- Authors: Tanis Mar <tanis.mar@iit.it>
@@ -8,7 +8,7 @@
 -- rFSM state machine controlling the flow of the tool use demo (aka Xperience demo).
 
 
---                  -0.3                   0.05                     0.4    
+--                  -0.3                   0.05                     0.4
 --                 _________________________|_________________________ -> Y
 --            -0.6 |                      | |                        |
 --                 |                        |                        |
@@ -20,7 +20,7 @@
 --                 |       BOTTOMLEFT       |      BOTTOMRIGHT       |
 --                 |                        |                        |
 --            -0.1 |______________________|_|________________________|
---              X  V                      |    
+--              X  V                      |
 --                                       0.0            -- area is dsipalced to right to help tool actions
 
 
@@ -51,7 +51,7 @@
 TOOL_SELECTION_FLAG = 0;
 
 -- Declare consts.
-OBJECT_MEMORY   = 0.5       -- seconds   
+OBJECT_MEMORY   = 0.5       -- seconds
 SENSITIVITY     = 0.8       -- 80 percent
 XOFFSET         = 0.0       -- m
 YOFFSET         = -0.03     -- m
@@ -66,7 +66,7 @@ CENTER_X = -0.41
 CENTER_Y = 0.05
 
 -- ZONES (in order of priority)
-ZONES_LIST = {"BOTTOMLEFT", "BOTTOMRIGHT", "UPRIGHT", "UPLEFT"}
+ZONES_LIST = {"BOTTOMLEFT", "BOTTOMRIGHT", "UPRIGHT", "UPLEFT", "OUT"}
 -- UPRIGHT
 UPRIGHT_ZONE_X = {min=MIN_X, max=CENTER_X}
 UPRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
@@ -80,13 +80,13 @@ BOTTOMRIGHT_ZONE_X = {min=CENTER_X, max=MAX_X}
 BOTTOMRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
 
 --BOTTOMLEFT
-REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}    
-REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}      
+REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}
+REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}
 
 -- ACTION LIST
 TASK_LIST = {"no_act", "drag_down","drag_down_right", "drag_left", "drag_right", "take_hand", "drag_left_hand"}
 
-TOOL_ACTIONS = {"drag_left", "drag_down","drag_down_right", "drag_right"}
+TOOL_ACTIONS = {"drag_left", "drag_down", "drag_down_right", "drag_right"}
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 
@@ -124,7 +124,7 @@ tool_list_grammar = {HOE1 = "hoe",
 
 
 
--- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- --
 require("yarp")
 require("rfsm")
 

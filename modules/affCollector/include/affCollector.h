@@ -94,7 +94,7 @@ public:
     yarp::os::Bottle            getAffs(const std::string& label = "active");
     yarp::os::Bottle            getAffHist(const std::string& label = "active", const int act = -1);
 
-    std::string                 selectTool(const int act);
+    std::string                 selectTool(const std::string& task);
     std::string                 activeExp(const std::string& label = "active");
     std::string                 balanceExp(const std::string& label = "active");
 

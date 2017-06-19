@@ -80,7 +80,7 @@ service affCollector_IDLServer
      *  Based on the previously learnt affordances, returns the best label for a given action/task.
      * @return true/false on success/failure 
      */
-    string selectTool(1:i32 action);
+    string selectTool(1:string action);
 
     /**
      * Returns the label and action with less certainty of known ones, based on variance.

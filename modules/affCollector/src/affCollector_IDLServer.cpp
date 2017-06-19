@@ -105,9 +105,9 @@ public:
 
 class affCollector_IDLServer_selectTool : public yarp::os::Portable {
 public:
-  int32_t action;
+  std::string action;
   std::string _return;
-  void init(const int32_t action);
+  void init(const std::string& action);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
@@ -431,7 +431,7 @@ bool affCollector_IDLServer_selectTool::write(yarp::os::ConnectionWriter& connec
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
   if (!writer.writeTag("selectTool",1,1)) return false;
-  if (!writer.writeI32(action)) return false;
+  if (!writer.writeString(action)) return false;
   return true;
 }
 
@@ -445,7 +445,7 @@ bool affCollector_IDLServer_selectTool::read(yarp::os::ConnectionReader& connect
   return true;
 }
 
-void affCollector_IDLServer_selectTool::init(const int32_t action) {
+void affCollector_IDLServer_selectTool::init(const std::string& action) {
   _return = "";
   this->action = action;
 }
@@ -743,12 +743,12 @@ yarp::os::Bottle affCollector_IDLServer::getAffHist(const std::string& label, co
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-std::string affCollector_IDLServer::selectTool(const int32_t action) {
+std::string affCollector_IDLServer::selectTool(const std::string& action) {
   std::string _return = "";
   affCollector_IDLServer_selectTool helper;
   helper.init(action);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","std::string affCollector_IDLServer::selectTool(const int32_t action)");
+    yError("Missing server method '%s'?","std::string affCollector_IDLServer::selectTool(const std::string& action)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -1006,8 +1006,8 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "selectTool") {
-      int32_t action;
-      if (!reader.readI32(action)) {
+      std::string action;
+      if (!reader.readString(action)) {
         reader.fail();
         return false;
       }
@@ -1243,7 +1243,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
       helpString.push_back("Returns the history of effects for a given action and known label (the active one by default). ");
     }
     if (functionName=="selectTool") {
-      helpString.push_back("std::string selectTool(const int32_t action) ");
+      helpString.push_back("std::string selectTool(const std::string& action) ");
       helpString.push_back(" Based on the previously learnt affordances, returns the best label for a given action/task. ");
       helpString.push_back("@return true/false on success/failure ");
     }
