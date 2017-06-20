@@ -1,11 +1,11 @@
 
 --dofile(rf:findFile("xp_interact_fsm.lua"))
 dofile("xp_interact_fsm.lua")
---dofile(rf:findFile("xp_funcs.lua"))
+dofile("xp_funcs.lua")
 return rfsm.state {
 
    ----------------------------------
-   -- state INITPORTS                  --
+   -- state INITPORTS
    ----------------------------------
    ST_INITPORTS = rfsm.state{
            entry=function()
@@ -21,8 +21,8 @@ return rfsm.state {
                 end
 
                 -- rpc
-                ret = ar_rpc_io:open("/xperience_sm/are:rpc")
-                ret = ret and o3de_rpc:open("/xperience_sm/toolinc:rpc")
+                ret = are_rpc_io:open("/xperience_sm/are:rpc")
+                ret = ret and toolinc_rpc:open("/xperience_sm/toolinc:rpc")
                 ret = ret and tmanager_rpc:open("/xperience_sm/t3dm:rpc")
                 ret = ret and affcollect_rpc:open("/xperience_sm/affcol:rpc")
                 if ret == false then
@@ -41,10 +41,10 @@ return rfsm.state {
                     -- Connect
                     ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName())
                     ret = ret and yarp.NetworkBase_connect(acteff_port:getName(), "/affCollector/aff:i")
-                    ret = ret and yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
+                    ret = ret and yarp.NetworkBase_connect(toolinc_rpc:getName(), "/toolIncorporator/rpc:i")
                     ret = ret and yarp.NetworkBase_connect(affcollect_rpc:getName(), "/affCollector/rpc:i")
                     ret = ret and yarp.NetworkBase_connect(tmanager_rpc:getName(), "/tool3DManager/rpc:i")
-                    ret = ret and yarp.NetworkBase_connect(ar_rpc_io:getName(), "/actionsRenderingEngine/cmd:io")
+                    ret = ret and yarp.NetworkBase_connect(are_rpc_io:getName(), "/actionsRenderingEngine/cmd:io")
                     ret = ret and yarp.NetworkBase_connect(ispeak_port:getName(), "/iSpeak")
                     ret = ret and yarp.NetworkBase_connect(speechRecog_port:getName(), "/speechRecognizer/rpc")
                     if ret == false then
@@ -78,8 +78,13 @@ return rfsm.state {
                print("Module running ... ")
                t0 = yarp.Time_now()
                math.randomseed( os.time() )
-               if set_act_labels(TOOL_ACTIONS) then 
+
+               -- Read tool action list
+               TOOL_ACTIONS = get_act_labels()
+               if TOOL_ACTIONS ~= nil then
                    print("Action labels set properly ")
+                   for key,value in pairs(TOOL_ACTIONS) do print(key,value) end
+
                else
                    print("Prbolems setting action labels ")
                end
@@ -87,6 +92,13 @@ return rfsm.state {
 
                object_list = {}                               -- for keeping the memory of objects
                target_object = {}                             -- targeted object
+
+               -- initalize flags;
+               cleanTableSec = 0
+               tooFarSaid = false
+               holdingTool = false
+               tableClean = false
+
                state = "observe"
                print("everything is fine, going home!")
                go_home(1)
@@ -120,8 +132,8 @@ return rfsm.state {
                    speechRecog_port:close()
 
                    -- close rpcs
-                   ar_rpc_io:close()
-                   o3de_rpc:close()
+                   are_rpc_io:close()
+                   toolinc_rpc:close()
                    tmanager_rpc:close()
                    affcollect_rpc:close()
 
@@ -146,9 +158,9 @@ return rfsm.state {
 
    rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_FINI', events={ 'e_error' } },
    rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_INITVOCABS', events={ 'e_done' } },
-   
+
    rfsm.transition { src='ST_INITVOCABS', tgt='ST_FINI', events={ 'e_error' } },
-   rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },   
+   rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },
 
    rfsm.transition { src='ST_HOME', tgt='ST_INTERACT', events={ 'e_done' } },
    rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_done' } },

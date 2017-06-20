@@ -1,4 +1,5 @@
 #!/usr/bin/lua
+print ("Including lua")
 
 -- Copyright: (C) 2016 iCub Facility - Istituto Italiano di Tecnologia (IIT)
 -- Authors: Tanis Mar <tanis.mar@iit.it>
@@ -86,7 +87,7 @@ REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}
 -- ACTION LIST
 TASK_LIST = {"no_act", "drag_down","drag_down_right", "drag_left", "drag_right", "take_hand", "drag_left_hand"}
 
-TOOL_ACTIONS = {"drag_left", "drag_down", "drag_down_right", "drag_right"}
+--TOOL_ACTIONS = {"drag_left", "drag_down", "drag_down_right", "drag_right"}
 
 --for key,value in pairs(ACTION_LIST) do print(key,value) end
 
@@ -122,13 +123,16 @@ tool_list_grammar = {HOE1 = "hoe",
 -- defining speech grammar for Reward
 -- grammar_reward = "Yes you are | No here it is | Skip it"
 
-
+print("Constansts defined")
 
 -- -- -- -- -- -- -- -- Begin module -- -- -- -- -- -- -- -- -- -- --
 require("yarp")
+print("yarp required")
 require("rfsm")
 
 yarp.Network()
+
+print("YARP networked")
 
 -- Declare ports
 blobs_port = yarp.BufferedPortBottle()

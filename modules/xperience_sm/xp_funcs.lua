@@ -84,7 +84,7 @@ function get_3d_pos(object_list)
         obj:addDouble(object_list[i].u)
         obj:addDouble(object_list[i].v)
     end
-    ar_rpc_io:write(cmd, rep)
+    are_rpc_io:write(cmd, rep)
     print("rep = " .. rep:toString())
 
     for i=0,rep:size()-1 do
@@ -227,6 +227,7 @@ function select_action(obj)
     local aff_reply = get_tool_affordance()
     if aff_reply == nil then
         pm_print("no reply from affCollector.")
+        say("affCollector does not respond")
         return "not_affordable"
     end
     pm_print(aff_reply:toString())
@@ -234,6 +235,7 @@ function select_action(obj)
     tool = aff_reply:get(0):asString()
     if tool == "no_aff" then
         print(aff_reply:toString())
+        -- say("I can not do anything with this tool")
         return  "not_affordable"
     end
 
@@ -452,6 +454,25 @@ function set_act_labels(TOOL_ACTIONS)
     return true
 end
 
+
+function get_act_labels()
+    -- Call affCollector to return the best tool's label for a given task
+    local TOOL_LIST = {}
+    local cmd = yarp.Bottle()
+    local rep = yarp.Bottle()
+    cmd:addString("getactlabels")
+    affcollect_rpc:write(cmd, rep)
+
+    for i=0,rep:size()-1 do
+        act_label = rep:get(i):asString()  -- read strings from reply
+        table.insert(TOOL_LIST, i+1, act_label)
+    end
+    print ("actions read: ")
+    for key,value in pairs(TOOL_ACTIONS) do print(key,value) end
+
+    return TOOL_LIST
+end
+
 --/---------------------------------------------------------------------/
 function set_tool_label(tool_pose)
     --print("Sending label to affCollector")
@@ -603,7 +624,7 @@ function perform_action(action, object)
         cmd:addInt(0)                   -- select no tool
         pm_print(cmd:toString())
         tmanager_rpc:write(cmd, rep)
-        return
+        return true
     end
     if action == "drag_right" then
         local cmd = yarp.Bottle()
