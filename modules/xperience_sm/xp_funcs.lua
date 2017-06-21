@@ -1,5 +1,79 @@
 
 ----------------------------------
+--     INITIALIZE XP_DEMO       --
+----------------------------------
+function XP_initialize()
+    -- initialization
+    -- DEFINES
+
+    TOOL_SELECTION_FLAG = 0;
+
+    -- Declare consts.
+    OBJECT_MEMORY       = 0.5       -- seconds
+    SENSITIVITY         = 0.8       -- 80 percent
+    X_GRASP_OFFSET      = 0.02       -- m
+    Y_GRASP_OFFSET      = 0.02     -- m
+    Z_GRASP_OFFSET      = 0.0       -- m
+
+    -- LIMIT LINES
+    MIN_X = -0.6        -- meter
+    MAX_X = -0.1
+    MIN_Y = -0.4
+    MAX_Y = 0.4
+    CENTER_X = -0.41
+    CENTER_Y = 0.05
+
+    -- ZONES (in order of priority)
+    ZONES_LIST = {"BOTTOMLEFT", "BOTTOMRIGHT", "UPRIGHT", "UPLEFT", "OUT"}
+
+    -- UPRIGHT
+    UPRIGHT_ZONE_X = {min=MIN_X, max=CENTER_X}
+    UPRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
+
+    -- UPLEFT
+    UPLEFT_ZONE_X = {min=MIN_X, max=CENTER_X}
+    UPLEFT_ZONE_Y = {min=MIN_Y, max=CENTER_Y}
+
+    --BOTTOMRIGHT
+    BOTTOMRIGHT_ZONE_X = {min=CENTER_X, max=MAX_X}
+    BOTTOMRIGHT_ZONE_Y = {min=CENTER_Y, max=MAX_Y}
+
+    --BOTTOMLEFT
+    REACHABLE_ZONE_X  = {min=CENTER_X, max=MAX_X}
+    REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}
+
+    -- ACTION LIST
+    TASK_LIST = {"no_act", "drag_down","drag_down_right", "drag_left", "drag_right", "take_hand", "drag_left_hand"}
+
+    TOOL_LIST = {"HOE1", "HOK1", "RAK2", "SHO3", "STI3"}
+
+
+    tool_list_grammar = {HOE1 = "hoe", HOK3 = "hook", RAK2 = "rake", SHO3 = "shovel", STI3 = "stick"}
+
+    -- defining speech grammar for Reward
+    -- grammar_reward = "Yes you are | No here it is | Skip it"
+
+    -- Declare ports
+    blobs_port = yarp.BufferedPortBottle()
+    ispeak_port = yarp.BufferedPortBottle()
+    acteff_port = yarp.Port()
+    speechRecog_port = yarp.Port()
+
+    --rpc
+    toolinc_rpc = yarp.RpcClient()
+    tmanager_rpc = yarp.RpcClient()
+    affcollect_rpc = yarp.RpcClient()
+    are_rpc = yarp.RpcClient()
+    are_cmd = yarp.RpcClient()
+    are_get = yarp.RpcClient()
+    wholebody_rpc = yarp.RpcClient()
+
+    return true
+end
+
+
+
+----------------------------------
 --     LOCALIZE  OBJECTS        --
 ----------------------------------
 
@@ -84,7 +158,7 @@ function get_3d_pos(object_list)
         obj:addDouble(object_list[i].u)
         obj:addDouble(object_list[i].v)
     end
-    are_rpc_io:write(cmd, rep)
+    are_get:write(cmd, rep)
     print("rep = " .. rep:toString())
 
     for i=0,rep:size()-1 do
@@ -226,11 +300,11 @@ function select_action(obj)
     -- Read tool affordances from tool-incorporator
     local aff_reply = get_tool_affordance()
     if aff_reply == nil then
-        pm_print("no reply from affCollector.")
+        print("no reply from affCollector.")
         say("affCollector does not respond")
         return "not_affordable"
     end
-    pm_print(aff_reply:toString())
+    print(aff_reply:toString())
 
     tool = aff_reply:get(0):asString()
     if tool == "no_aff" then
@@ -341,7 +415,7 @@ end
 ----------------------------------
 --        ROBOT COMMANDS       --
 ----------------------------------
-function check_left_arm_idle()
+function check_left_arm_busy()
     -- check the status the left arm
     local status = get_are_status()
     local leftarm_idle
@@ -352,7 +426,7 @@ function check_left_arm_idle()
         leftarm_idle = false
     end
 
-    status = get_ar_holding()
+    status = get_are_holding()
     if status:toString() == "[ack]" then
         lefthand_holding = true
     else
@@ -361,7 +435,7 @@ function check_left_arm_idle()
 
     -- do not do any other action if left arm is busy
     if not leftarm_idle or lefthand_holding then
-        pm_print("left hand or arm is busy. ignoring objects on the table!")
+        print("Left hand or arm is busy. Ignoring objects on the table!")
         print("Status:", leftarm_idle, lefthand_holding, not leftarm_idle or lefthand_holding)
         return true
     end
@@ -387,8 +461,15 @@ function get_are_holding()
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("holding")
-    are_rpc_io:write(cmd, rep)
+    are_get:write(cmd, rep)
     return rep
+end
+
+function reset_wholebody()
+    local cmd = yarp.Bottle()
+    local rep = yarp.Bottle()
+    cmd:addInt(0)
+    wholebody_rpc:write(cmd, rep)
 end
 
 --/---------------------------------------------------------------------/
@@ -457,20 +538,24 @@ end
 
 function get_act_labels()
     -- Call affCollector to return the best tool's label for a given task
-    local TOOL_LIST = {}
+    local ACTION_LIST = {}
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("getactlabels")
+
+    print("command sent to affCollector: " .. cmd:toString())
     affcollect_rpc:write(cmd, rep)
+
+    print("Bottle read " .. rep:toString())
 
     for i=0,rep:size()-1 do
         act_label = rep:get(i):asString()  -- read strings from reply
-        table.insert(TOOL_LIST, i+1, act_label)
+        table.insert(ACTION_LIST, i+1, act_label)
     end
     print ("actions read: ")
-    for key,value in pairs(TOOL_ACTIONS) do print(key,value) end
+    for key,value in pairs(ACTION_LIST) do print(key,value) end
 
-    return TOOL_LIST
+    return ACTION_LIST
 end
 
 --/---------------------------------------------------------------------/
@@ -584,7 +669,37 @@ function go_home(hands)
     tmanager_rpc:write(cmd, rep)
 end
 
-function perform_action(action, object)
+function tion(action, object)
+
+    -- Hand actions
+    if action == "take_hand" then
+        local cmd = yarp.Bottle()
+        local rep = yarp.Bottle()
+        cmd:addString("take")
+        pos = cmd:addList()
+        pos:addDouble(object.x + X_GRASP_OFFSET)
+        pos:addDouble(object.y + Y_GRASP_OFFSET)
+        pos:addDouble(object.z + Z_GRASP_OFFSET)
+        are_cmd:write(cmd, rep)
+        return true
+    end
+    if action == "drag_left_hand" then
+        local cmd = yarp.Bottle()
+        local rep = yarp.Bottle()
+        cmd:addString("drag3D")
+        cmd:addDouble(object.x - 0.05)
+        cmd:addDouble(object.y + 0.07)
+        cmd:addDouble(object.z + 0.0)
+        cmd:addDouble(180)
+        cmd:addDouble(math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10)))
+        cmd:addDouble(0.0)              -- remove tool tilt
+        cmd:addInt(0)                   -- select no tool
+        print(cmd:toString())
+        tmanager_rpc:write(cmd, rep)
+        return true
+    end
+
+    -- Tool actions
     if action == "drag_down" then
         local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
@@ -608,21 +723,6 @@ function perform_action(action, object)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (CENTER_Y - 0.10)))
         print(cmd:toString())
-        tmanager_rpc:write(cmd, rep)
-        return true
-    end
-    if action == "drag_left_hand" then
-        local cmd = yarp.Bottle()
-        local rep = yarp.Bottle()
-        cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.05)
-        cmd:addDouble(object.y + 0.07)
-        cmd:addDouble(object.z + 0.0)
-        cmd:addDouble(180)
-        cmd:addDouble(math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10)))
-        cmd:addDouble(0.0)              -- remove tool tilt
-        cmd:addInt(0)                   -- select no tool
-        pm_print(cmd:toString())
         tmanager_rpc:write(cmd, rep)
         return true
     end

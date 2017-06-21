@@ -24,6 +24,7 @@ xp_interact_fsm = rfsm.state{
                        break
                    else
                        t0 = yarp.Time_now()
+                       reset_wholebody()
                    end
 
                    -- if arm is busy, ignore blobs.
@@ -78,6 +79,8 @@ xp_interact_fsm = rfsm.state{
                             cleanTableSec = cleanTableSec + 1;
                         end
                     end
+
+                    goHome(0)
                 until true
                 rfsm.yield(true)
                 end

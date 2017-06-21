@@ -110,7 +110,7 @@ public:
    * @return true/false on success/failure
    */
   virtual bool verbose(const bool verb);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 
