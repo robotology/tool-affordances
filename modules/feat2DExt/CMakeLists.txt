@@ -34,7 +34,9 @@ include_directories(${generated_libs_dir}/include)
 #message ("Message opencvLIBS" ${OpenCV_LIBRARIES} )
         
 add_executable(${PROJECTNAME} ${source} ${header}  ${idl})
+#target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} gslcblas ${OpenCV_LIBRARIES})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} gslcblas ${OpenCV_LIBRARIES})
+
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 

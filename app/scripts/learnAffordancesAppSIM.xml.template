@@ -36,8 +36,8 @@
         <geometry>(Pos (x 782) (y 443.9))</geometry>
     </module>
     <module>
-        <name>objectFinder</name>
-        <parameters>--from objectFinderSim.ini</parameters>
+        <name>positionFilter</name>
+        <parameters>--from positionFilter.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 604) (y 128.9))</geometry>
@@ -138,13 +138,13 @@
     </connection>
     <connection>
         <from external="true">/imLeft/yarpview/out</from>
-        <to>/objectFinder/coords:i</to>
+        <to>/positionFilter/coords:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 414.5) (y 267)) ((x 245) (y 336)) ((x 605) (y 197))  )</geometry>
     </connection>
     <connection>
         <from>/affManager/objFind:rpc</from>
-        <to>/objectFinder/rpc:i</to>
+        <to>/positionFilter/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 466.5) (y 169.5)) ((x 350) (y 193)) ((x 604) (y 146))  )</geometry>
     </connection>
@@ -167,14 +167,14 @@
         <geometry>(Pos ((x 791) (y 325.5)) ((x 350) (y 143)) ((x 1253) (y 508))  )</geometry>
     </connection>
     <connection>
-        <from>/objectFinder/crop:o</from>
+        <from>/positionFilter/crop:o</from>
         <to>/templatePFTracker/template/image:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 812) (y 185)) ((x 790) (y 184)) ((x 855) (y 186))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icubSim/cam/left</from>
-        <to>/objectFinder/img:i</to>
+        <to>/positionFilter/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 367) (y 345)) ((x 150) (y 517)) ((x 605) (y 172))  )</geometry>
     </connection>
@@ -186,7 +186,7 @@
     </connection>
     <connection>
         <from>/templatePFTracker/target:o</from>
-        <to>/objectFinder/track:i</to>
+        <to>/positionFilter/track:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 832) (y 235.5)) ((x 1080) (y 249)) ((x 605) (y 222))  )</geometry>
     </connection>

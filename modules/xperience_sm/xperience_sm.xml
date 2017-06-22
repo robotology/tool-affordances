@@ -1,7 +1,7 @@
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>xperience_sm</name>
-    <description>Controls the flow of tool use experimentation</description>
+    <description>rFSM state machine to control the flow of tool use demo (aka Xperience).</description>
     <version>1.0</version>
     
     <description-long>

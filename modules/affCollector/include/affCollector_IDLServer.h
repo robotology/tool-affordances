@@ -35,9 +35,13 @@ public:
    */
   virtual bool setactlabels(const yarp::os::Bottle& labels);
   /**
-   * Returns the labels of all possible actions
+   * Returns the labels of all actions in the repertoire
    */
   virtual yarp::os::Bottle getactlabels();
+  /**
+   * Returns the labels of all the known tools-poses
+   */
+  virtual yarp::os::Bottle gettoollabels();
   /**
    * Activates a category (or creates if note previously exisiting), for which affordance data (action success rate) can be updated.
    * @return the index of the active (new or not) label
@@ -65,7 +69,7 @@ public:
    *  Based on the previously learnt affordances, returns the best label for a given action/task.
    * @return true/false on success/failure
    */
-  virtual std::string selectTool(const int32_t action);
+  virtual std::string selectTool(const std::string& action);
   /**
    * Returns the label and action with less certainty of known ones, based on variance.
    * @return true/false on success/failure
@@ -106,7 +110,7 @@ public:
    * @return true/false on success/failure
    */
   virtual bool verbose(const bool verb);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 

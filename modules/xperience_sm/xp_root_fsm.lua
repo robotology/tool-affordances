@@ -1,14 +1,51 @@
+-- initialize yarp
+if yarp == nil then
+    require("yarp")
+    yarp.Network()
+end
+
+-- find all required files
+if rf ~= nil then
+    xp_interact_fsm = rf:findFile("xp_interact_fsm.lua")
+    xp_funcs = rf:findFile("xp_funcs.lua")
+else
+    xp_interact_fsm = "xp_interact_fsm.lua"
+    xp_funcs = "xp_funcs.lua"
+end
 
 --dofile(rf:findFile("xp_interact_fsm.lua"))
-dofile("xp_interact_fsm.lua")
 --dofile(rf:findFile("xp_funcs.lua"))
+dofile("xp_funcs.lua")
+dofile("xp_interact_fsm.lua")
+
+
 return rfsm.state {
+    ----------------------------------
+    -- entry of root state          --
+    ----------------------------------
+   entry=function()
+       dofile(xp_funcs)
+   end,
 
    ----------------------------------
-   -- state INITPORTS                  --
+   -- state INIT_XP                --
+   ----------------------------------
+   ST_INITXP = rfsm.state{
+           doo=function()
+                   ret = XP_initialize()
+                   if ret == false then
+                           rfsm.send_events(fsm, 'e_error')
+                   else
+                           rfsm.send_events(fsm, 'e_xp_ok')
+                   end
+           end
+   },
+
+   ----------------------------------
+   -- state INITPORTS
    ----------------------------------
    ST_INITPORTS = rfsm.state{
-           entry=function()
+           doo=function()
                 print("Opening ports ... ")
                 -- Open ports
                 ret = blobs_port:open("/xperience_sm/blobs:i")
@@ -21,8 +58,12 @@ return rfsm.state {
                 end
 
                 -- rpc
-                ret = ar_rpc_io:open("/xperience_sm/are:rpc")
-                ret = ret and o3de_rpc:open("/xperience_sm/o3de:rpc")
+                ret = are_get:open("/xperience_sm/are_get:rpc")
+                ret = ret and are_cmd:open("/xperience_sm/are_cmd:rpc")
+                ret = ret and are_rpc:open("/xperience_sm/are_rpc:rpc")
+                ret = ret and wholebody_rpc:open("/xperience_sm/wb:rpc")
+
+                ret = ret and toolinc_rpc:open("/xperience_sm/toolinc:rpc")
                 ret = ret and tmanager_rpc:open("/xperience_sm/t3dm:rpc")
                 ret = ret and affcollect_rpc:open("/xperience_sm/affcol:rpc")
                 if ret == false then
@@ -36,22 +77,32 @@ return rfsm.state {
    -- state CONNECTPORTS           --
    ----------------------------------
    ST_CONNECTPORTS = rfsm.state{
-           entry=function()
+           doo=function()
                     print("Connecting ports ... ")
                     -- Connect
-                    ret = yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName())
-                    ret = ret and yarp.NetworkBase_connect(acteff_port:getName(), "/affCollector/aff:i")
-                    ret = ret and yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
-                    ret = ret and yarp.NetworkBase_connect(affcollect_rpc:getName(), "/affCollector/rpc:i")
-                    ret = ret and yarp.NetworkBase_connect(tmanager_rpc:getName(), "/tool3DManager/rpc:i")
-                    ret = ret and yarp.NetworkBase_connect(ar_rpc_io:getName(), "/actionsRenderingEngine/cmd:io")
-                    ret = ret and yarp.NetworkBase_connect(ispeak_port:getName(), "/iSpeak")
-                    ret = ret and yarp.NetworkBase_connect(speechRecog_port:getName(), "/speechRecognizer/rpc")
-                    if ret == false then
-                        print("\n\nERROR WITH CONNECTIONS, PLEASE CHECK\n\n")
-                        rfsm.send_events(fsm, 'e_error')
-                    end
-           end
+                    if not yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName()) then print (blobs_port:getName() .. " NOT connected")  else print (blobs_port:getName() .. " connected")  end
+                    if not yarp.NetworkBase_connect(acteff_port:getName(),"/affCollector/aff:i") then print (acteff_port:getName() .. " NOT connected")  else print (acteff_port:getName() .. " connected")  end
+
+
+                    -- Connect to RPCs
+                    -- To other APP modules
+                    if not yarp.NetworkBase_connect(toolinc_rpc:getName(),"/toolIncorporator/rpc:i") then print (toolinc_rpc:getName() .. " NOT connected")  else print (toolinc_rpc:getName() .. " connected")  end
+                    if not yarp.NetworkBase_connect(tmanager_rpc:getName(),"/tool3DManager/rpc:i") then print (tmanager_rpc:getName() .. " NOT connected")  else print (tmanager_rpc:getName() .. " connected")  end
+                    if not yarp.NetworkBase_connect(affcollect_rpc:getName(),"/affCollector/rpc:i") then print (affcollect_rpc:getName() .. " NOT connected") else print (affcollect_rpc:getName() .. " connected") end
+
+                    -- AREs
+                    if not yarp.NetworkBase_connect(are_cmd:getName(),"/actionsRenderingEngine/cmd:io") then print (are_cmd:getName() .. " NOT connected")  else print (are_cmd:getName() .. " connected")  end
+                    if not yarp.NetworkBase_connect(are_rpc:getName(),"/actionsRenderingEngine/rpc") then print (are_rpc:getName() .. " NOT connected")  else print (are_rpc:getName() .. " connected")  end
+                    if not yarp.NetworkBase_connect(are_get:getName(),"/actionsRenderingEngine/get:io") then print (are_get:getName() .. " NOT connected")  else print (are_get:getName() .. " connected")  end
+
+                    -- Wholebody for reset
+                    if not yarp.NetworkBase_connect(wholebody_rpc:getName(),"/wholeBodyDynamics/rpc:i") then print (wholebody_rpc:getName() .. " NOT connected")  else print (wholebody_rpc:getName() .. " connected")  end
+
+                    -- Speech
+                    if not yarp.NetworkBase_connect(speechRecog_port:getName(),"/speechRecognizer/rpc") then print (speechRecog_port:getName() .. " NOT connected") else print (speechRecog_port:getName() .. " connected") end
+                    if not yarp.NetworkBase_connect(ispeak_port:getName(),"/iSpeak") then print (ispeak_port:getName() .. " NOT connected")  else print (ispeak_port:getName() .. " connected")  end
+                end
+
    },
 
 
@@ -59,13 +110,13 @@ return rfsm.state {
    -- state INITVOCABS             --
    ----------------------------------
    ST_INITVOCABS = rfsm.state{
-           entry=function()
+           doo=function()
                    print("Initializing vocabs ... ")
                    SM_Expand_asyncrecog(speechRecog_port, "icub-stop-now")
 
-                   if ret == false then
-                           rfsm.send_events(fsm, 'e_error')
-                   end
+                   --if ret == false then
+                    --       rfsm.send_events(fsm, 'e_error')
+                   --end
            end
    },
 
@@ -78,16 +129,7 @@ return rfsm.state {
                print("Module running ... ")
                t0 = yarp.Time_now()
                math.randomseed( os.time() )
-               if set_act_labels(TOOL_ACTIONS) then 
-                   print("Action labels set properly ")
-               else
-                   print("Prbolems setting action labels ")
-               end
 
-
-               object_list = {}                        -- for keeping the memory of objects
-               target_object = {}                             -- targeted object
-               state = "observe"
                print("everything is fine, going home!")
                go_home(1)
 
@@ -116,14 +158,19 @@ return rfsm.state {
                    -- close ports
                    blobs_port:close()
                    acteff_port:close()
-                   ispeak_port:close()
-                   speechRecog_port:close()
 
                    -- close rpcs
-                   ar_rpc_io:close()
-                   o3de_rpc:close()
+                   toolinc_rpc:close()
                    tmanager_rpc:close()
                    affcollect_rpc:close()
+
+                   are_rpc:close()
+                   are_get:close()
+                   are_cmd:close()
+                   wholebody_rpc:close()
+
+                   ispeak_port:close()
+                   speechRecog_port:close()
 
                    shouldExit = true;
            end
@@ -133,22 +180,24 @@ return rfsm.state {
    --------------------------------------------
    -- state INTERACT  is defined in xp_interact_fsm.lua --
    --------------------------------------------
-   ST_INTERACT = interact_fsm,
+   ST_INTERACT = xp_interact_fsm,
 
    ----------------------------------
    -- setting the transitions      --
    ----------------------------------
 
-   rfsm.transition { src='initial', tgt='ST_INITPORTS' },
+   rfsm.transition { src='initial', tgt='ST_INITXP' },
+   rfsm.transition { src='ST_INITXP', tgt='ST_INITPORTS', events={'e_xp_ok'} },
+   rfsm.transition { src='ST_INITXP', tgt='ST_FATAL', events={ 'e_error' } },
+
    rfsm.transition { src='ST_INITPORTS', tgt='ST_CONNECTPORTS', events={ 'e_done' } },
    rfsm.transition { src='ST_INITPORTS', tgt='ST_FATAL', events={ 'e_error' } },
 
-
    rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_FINI', events={ 'e_error' } },
    rfsm.transition { src='ST_CONNECTPORTS', tgt='ST_INITVOCABS', events={ 'e_done' } },
-   
+
    rfsm.transition { src='ST_INITVOCABS', tgt='ST_FINI', events={ 'e_error' } },
-   rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },   
+   rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },
 
    rfsm.transition { src='ST_HOME', tgt='ST_INTERACT', events={ 'e_done' } },
    rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_done' } },

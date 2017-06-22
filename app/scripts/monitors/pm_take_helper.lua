@@ -3,8 +3,8 @@
 -- Authors: Ali Paikan
 -- CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
 --
- 
-OBJECT_MEMORY   = 0.5       -- seconds   
+
+OBJECT_MEMORY   = 0.5       -- seconds
 SENSITIVITY     = 0.8       -- 80 percent
 X_GRASP_OFFSET         = 0.02       -- m
 Y_GRASP_OFFSET         = 0.02      -- m
@@ -37,7 +37,7 @@ BOTTOMRIGHT_ZONE_X = {min=-0.41, max=-0.10}
 BOTTOMRIGHT_ZONE_Y = {min=0.0, max=0.40}
 
 --BOTTOMLEFT
-REACHABLE_ZONE_X  = {min=-0.41, max=-0.10}    -- meter 
+REACHABLE_ZONE_X  = {min=-0.41, max=-0.10}    -- meter
 REACHABLE_ZONE_Y  = {min=-0.40, max=0.0}      -- meter
 
 --
@@ -63,7 +63,7 @@ function leaky_integrate(blobs, t_now)
         obj = blobs:get(i):asList()
         c_x = (obj:get(2):asDouble() + obj:get(0):asDouble()) / 2.0
         c_y = (obj:get(3):asDouble() + obj:get(1):asDouble()) / 2.0
-        if find(objects, {u=c_x, v=c_y}) == nil then 
+        if find(objects, {u=c_x, v=c_y}) == nil then
             table.insert(objects, {u=c_x, v=c_y, w=0, t=t_now, x=0, y=0, z=0})
         end
     end
@@ -72,12 +72,12 @@ function leaky_integrate(blobs, t_now)
         is_overlaped = false
         for i=0,blobs:size()-1 do
             obj = blobs:get(i):asList()
-            c_x = (obj:get(2):asDouble() + obj:get(0):asDouble()) / 2.0 
+            c_x = (obj:get(2):asDouble() + obj:get(0):asDouble()) / 2.0
             c_y = (obj:get(3):asDouble() + obj:get(1):asDouble()) / 2.0
-            if overlap(value, {u=c_x, v=c_y}) == true then 
+            if overlap(value, {u=c_x, v=c_y}) == true then
                 is_overlaped = true
                 break;
-            end          
+            end
         end
         if is_overlaped == true then
             -- with 30fps after 2s it reaches the threshold 1.0
@@ -98,16 +98,16 @@ end
 
 function get_stable_objects_count(objects)
     local count = 0
-    for i=1,#objects do        
-        if objects[i].w > 1.0 then 
-            count = count + 1 
+    for i=1,#objects do
+        if objects[i].w > 1.0 then
+            count = count + 1
         end
     end
     return count
 end
 
 function get_3d_pos(objects)
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("s2c")
@@ -127,16 +127,16 @@ end
 
 
 function get_ar_status()
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("status")
     ar_rpc:write(cmd, rep)
-    return rep    
+    return rep
 end
 
 function get_ar_holding()
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("get")
     cmd:addString("holding")
@@ -145,7 +145,7 @@ function get_ar_holding()
 end
 
 function say(msg)
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     cmd:addString(msg)
     ispeak_port:write(cmd)
 end
@@ -161,7 +161,7 @@ function get_object_in_zone(objects, ZONE_X, ZONE_Y)
            objects[i].y >= ZONE_Y.min then
             if closest_id == nil or objects[closest_id].x < objects[i].x then
                 closest_id = i
-            end 
+            end
         end
     end
     if closest_id == nil then return nil end
@@ -169,8 +169,8 @@ function get_object_in_zone(objects, ZONE_X, ZONE_Y)
 end
 
 -- XXX Change this to call affCollector
-function get_tool_affordance() 
-    local cmd = yarp.Bottle()    
+function get_tool_affordance()
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("getAffordance")
     o3de_rpc:write(cmd, rep)
@@ -178,7 +178,7 @@ function get_tool_affordance()
 end
 
 function reset_wholebody()
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addInt(0)
     wlbodey_rpc:write(cmd, rep)
@@ -187,7 +187,7 @@ end
 
 -- XXX Add actions to push and push left the object
 
-function select_action(aff_reply, zone_name) 
+function select_action(aff_reply, zone_name)
    tool = aff_reply:get(0):asString()
    if tool == nil then
         pm_print("no reply could be read from O3DE.")
@@ -195,25 +195,25 @@ function select_action(aff_reply, zone_name)
    end
    if tool == "no_aff" then 
         print(aff_reply:toString())
-        return  "not_affordable" 
+        return  "not_affordable"
     end
    affordance = aff_reply:get(1):asDict()
    --print(affordance:toString())
-   if zone_name == "UPRIGHT" then	
+   if zone_name == "UPRIGHT" then
         if affordance:check("drag_down") == true then
             say("I will drag down")
-            return "drag_down" 
+            return "drag_down"
         end
         say("I can't drag down")
         if affordance:check("drag_left") == true then
             say("I will drag left")
-            return "drag_left" 
+            return "drag_left"
         end
         -- if affordance:check("drag_diag_left") == true then return "drag_diagl" end
-    elseif zone_name == "UPLEFT" then        
+    elseif zone_name == "UPLEFT" then
         if affordance:check("drag_diag_right") == true then
-            say("I will drag down right") 
-            return "drag_down_right" 
+            say("I will drag down right")
+            return "drag_down_right"
         end
     end
     say("I can not do anything useful with this tool")
@@ -222,7 +222,7 @@ end
 
 function perform_action(action, object)
     if action == "drag_down" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.10)
@@ -234,7 +234,7 @@ function perform_action(action, object)
         return
     end
     if action == "drag_left_hand" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.05)
@@ -249,7 +249,7 @@ function perform_action(action, object)
         return
     end
     if action == "drag_left" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.09)
@@ -262,7 +262,7 @@ function perform_action(action, object)
         return
     end
     if action == "drag_down_right" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.08)
@@ -277,20 +277,20 @@ function perform_action(action, object)
         return
     end
     if action == "drag_up" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x + 0.03)
         cmd:addDouble(object.y)
         cmd:addDouble(object.z)
         cmd:addDouble(90)
-        cmd:addDouble(math.abs(object.x -(UPRIGHT_ZONE_X.max - 0.07)))        
+        cmd:addDouble(math.abs(object.x -(UPRIGHT_ZONE_X.max - 0.07)))
         pm_print(cmd:toString())
         tmanager_rpc:write(cmd, rep)
         return
     end
     if action == "drag_up_left" then
-        local cmd = yarp.Bottle()    
+        local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x + 0.03)
@@ -310,13 +310,13 @@ end
 function ask_tool(tool_name)
 
     pm_print("grasp the tool")
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("graspTool")
-    if tool_name ~= nil then 
+    if tool_name ~= nil then
         cmd:addString(tool_name)
     end
-    tmanager_rpc:write(cmd, rep)   
+    tmanager_rpc:write(cmd, rep)
 
     pm_print("find the pose")
     cmd:clear()
@@ -330,13 +330,13 @@ function ask_tool(tool_name)
     cmd:addString("getOri")
     o3de_rpc:write(cmd, rep)
 
-    local ori = rep:get(1):asDouble()  
+    local ori = rep:get(1):asDouble()
     if ori < -45 then
         say(" oriented to the right")
-    end    
+    end
     if ori > -45 and ori <45 then
         say(" oriented to the front")
-    end      
+    end
     if ori > 45 then
         say(" oriented to the left")
     end
@@ -346,7 +346,7 @@ function drop_tool()
 
     say("Dropping the tool")
 
-    local cmd = yarp.Bottle()    
+    local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:clear()
     rep:clear()
@@ -366,8 +366,3 @@ function drop_tool()
 
     say("I'm done")
 end
-
-
-
-
-
