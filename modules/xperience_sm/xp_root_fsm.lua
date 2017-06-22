@@ -28,7 +28,7 @@ return rfsm.state {
    end,
 
    ----------------------------------
-   -- state INIT_IOL               --
+   -- state INIT_XP                --
    ----------------------------------
    ST_INITXP = rfsm.state{
            doo=function()
@@ -45,7 +45,7 @@ return rfsm.state {
    -- state INITPORTS
    ----------------------------------
    ST_INITPORTS = rfsm.state{
-           entry=function()
+           doo=function()
                 print("Opening ports ... ")
                 -- Open ports
                 ret = blobs_port:open("/xperience_sm/blobs:i")
@@ -77,7 +77,7 @@ return rfsm.state {
    -- state CONNECTPORTS           --
    ----------------------------------
    ST_CONNECTPORTS = rfsm.state{
-           entry=function()
+           doo=function()
                     print("Connecting ports ... ")
                     -- Connect
                     if not yarp.NetworkBase_connect("/lbpExtract/blobs:o", blobs_port:getName()) then print (blobs_port:getName() .. " NOT connected")  else print (blobs_port:getName() .. " connected")  end
@@ -110,7 +110,7 @@ return rfsm.state {
    -- state INITVOCABS             --
    ----------------------------------
    ST_INITVOCABS = rfsm.state{
-           entry=function()
+           doo=function()
                    print("Initializing vocabs ... ")
                    SM_Expand_asyncrecog(speechRecog_port, "icub-stop-now")
 
@@ -130,27 +130,6 @@ return rfsm.state {
                t0 = yarp.Time_now()
                math.randomseed( os.time() )
 
-               -- Read tool action list
-               TOOL_ACTIONS = get_act_labels()
-               if TOOL_ACTIONS ~= nil then
-                   print("Action labels set properly ")
-                   for key,value in pairs(TOOL_ACTIONS) do print(key,value) end
-
-               else
-                   print("Prbolems setting action labels ")
-               end
-
-
-               object_list = {}                               -- for keeping the memory of objects
-               target_object = {}                             -- targeted object
-
-               -- initalize flags;
-               cleanTableSec = 0
-               tooFarSaid = false
-               holdingTool = false
-               tableClean = false
-
-               state = "observe"
                print("everything is fine, going home!")
                go_home(1)
 

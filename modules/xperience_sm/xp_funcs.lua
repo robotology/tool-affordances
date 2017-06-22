@@ -4,6 +4,22 @@
 ----------------------------------
 function XP_initialize()
     -- initialization
+
+    -- Declare ports
+    blobs_port = yarp.BufferedPortBottle()
+    ispeak_port = yarp.BufferedPortBottle()
+    acteff_port = yarp.Port()
+    speechRecog_port = yarp.Port()
+
+    --rpc
+    toolinc_rpc = yarp.RpcClient()
+    tmanager_rpc = yarp.RpcClient()
+    affcollect_rpc = yarp.RpcClient()
+    are_rpc = yarp.RpcClient()
+    are_cmd = yarp.RpcClient()
+    are_get = yarp.RpcClient()
+    wholebody_rpc = yarp.RpcClient()
+
     -- DEFINES
 
     TOOL_SELECTION_FLAG = 0;
@@ -53,20 +69,26 @@ function XP_initialize()
     -- defining speech grammar for Reward
     -- grammar_reward = "Yes you are | No here it is | Skip it"
 
-    -- Declare ports
-    blobs_port = yarp.BufferedPortBottle()
-    ispeak_port = yarp.BufferedPortBottle()
-    acteff_port = yarp.Port()
-    speechRecog_port = yarp.Port()
+    -- Read tool action list
+    TOOL_ACTIONS = get_act_labels()
+    if TOOL_ACTIONS ~= nil then
+       print("Action labels set properly ")
+       for key,value in pairs(TOOL_ACTIONS) do print(key,value) end
 
-    --rpc
-    toolinc_rpc = yarp.RpcClient()
-    tmanager_rpc = yarp.RpcClient()
-    affcollect_rpc = yarp.RpcClient()
-    are_rpc = yarp.RpcClient()
-    are_cmd = yarp.RpcClient()
-    are_get = yarp.RpcClient()
-    wholebody_rpc = yarp.RpcClient()
+    else
+       print("Prbolems setting action labels ")
+    end
+
+    object_list = {}                               -- for keeping the memory of objects
+    target_object = {}                             -- targeted object
+
+    -- initalize flags;
+    cleanTableSec = 0
+    tooFarSaid = false
+    holdingTool = false
+    tableClean = false
+
+    state = "observe"
 
     return true
 end
@@ -301,7 +323,7 @@ function select_action(obj)
     local aff_reply = get_tool_affordance()
     if aff_reply == nil then
         print("no reply from affCollector.")
-        say("affCollector does not respond")
+        speak("affCollector does not respond")
         return "not_affordable"
     end
     print(aff_reply:toString())
@@ -309,13 +331,13 @@ function select_action(obj)
     tool = aff_reply:get(0):asString()
     if tool == "no_aff" then
         print(aff_reply:toString())
-        -- say("I can not do anything with this tool")
+        -- speak("I can not do anything with this tool")
         return  "not_affordable"
     end
 
     if zone == "UPLEFT" then
         if tool_affs:check("drag_diag_right") == true then
-            say("I will drag down right")
+            speak("I will drag down right")
             return "drag_down_right"
         end
     end
@@ -323,17 +345,17 @@ function select_action(obj)
     tool_affs = aff_reply:get(1):asDict()
     if zone == "UPRIGHT" then
         if tool_affs:check("drag_down") == true then
-            say("I will drag down")
+            speak("I will drag down")
             return "drag_down"
         end
-        say("I can't drag down")
+        speak("I can't drag down")
         if tool_affs:check("drag_left") == true then
-            say("I will drag left")
+            speak("I will drag left")
             return "drag_left"
         end
     end
 
-    say("I can not do anything useful with this tool")
+    speak("I can not do anything useful with this tool")
     return "not_affordable"
 end
 
@@ -362,7 +384,7 @@ function select_task(obj)
         return nil
     end
 
-    say("No task for this object")
+    speak("No task for this object")
     return nil
 end
 
@@ -372,7 +394,7 @@ end
 
 function get_tool_affordance()
     -- Call affCollector
-    print("Checking whether current tool can afford " .. task)
+    print("Checking tool affordances ")
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
     cmd:addString("getAffs")
@@ -475,7 +497,7 @@ end
 --/---------------------------------------------------------------------/
 function drop_tool()
 
-    say("Dropping the tool")
+    speak("Dropping the tool")
 
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
@@ -495,7 +517,7 @@ function drop_tool()
     cmd:addString("cleartool")
     toolinc_rpc:write(cmd, rep)
 
-    say("I'm done")
+    speak("I'm done")
 end
 
 ----------------------------------
@@ -576,10 +598,7 @@ end
 --/---------------------------------------------------------------------/
 function ask_for_tool(tool_name)
 
-    speak("Give me the " .. tool_name)
 
-    tool_file = "real/" .. tool_name
-    print("Tool file: " .. tool_file)
 
     print("grasp the tool")
     local cmd = yarp.Bottle()
@@ -642,7 +661,7 @@ end
 function deg2ori(deg)
     if (deg > 45.0) and (deg < 135.0) then        -- oriented left
         ori = "left"
-        say(" oriented to the left")
+        speak(" oriented to the left")
     elseif ((deg < 45.0) and (deg > -45.0)) then  -- oriented front
         ori = "frnt";
         speak(" oriented to the front")

@@ -1,4 +1,3 @@
-
 event_table = {
    stop      = "e_exit",
    clean     = "e_clean",
@@ -46,8 +45,8 @@ xp_interact_fsm = rfsm.state{
 
                        if target_object.zone == "OUT" then
                            if tooFarSaid == false then
-                               say("Objects are too far!")
-                               pm_print("Objects are too far!!!")
+                               speak("Objects are too far!")
+                               print("Objects are too far!!!")
                                tooFarSaid = true
                            end
                            break
@@ -65,7 +64,8 @@ xp_interact_fsm = rfsm.state{
                     else        -- No stable blobs being received
                         if cleanTableSec > 4 then       -- it waits for 3 seconds before considering that the table is clean
                             if tableClean == false then
-                                say("The table is now clean, hurray!")
+                                speak("The table is now clean, hurray!")
+                                print("The table is now clean, hurray!")
                                 tableClean = true
                             end
                             if holdingTool == true then
@@ -80,7 +80,7 @@ xp_interact_fsm = rfsm.state{
                         end
                     end
 
-                    goHome(0)
+                    go_home(0)
                 until true
                 rfsm.yield(true)
                 end
@@ -103,11 +103,11 @@ xp_interact_fsm = rfsm.state{
 
                    -- Not holding any tool yet
                    if holdingTool == false then
-                       pm_print("I need a tool")
-                       say("I need a tool.")
+                       print("I need a tool")
+                       speak("I need a tool.")
                    else -- Already holding a tool
-                       pm_print("Give me another one")
-                       say("Give me another one")
+                       print("Give me another one")
+                       speak("Give me another one")
                    end
 
                    state = "get_tool"
