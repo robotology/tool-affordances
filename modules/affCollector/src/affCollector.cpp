@@ -32,7 +32,7 @@ bool  AffCollector::configure(ResourceFinder &rf)
 {
     // add and initialize the port to send out the features via thrift.
     string name = rf.check("name",Value("affCollector")).asString().c_str();
-    filename = rf.check("filename",Value("affFile.txt")).asString().c_str();
+    filename = rf.check("filename",Value("affs_file.txt")).asString().c_str();
     rf.setDefaultContext("AffordancesProject");
 
     string contextPath = "/share/ICUBcontrib/contexts/AffordancesProject/";
@@ -111,7 +111,7 @@ bool  AffCollector::updateModule()
 
     // Stream affordances of active label
     if (activeLabel >=0) {
-        cout << "Streaming affordance" << endl;
+        //cout << "Streaming affordance" << endl;
         Bottle &affBotOut = affOutPort.prepare();
         affBotOut.clear();
         affBotOut = getAffs();
@@ -188,7 +188,7 @@ Bottle AffCollector::getactlabels()
     for (int i = 0; i < numAct ; i++){
         string act_label = act_labels[i];
         labs.addString(act_label);
-        cout << "action label read " << act_label << endl;
+        cout << "action "<< i << " label " << act_label << endl;
     }
     return labs;
 }
@@ -230,6 +230,24 @@ string AffCollector::getlabel()
     }
 
     return "empty";
+}
+
+/**********************************************************/
+Bottle AffCollector::gettoollabels()
+{
+    Bottle labels;
+    // Check the case where its called before any affordances are learnt
+    if (knownLabels.size() <1){
+        cout << "No affordance have been learnt yet" << endl;
+        return labels;
+    }
+
+    for (int l =0; l < knownLabels.size(); l++){
+        cout << "LABEL: " << knownLabels[l] << endl;
+        labels.addString(knownLabels[l]);
+    }
+    return labels;
+
 }
 
 
@@ -349,13 +367,16 @@ Bottle  AffCollector::getAffs(const std::string& label)
 Bottle  AffCollector::getAffHist(const std::string& label, const int act )
 {
     Bottle history;
-    if (act >= numAct){
-        cout << "Action index over number of available actions. Try 0 - " << numAct-1 << endl;
+
+    // Check the case where its called before any affordances are learnt
+    if (knownLabels.size() <1){
+        cout << "No affordance have been learnt yet" << endl;
         return history;
     }
-    // Check the case where its called before any affordances are learnt
-    if (activeLabel <0){
-        cout << "No effect observed yet. " << endl;
+
+    // Check if action number is within boundaries.
+    if (act >= numAct){
+        cout << "Action index over number of available actions. Try 0 - " << numAct-1 << endl;
         return history;
     }
 
@@ -382,6 +403,11 @@ Bottle  AffCollector::getAffHist(const std::string& label, const int act )
     int labI =-1;
     if (label == "active"){        
         labI = activeLabel;
+        // Check the case where its called before any affordances are learnt
+        if (activeLabel <0){
+            cout << "No effect observed yet. " << endl;
+            return history;
+        }
     }else {
         vector<string>::iterator it = std::find(knownLabels.begin(), knownLabels.end(), label);
         if (it == knownLabels.end()){
@@ -423,11 +449,27 @@ Bottle  AffCollector::getAffHist(const std::string& label, const int act )
 
 
 /**********************************************************/
-string AffCollector::selectTool(const int act)
+string AffCollector::selectTool(const string& task)
 {
+
     // Check the case where its called before any affordances are learnt
     if (knownAffs.size() <1){
         cout << "No afordance have been learnt yet" << endl;
+        return "no_tool";
+    }
+
+    int act_i;
+    vector<string>::iterator it = std::find(act_labels.begin(), act_labels.end(), task);
+    if ( it == act_labels.end() ) { //Not found
+        cout << "Given action label not found" << endl;
+        return "no_tool";
+    }else{                          // Found
+        act_i = std::distance(act_labels.begin(), it);                  // return position of found element
+    }
+
+    // Check the case where its called before any affordances are learnt
+    if ((act_i > numAct)||(act_i < 0 )) {
+        cout << "Desired action index > number of actions in repertoire, which is " << numAct <<"." << endl;
         return "no_tool";
     }
 
@@ -436,7 +478,7 @@ string AffCollector::selectTool(const int act)
     double bestRate = 0.0;
     for (int l =0; l < knownAffs.size(); l < l++)
     {
-        double succRate = knownAffs[l][act];
+        double succRate = knownAffs[l][act_i];
         if (succRate > bestRate){
             bestToolInd = l;
             bestRate = succRate;
@@ -748,7 +790,8 @@ bool AffCollector::readfile(const std::string& fileN)
         while (getline(fileHist, line))          //read line by line (action-wise)
         {
             if(line == "[tool labels]"){
-                cout<< "All action labels read" << endl;
+                cout  << endl<< "+++++++++++++++++++++++++++++++++++++++" << endl;
+                cout<< cnt_act << " Action labels read" << endl;
                 numAct = cnt_act;
                 break;
             } else{
@@ -762,7 +805,7 @@ bool AffCollector::readfile(const std::string& fileN)
     int cnt = 0;
     affHist.clear();
     knownLabels.clear();
-    while (getline(fileHist, line))          //read line by line (action-wise)
+    while (getline(fileHist >> ws, line))          //read line by line (action-wise)
     {
         if(fileHist.eof()){
             std::cout << "EOF\n";
@@ -771,8 +814,10 @@ bool AffCollector::readfile(const std::string& fileN)
 
         //cout << "Read line : " << line << endl;
         if (cnt == 0){                        // Read the name first
+
+            line.erase(line.find_last_not_of(" \n\r\t")+1);        // remove whitespace and other unwanted chars for proper matching
             knownLabels.push_back(line);
-            cout << "Label : " << line << endl;
+            cout << "Label: " << line << endl;
             affHist.push_back(vector<vector<double> >(0));      // Initialize the matrix (vec<vec>>) for first action data
             cnt++;
             continue;
@@ -807,7 +852,7 @@ bool AffCollector::readfile(const std::string& fileN)
     cout << "computing variance from known affs " <<endl;
     compVarFromHist(affHist,knownAffsVar);
 
-    activeLabel = knownLabels.size()-1;
+    //activeLabel = knownLabels.size()-1;
     return true;
 }
 
@@ -865,7 +910,7 @@ double AffCollector::vecVar (const vector<double>& vec)
 
 bool  AffCollector::compRateFromHist(const std::vector<std::vector<std::vector<double> > >& hist, std::vector<std::vector<double> >& affs)
 {
-    for(int l = 0; l<hist.size()-1; l++)
+    for(int l = 0; l<hist.size(); l++)
     {
         cout << "Computing avg for hist " << l <<endl;
         vector<double> affInit(numAct,-1.0);

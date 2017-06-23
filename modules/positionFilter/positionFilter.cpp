@@ -22,7 +22,7 @@
 Feature Extraction Module: Provides location and template for a tracker as well as 3D location from 2D tracked position.
 
 \section intro_sec Description 
-The objectFinder module provides a set of RPC commands which allow the user to easily set a template and initalize a tracker, 
+The positionFilter module provides a set of RPC commands which allow the user to easily set a template and initalize a tracker,
 as well as get the 3D coordinates of the tracked object on a ginven plane. 
  
 \section lib_sec Libraries 
@@ -35,7 +35,7 @@ as well as get the 3D coordinates of the tracked object on a ginven plane.
 
 --name \e name
 - Select the stem-name of the module used to open up ports. 
-  By default \e name is <i>objectFinder</i>.
+  By default \e name is <i>positionFilter</i>.
 
 --camera \e name
 - Select the eye camera to use. 
@@ -49,7 +49,7 @@ as well as get the 3D coordinates of the tracked object on a ginven plane.
 Requires the Gaze Cotnroller to be running. Assumes connection to a tracker module
 
 \section portsc_sec Ports Created 
-- \e /objectFinder/rpc:i receives the information to execute the different possible tasks as a Bottle. 
+- \e /positionFilter/rpc:i receives the information to execute the different possible tasks as a Bottle.
 It manages the following commands through respond interface:
 
     -# <b>getBox</b>: Creates a template by cropping the image based on user input (click on viewer) and initializes the tracker with it.\n
@@ -129,7 +129,7 @@ public:
     bool configure(ResourceFinder &rf)
     {
       	printf("Configuring...\n");        
-        name = rf.check("name", Value("objectFinder"), "Getting module name").asString();
+        name = rf.check("name", Value("positionFilter"), "Getting module name").asString();
         setName(name.c_str());
         camera = rf.check("camera", Value("left"), "Selecting the camera").asString().c_str();
         robot = rf.check("robot", Value("icub"), "Choosing a robot").asString().c_str();
@@ -138,7 +138,7 @@ public:
         // Open ports
         printf("Opening ports after prefix  \n" );
         bool ret= true;    
-        ret = rpcPort.open(("/"+name+"/rpc:i").c_str()); 					    //rpc client to interact with the objectFinder
+        ret = rpcPort.open(("/"+name+"/rpc:i").c_str()); 					    //rpc client to interact with the positionFilter
         ret = ret && imInPort.open(("/"+name+"/img:i").c_str());                // port to receive images
         ret = ret && coordsInPort.open(("/"+name+"/coords:i").c_str());         // port to receive yarpview coordinates
         ret = ret && trackInPort.open(("/"+name+"/track:i").c_str());           // port to receive tracker coordinates
@@ -439,14 +439,14 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefault("name","objectFinder");
+    rf.setDefault("name","positionFilter");
 	rf.setDefault("camera","left");
 	rf.setDefault("robot","icub");
     rf.setDefaultContext("AffordancesProject");
-    rf.setDefaultConfigFile("objectFinder.ini");
+    rf.setDefaultConfigFile("positionFilter.ini");
 
     rf.configure(argc,argv);
 
-    ObjectFinder objectFinder;
-    return objectFinder.runModule(rf);
+    PositionFilter positionFilter;
+    return positionFilter.runModule(rf);
 }

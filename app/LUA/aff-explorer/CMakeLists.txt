@@ -5,11 +5,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 set(appname AffordancesProject)
 
-file(GLOB lua_bin ${CMAKE_CURRENT_SOURCE_DIR}/xp_main.lua)
-file(GLOB modules ${CMAKE_CURRENT_SOURCE_DIR}/xperience_sm.xml)
-file(GLOB helpers ${CMAKE_CURRENT_SOURCE_DIR}/xp_root_fsm.lua
-                  ${CMAKE_CURRENT_SOURCE_DIR}/xp_interact_fsm.lua
-                  ${CMAKE_CURRENT_SOURCE_DIR}/xp_funcs.lua)
+file(GLOB lua_bin ${CMAKE_CURRENT_SOURCE_DIR}/aff-explorer.lua)                 
+file(GLOB modules ${CMAKE_CURRENT_SOURCE_DIR}/aff-explorer.xml)
+file(GLOB helpers ${CMAKE_CURRENT_SOURCE_DIR}/aff-explorer_helper.lua    
+                  ${CMAKE_CURRENT_SOURCE_DIR}/yarp_helper.lua     )
 
 source_group("Source Files" FILES ${lua_bin})
 
@@ -21,5 +20,4 @@ install(PROGRAMS ${lua_bin} DESTINATION bin)
 yarp_install(FILES ${modules} DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
 
 yarp_install(FILES ${helpers} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${appname})
-
 

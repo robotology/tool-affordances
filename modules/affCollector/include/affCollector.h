@@ -61,11 +61,11 @@ protected:
     bool forgetFlag;       // Flag to ask for confirmation before forgetting
 
     int activeLabel;        // Indicates index of the active label
-    int numAct;             // Number of actions in teh ation repertoire
+    int numAct;             // Number of actions in the action repertoire
     std::string filepath;   // path for the memory file
     std::string filename;    // name for the memory file
 
-    std::vector < std::string>  act_labels;
+    std::vector < std::string>  act_labels;                         // names of the actions in the repertoire
     std::vector < std::string>  knownLabels;                        // maps string labels to index in affordance matrix
     std::vector < std::vector < std::vector <double> > > affHist;   // Keeps track of all effects, for all acts and all labels: affHist[labI][act].push_back(eff)
     std::vector < std::vector < double> > knownAffs;                // Saves learned success rates: knownAffs[labI][act] = mean(affHist[labI][act] (along recorded effects))
@@ -88,12 +88,13 @@ public:
     yarp::os::Bottle            getactlabels();
     int                         setlabel(const std::string& label = "tool");
     std::string                 getlabel();
+    yarp::os::Bottle            gettoollabels();
 
     double                      updateAff(const int act,const double eff, const int labI = -1);
     yarp::os::Bottle            getAffs(const std::string& label = "active");
     yarp::os::Bottle            getAffHist(const std::string& label = "active", const int act = -1);
 
-    std::string                 selectTool(const int act);
+    std::string                 selectTool(const std::string& task);
     std::string                 activeExp(const std::string& label = "active");
     std::string                 balanceExp(const std::string& label = "active");
 

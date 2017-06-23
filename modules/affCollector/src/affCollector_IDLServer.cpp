@@ -10,16 +10,16 @@ class affCollector_IDLServer_start : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_setnumact : public yarp::os::Portable {
@@ -27,8 +27,8 @@ public:
   int32_t numAct;
   bool _return;
   void init(const int32_t numAct);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_setactlabels : public yarp::os::Portable {
@@ -36,11 +36,19 @@ public:
   yarp::os::Bottle labels;
   bool _return;
   void init(const yarp::os::Bottle& labels);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class affCollector_IDLServer_getactlabels : public yarp::os::Portable {
+public:
+  yarp::os::Bottle _return;
+  void init();
   virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
   virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
 };
 
-class affCollector_IDLServer_getactlabels : public yarp::os::Portable {
+class affCollector_IDLServer_gettoollabels : public yarp::os::Portable {
 public:
   yarp::os::Bottle _return;
   void init();
@@ -53,16 +61,16 @@ public:
   std::string label;
   int32_t _return;
   void init(const std::string& label);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_getlabel : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_updateAff : public yarp::os::Portable {
@@ -72,8 +80,8 @@ public:
   int32_t labI;
   double _return;
   void init(const int32_t act, const double eff, const int32_t labI);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_getAffs : public yarp::os::Portable {
@@ -81,8 +89,8 @@ public:
   std::string label;
   yarp::os::Bottle _return;
   void init(const std::string& label);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_getAffHist : public yarp::os::Portable {
@@ -91,15 +99,15 @@ public:
   int32_t act;
   yarp::os::Bottle _return;
   void init(const std::string& label, const int32_t act);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_selectTool : public yarp::os::Portable {
 public:
   int32_t action;
   std::string _return;
-  void init(const int32_t action);
+  void init(const std::string& action);
   virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
   virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
 };
@@ -109,8 +117,8 @@ public:
   std::string label;
   std::string _return;
   void init(const std::string& label);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_balanceExp : public yarp::os::Portable {
@@ -118,8 +126,8 @@ public:
   std::string label;
   std::string _return;
   void init(const std::string& label);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_reset : public yarp::os::Portable {
@@ -127,24 +135,24 @@ public:
   std::string label;
   bool _return;
   void init(const std::string& label);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_clearAll : public yarp::os::Portable {
 public:
   bool _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_forgetAll : public yarp::os::Portable {
 public:
   std::string _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_savetofile : public yarp::os::Portable {
@@ -152,8 +160,8 @@ public:
   std::string file;
   bool _return;
   void init(const std::string& file);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_readfile : public yarp::os::Portable {
@@ -161,8 +169,8 @@ public:
   std::string file;
   bool _return;
   void init(const std::string& file);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class affCollector_IDLServer_verbose : public yarp::os::Portable {
@@ -170,8 +178,8 @@ public:
   bool verb;
   bool _return;
   void init(const bool verb);
-  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
-  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 bool affCollector_IDLServer_start::write(yarp::os::ConnectionWriter& connection) {

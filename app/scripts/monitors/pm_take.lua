@@ -30,7 +30,7 @@ PortMonitor.create = function(options)
     ar_rpc_io = yarp.Port()
     ar_rpc = yarp.Port()
     ar_cmd = yarp.Port()
-    o3de_rpc = yarp.Port()
+    toolinc_rpc = yarp.Port()
     tmanager_rpc = yarp.Port()
     wlbodey_rpc = yarp.Port()
     ispeak_port = yarp.Port()
@@ -61,9 +61,9 @@ PortMonitor.create = function(options)
         return false
     end
 
-    ret = yarp.NetworkBase_connect(o3de_rpc:getName(), "/objects3DExplorer/rpc:i")
+    ret = yarp.NetworkBase_connect(toolinc_rpc:getName(), "/toolIncpororator/rpc:i")
     if ret == false then 	
-        pm_print("cannot connect to /objects3DExplorer/rpc:i!")
+        pm_print("cannot connect to /toolIncorporator/rpc:i!")
         return false
     end
 

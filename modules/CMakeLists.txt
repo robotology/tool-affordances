@@ -2,26 +2,21 @@
 # Author: Tanis Mar
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-add_subdirectory(affCollector)
-add_subdirectory(aff-explorer)
-
-
 # 2D Specific module
 add_subdirectory(affManager)
-#add_subdirectory(feat2DExt)	
+#add_subdirectory(feat2DExt)         # requires openCV
+add_subdirectory(positionFilter)     # requires openCV
 
-# 3D specific modules
+# 3D exploration modules
 add_subdirectory(tool3DManager)
+#add_subdirectory(aff-explorer-TCDS)
+
+# demo specific modules
+#add_subdirectory(xperience_sm)
+#add_subdirectory(aff-explorer)
 add_subdirectory(drop-away)
+
+# Generic modules
 add_subdirectory(affMotor)
-add_subdirectory(simtoolloader) #Use only in simulation
-add_subdirectory(xperience_sm)
-#add_subdirectory(positionFilter) # No need to run in simulation
-
-### Not fully developed or obsolete modules
-
-#add_subdirectory(objectFinder) # No need to run in simulation
-# add_subdirectory(toolBlobber)  # No need to run in simulation
-
-# add_subdirectory(affLearn)
-# add_subdirectory(affStateMachine)
+add_subdirectory(simtoolloader)     #Use only in simulation
+add_subdirectory(affCollector)
