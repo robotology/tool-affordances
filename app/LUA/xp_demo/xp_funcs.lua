@@ -59,7 +59,7 @@ function XP_initialize()
     REACHABLE_ZONE_Y  = {min=MIN_Y, max=CENTER_Y}
 
     -- ACTION LIST
-    TASK_LIST = {"no_act", "drag_down","drag_down_right", "drag_left", "drag_right", "take_hand", "drag_left_hand"}
+    TASK_LIST = {"no_act", "drag_down", "drag_left", "drag_diag_left", "drag_right", "drag_diag_right", "take_hand", "drag_left_hand"}
 
     TOOL_LIST = {"HOE1", "HOK1", "RAK2", "SHO3", "STI3"}
 
@@ -335,23 +335,36 @@ function select_action(obj)
         return  "not_affordable"
     end
 
+    print("I got the tool " .. tool)
+
+    tool_affs = aff_reply:get(1):asDict()
+    print("With Affordances " .. tool_affs)
+
     if zone == "UPLEFT" then
-        if tool_affs:check("drag_diag_right") == true then
-            speak("I will drag down right")
-            return "drag_down_right"
+        if tool_affs:check("drag_down_right") == true then
+            aff_prob = tool_affs.find("drag_down_right").asInt()
+            if (aff_prob > 0.7) then
+                speak("I will drag down right")
+                return "drag_down_right"
+            end
         end
     end
 
-    tool_affs = aff_reply:get(1):asDict()
     if zone == "UPRIGHT" then
         if tool_affs:check("drag_down") == true then
-            speak("I will drag down")
-            return "drag_down"
+            aff_prob = tool_affs.find("drag_down").asInt()
+            if (aff_prob > 0.7) then
+                speak("I will drag down")
+                return "drag_down"
+            end
         end
         speak("I can't drag down")
         if tool_affs:check("drag_left") == true then
-            speak("I will drag left")
-            return "drag_left"
+            aff_prob = tool_affs.find("drag_left").asInt()
+            if (aff_prob > 0.7) then
+                speak("I will drag left")
+                return "drag_left"
+            end
         end
     end
 
@@ -688,7 +701,7 @@ function go_home(hands)
     tmanager_rpc:write(cmd, rep)
 end
 
-function tion(action, object)
+function perform_action(action, object)
 
     -- Hand actions
     if action == "take_hand" then
