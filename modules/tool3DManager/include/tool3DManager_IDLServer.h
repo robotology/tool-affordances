@@ -175,7 +175,7 @@ public:
    * @return true/false on success/failure to perform actions selections
    */
   virtual bool predExp(const int32_t toolini = 1, const int32_t goal = 1);
-  virtual bool read(yarp::os::ConnectionReader& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 
