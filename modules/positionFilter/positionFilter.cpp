@@ -325,7 +325,7 @@ public:
         // Crops the image based on user input and creates a template for the tracker with it.
         printf("Reading image!!\n");
         ImageOf<PixelRgb> *imgIn = imInPort.read();  // read an image
-        cv::Mat img((IplImage*) imgIn->getIplImage());	   
+        cv::Mat img = cv::cvarrToMat( imgIn->getIplImage());
      
         printf("Click first top left and then bottom right from the object !!\n");
         bool boxOK = false;
@@ -355,7 +355,7 @@ public:
         printf("Prep out mat !!\n");
         ImageOf<PixelRgb> &templateOut  = tempOutPort.prepare();
         templateOut.resize(BBox.width, BBox.height);
-        cv::Mat tempOut((IplImage*)templateOut.getIplImage(),false);
+        cv::Mat tempOut = cv::cvarrToMat(templateOut.getIplImage(),false);
         img(BBox).copyTo(tempOut);
         //cv::GaussianBlur(img(BBox), imOut, cv::Size(1,1), 1, 1);
 
