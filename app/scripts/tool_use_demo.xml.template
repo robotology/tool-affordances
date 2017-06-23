@@ -1,6 +1,13 @@
 <application>
     <name>TOOL_USE_DEMO_APP</name>
     <module>
+        <name>actionsRenderingEngine</name>
+        <parameters>--motor::block_eyes 5.0</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1590.35) (y 243.45))</geometry>
+    </module>
+    <module>
         <name>tool3DManager</name>
         <parameters>--from realTools.ini</parameters>
         <node>icub21</node>
@@ -8,7 +15,7 @@
         <geometry>(Pos (x 311.542) (y 179.392))</geometry>
     </module>
     <module>
-        <name>objects3DExplorer</name>
+        <name>toolIncorporator</name>
         <parameters>--from realTools.ini</parameters>
         <node>icub22</node>
         <prefix></prefix>
@@ -22,13 +29,6 @@
         <geometry>(Pos (x 629.939) (y 751.737))</geometry>
     </module>
     <module>
-        <name>actionsRenderingEngine</name>
-        <parameters>--motor::block_eyes 5.0</parameters>
-        <node>icub21</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1590.35) (y 243.45))</geometry>
-    </module>
-    <module>
         <name>affMotor</name>
         <parameters></parameters>
         <node>icub21</node>
@@ -37,7 +37,7 @@
     </module>
     <module>
         <name>affCollector</name>
-        <parameters>--filename affs_XPERIENCE.txt</parameters>
+        <parameters>--filename affs_DEMO.txt</parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 665.036) (y 142.117))</geometry>
@@ -64,26 +64,70 @@
         <geometry>(Pos (x 962.742) (y 309.28))</geometry>
     </module>
     <module>
-        <name>yarpview</name>
-        <parameters>--x 50 --y 0 --compact</parameters>
+        <name>graspChecker</name>
+        <parameters></parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry></geometry>
+    </module>
+    <module>
+        <name>caffeCoder</name>
+        <parameters>--name caffeCoderGrasp</parameters>
+        <node>icub-cuda</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 608.9) (y 495.9))</geometry>
+    </module>
+    <module>
+        <name>dispBlobber</name>
+        <parameters>--minBlobSize 1000</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 310) (y 10))</geometry>
+    </module>
+    <module>
+        <name>himrepClassifier</name>
+        <parameters>--name himrepClassifierGrasp</parameters>
+        <node>icub21</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 1085.9) (y 467.9))</geometry>
+    </module>
+    <module>
+        <name>linearClassifierModule</name>
+        <parameters>--name linearClassifierModuleGrasp --BufferSize 1 --CSVM 1.0 --databaseFolder GraspDatabase --WeightedSVM 1</parameters>
         <node>icub22</node>
-        <prefix>/toolFinder</prefix>
-        <geometry>(Pos (x 958.459) (y 243.525))</geometry>
+        <prefix></prefix>
+        <geometry>(Pos (x 677.9) (y 342.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--x 400 --out /out --y 0 --p 50 --compact</parameters>
+        <parameters>--x 1100 --y 700  --name /graspViewer/crop --compact</parameters>
         <node>icub22</node>
-        <prefix>/disp</prefix>
-        <geometry>(Pos (x 968.411) (y 515.022))</geometry>
+        <prefix></prefix>
+        <geometry>(Pos (x 794) (y 148.9))</geometry>
     </module>
+
     <module>
-        <name>yarpview</name>
-        <parameters>--x 750 --out /out --y 0 --p 50 --compact</parameters>
-        <node>icub22</node>
-        <prefix>/seg</prefix>
-        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
-    </module>
+         <name>yarpview</name>
+         <parameters>--x 80 --y 0 --p 50 --name /toolFinder --compact</parameters>
+         <node>icub22</node>
+         <prefix></prefix>
+         <geometry>(Pos (x 958.459) (y 243.525))</geometry>
+     </module>
+     <module>
+         <name>yarpview</name>
+         <parameters>--x 400 --out /outDisp --y 0 --p 50 --name /disp --compact</parameters>
+         <node>icub22</node>
+         <prefix></prefix>
+         <geometry>(Pos (x 968.411) (y 515.022))</geometry>
+     </module>
+     <module>
+         <name>yarpview</name>
+         <parameters>--x 720 --out /outSeg --y 0 --p 50 --name /seg --compact</parameters>
+         <node>icub22</node>
+         <prefix></prefix>
+         <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
+     </module>
+
     <module>
         <name>iSpeak</name>
         <parameters>--package acapela-tts</parameters>
@@ -106,159 +150,232 @@
         <prefix></prefix>
         <geometry>(Pos (x 665.036) (y 142.117))</geometry>
     </module>
+    connection>
+            <from>/tool3DManager/obj3Dexp:rpc</from>
+            <to>/toolIncorporator/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>
+        </connection>
+        <connection>
+            <from>/toolIncorporator/objrec:rpc</from>
+            <to>/seg2cloud/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 0)) ((x -86) (y -48))  )</geometry>
+        </connection>
+        <connection>
+            <from>/seg2cloud/pnt:o</from>
+            <to>/toolIncorporator/clouds:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -48)) ((x -119) (y -32))  )</geometry>
+        </connection>
+        <connection>
+            <from>/seg2cloud/pnt2D:o</from>
+            <to>/toolIncorporator/pts2D:i</to>
+            <protocol>tcp</protocol>
+            <geometry></geometry>
+        </connection>
+        <connection>
+            <from>/seg2cloud/SFM:rpc</from>
+            <to>/SFM/rpc</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 86) (y 16)) ((x -69) (y 48))  )</geometry>
+        </connection>
+        <connection>
+            <from>/SFM/disp:o</from>
+            <to>/seg2cloud/disp:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 69) (y -48)) ((x -86) (y -16))  )</geometry>
+        </connection>
+        <connection>
+            <from>/tool3DManager/affMotor:rpc</from>
+            <to>/affMotor/rpc</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 107) (y -16)) ((x -86) (y -32))  )</geometry>
+        </connection>
+        <connection>
+            <from>/toolIncorporator/img:o</from>
+            <to>/toolFinder</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -64)) ((x -85) (y 0))  )</geometry>
+        </connection>
+        <connection>
+            <from>/tool3DManager/are:rpc</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 797.655) (y 264.671)) ((x 107) (y -112)) ((x -134) (y -176))  )</geometry>
+        </connection>
+        <connection>
+            <from>/seg2cloud/disp:o</from>
+            <to>/disp</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
+        </connection>
+        <connection>
+            <from>/outSeg</from>
+            <to>/seg2cloud/seed:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        <connection>
+            <from>/outDisp</from>
+            <to>/seg2cloud/seed:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        <connection>
+            <from>/seg2cloud/seg:rpc</from>
+            <to>/lbpExtract/rpc:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        <connection>
+            <from>/lbpExtract/segmentedlbp:o</from>
+            <to>/seg</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 87) (y 48)) ((x -85) (y 0))  )</geometry>
+        </connection>
+        <connection>
+            <from>/actionsRenderingEngine/wbd:rpc</from>
+            <to>/wholeBodyDynamics/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/left/out</from>
+            <to>/toolIncorporator/img:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/left/out</from>
+            <to>/lbpExtract/image:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/left/out</from>
+            <to>/seg2cloud/img:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -86) (y 16))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/left/out</from>
+            <to>/SFM/left:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -69) (y -48))  )</geometry>
+        </connection>
+        <connection>
+            <from>/tool3DManager/graspClass:rpc</from>
+            <to>/graspChecker/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry></geometry>
+        </connection>
+        <connection>
+            <from>/tool3DManager/are:get</from>
+            <to>/actionsRenderingEngine/get:io</to>
+            <protocol>tcp</protocol>
+            <geometry></geometry>
+        </connection>
+        <connection>
+            <from>/toolIncorporator/visualizer:rpc</from>
+            <to>/Xperience/show3D/rpc:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 32)) ((x -79) (y -16))  )</geometry>
+        </connection>
+        <connection>
+            <from>/toolIncorporator/toolClass:rpc</from>
+            <to external="true">/onTheFlyRecognition/human:io</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 704) (y 575)) ((x 783) (y 489)) ((x 646) (y 661))  )</geometry>
+        </connection>
+        <connection>
+            <from>/toolIncorporator/clouds:o</from>
+            <to>/Xperience/show3D/clouds:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -32)) ((x -79) (y 16))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/right/out</from>
+            <to>/SFM/right:i</to>
+            <protocol>udp</protocol>
+            <geometry>(Pos ((x -1) (y -1)) ((x 324.572) (y 500.127)) ((x -69) (y -16))  )</geometry>
+        </connection>
 
-    <connection>
-        <from>/tool3DManager/obj3Dexp:rpc</from>
-        <to>/objects3DExplorer/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/objrec:rpc</from>
-        <to>/seg2cloud/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 0)) ((x -86) (y -48))  )</geometry>
-    </connection>
-    <connection>
-        <from>/seg2cloud/pnt:o</from>
-        <to>/objects3DExplorer/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -48)) ((x -119) (y -32))  )</geometry>
-    </connection>
-    <connection>
-        <from>/seg2cloud/pnt2D:o</from>
-        <to>/objects3DExplorer/pts2D:i</to>
-        <protocol>tcp</protocol>
-        <geometry></geometry>
-    </connection>
-    <connection>
-        <from>/seg2cloud/SFM:rpc</from>
-        <to>/SFM/rpc</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y 16)) ((x -69) (y 48))  )</geometry>
-    </connection>
-    <connection>
-        <from>/SFM/disp:o</from>
-        <to>/seg2cloud/disp:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 69) (y -48)) ((x -86) (y -16))  )</geometry>
-    </connection>
-    <connection>
-        <from>/tool3DManager/affMotor:rpc</from>
-        <to>/affMotor/rpc</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 107) (y -16)) ((x -86) (y -32))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/img:o</from>
-        <to>/toolFinder/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -64)) ((x -85) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from>/tool3DManager/are:rpc</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 797.655) (y 264.671)) ((x 107) (y -112)) ((x -134) (y -176))  )</geometry>
-    </connection>
-    <connection>
-        <from>/seg2cloud/disp:o</from>
-        <to>/disp/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -16)) ((x -85) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from>/seg/out</from>
-        <to>/seg2cloud/seed:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-    <connection>
-        <from>/disp/out</from>
-        <to>/seg2cloud/seed:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-    <connection>
-        <from>/seg2cloud/seg:rpc</from>
-        <to>/lbpExtract/rpc:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-    <connection>
-        <from>/lbpExtract/segmentedlbp:o</from>
-        <to>/seg/yarpview/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 87) (y 48)) ((x -85) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from>/actionsRenderingEngine/wbd:rpc</from>
-        <to>/wholeBodyDynamics/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/objects3DExplorer/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/lbpExtract/image:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/seg2cloud/img:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -86) (y 16))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/left/out</from>
-        <to>/SFM/left:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -69) (y -48))  )</geometry>
-    </connection>
-    <connection>
-        <from>/tool3DManager/clasif:rpc</from>
-        <to external="true">/graspChecker/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry></geometry>
-    </connection>
-    <connection>
-        <from>/tool3DManager/are:get</from>
-        <to>/actionsRenderingEngine/get:io</to>
-        <protocol>tcp</protocol>
-        <geometry></geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/visualizer:rpc</from>
-        <to>/Xperience/show3D/rpc:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 32)) ((x -79) (y -16))  )</geometry>
-    </connection>
-    <connection>
-        <from>/objects3DExplorer/clouds:o</from>
-        <to>/Xperience/show3D/clouds:i</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -32)) ((x -79) (y 16))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/icub/camcalib/right/out</from>
-        <to>/SFM/right:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x -1) (y -1)) ((x 324.572) (y 500.127)) ((x -69) (y -16))  )</geometry>
-    </connection>
 
-    <connection>
-        <from external="true">/drop-away/cmd:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop_clas</protocol>
-        <geometry>(Pos ((x 1105.57) (y 77.0148)) ((x 1217.19) (y 116.719)) ((x -134) (y -176))  )</geometry>
-    </connection>
-    <connection>
-        <from>/lbpExtract/blobs:o</from>
-        <to>/actionsRenderingEngine/cmd:io</to>
-        <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_take</protocol>
-        <geometry>(Pos ((x 1192.46) (y 194.929)) ((x 87) (y 80)) ((x -134) (y -176))  )</geometry>
-    </connection>
+        <connection>
+            <from>/himrepClassifierGrasp/img:o</from>
+            <to>/graspViewer/crop </to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 965.5) (y 628)) ((x 859) (y 629)) ((x 1101) (y 625))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/icub/camcalib/left/out</from>
+            <to>/graspChecker/img:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 965.5) (y 628)) ((x 859) (y 629)) ((x 1101) (y 625))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/dispBlobber/roi/left:o</from>
+            <to external="true">/graspChecker/bb:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 746) (y 188)) ((x 728) (y 184)) ((x 793) (y 190))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/graspChecker/img:o</from>
+            <to external="true">/himrepClassifierGrasp/img:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 965.5) (y 628)) ((x 859) (y 629)) ((x 1101) (y 625))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/graspChecker/himrep:rpc</from>
+            <to external="true">/himrepClassifierGrasp/rpc</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 949.5) (y 593)) ((x 826) (y 594)) ((x 1102) (y 590))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/himrepClassifierGrasp/img:o</from>
+            <to external="true">/caffeCoderGrasp/img:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 552) (y 438)) ((x 506) (y 400)) ((x 627) (y 474))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/caffeCoderGrasp/code:o</from>
+            <to external="true">/himrepClassifierGrasp/features:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 933) (y 515.5)) ((x 793) (y 509)) ((x 1102) (y 520))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/himrepClassifierGrasp/features:o</from>
+            <to external="true">/linearClassifierModuleGrasp/features:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 601.5) (y 358)) ((x 540) (y 358)) ((x 692) (y 356))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/linearClassifierModuleGrasp/scores:o</from>
+            <to external="true">/himrepClassifierGrasp/scores:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 1015.5) (y 422.5)) ((x 958) (y 398)) ((x 1094) (y 447))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/himrepClassifierGrasp/classify:rpc</from>
+            <to external="true">/linearClassifierModuleGrasp/rpc</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 611) (y 323.5)) ((x 556) (y 319)) ((x 695) (y 326))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/caffeCoderGrasp/img:o</from>
+            <to external="true">/himrepClassifierGrasp/SIFTimg:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 929) (y 548.5)) ((x 785) (y 542)) ((x 1102) (y 553))  )</geometry>
+        </connection>
+        <connection>
+            <from external="true">/SFM/disp:o</from>
+            <to external="true">/dispBlobber/img:i</to>
+            <protocol>tcp</protocol>
+            <geometry>(Pos ((x 505.5) (y 147)) ((x 463) (y 142)) ((x 577) (y 150))  )</geometry>
+        </connection>
+
+        <connection>
+            <from external="true">/drop-away/cmd:o</from>
+            <to>/actionsRenderingEngine/cmd:io</to>
+            <protocol>tcp+recv.portmonitor+context.AffordancesProject+file.pm_drop_clas</protocol>
+            <geometry>(Pos ((x 1105.57) (y 77.0148)) ((x 1217.19) (y 116.719)) ((x -134) (y -176))  )</geometry>
+        </connection>
 </application>

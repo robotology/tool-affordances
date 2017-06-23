@@ -15,7 +15,7 @@
         <geometry>(Pos (x 311.542) (y 179.392))</geometry>
     </module>
     <module>
-        <name>objects3DExplorer</name>
+        <name>toolIncorporator</name>
         <parameters>--from realTools.ini</parameters>
         <node>icub22</node>
         <prefix></prefix>
@@ -139,25 +139,25 @@
 
     <connection>
         <from>/tool3DManager/obj3Dexp:rpc</from>
-        <to>/objects3DExplorer/rpc:i</to>
+        <to>/toolIncorporator/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/objrec:rpc</from>
+        <from>/toolIncorporator/objrec:rpc</from>
         <to>/seg2cloud/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 0)) ((x -86) (y -48))  )</geometry>
     </connection>
     <connection>
         <from>/seg2cloud/pnt:o</from>
-        <to>/objects3DExplorer/clouds:i</to>
+        <to>/toolIncorporator/clouds:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 86) (y -48)) ((x -119) (y -32))  )</geometry>
     </connection>
     <connection>
         <from>/seg2cloud/pnt2D:o</from>
-        <to>/objects3DExplorer/pts2D:i</to>
+        <to>/toolIncorporator/pts2D:i</to>
         <protocol>tcp</protocol>
         <geometry></geometry>
     </connection>
@@ -180,7 +180,7 @@
         <geometry>(Pos ((x -1) (y -1)) ((x 107) (y -16)) ((x -86) (y -32))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/img:o</from>
+        <from>/toolIncorporator/img:o</from>
         <to>/toolFinder</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -64)) ((x -85) (y 0))  )</geometry>
@@ -226,7 +226,7 @@
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
-        <to>/objects3DExplorer/img:i</to>
+        <to>/toolIncorporator/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 303.981) (y 395.001)) ((x -119) (y 0))  )</geometry>
     </connection>
@@ -261,19 +261,19 @@
         <geometry></geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/visualizer:rpc</from>
+        <from>/toolIncorporator/visualizer:rpc</from>
         <to>/Xperience/show3D/rpc:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 119) (y 32)) ((x -79) (y -16))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/toolClass:rpc</from>
+        <from>/toolIncorporator/toolClass:rpc</from>
         <to external="true">/onTheFlyRecognition/human:io</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x 704) (y 575)) ((x 783) (y 489)) ((x 646) (y 661))  )</geometry>
     </connection>
     <connection>
-        <from>/objects3DExplorer/clouds:o</from>
+        <from>/toolIncorporator/clouds:o</from>
         <to>/Xperience/show3D/clouds:i</to>
         <protocol>tcp</protocol>
         <geometry>(Pos ((x -1) (y -1)) ((x 119) (y -32)) ((x -79) (y 16))  )</geometry>
