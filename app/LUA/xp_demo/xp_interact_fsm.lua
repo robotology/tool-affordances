@@ -1,9 +1,4 @@
-event_table = {
-   stop      = "e_exit",
-   clean     = "e_clean",
-   }
-
-xp_interact_fsm = rfsm.state{
+return rfsm.state{
 
    ----------------------------------
    -- state SUB_OBSERVE               --
@@ -18,6 +13,9 @@ xp_interact_fsm = rfsm.state{
                while true do
                repeat   -- (until true) - workaround to break loops (as continue)
 
+                   -- Read blobs and update objects in memory and associate zones                   
+                   objects_seen = update_objects(object_list)
+                    
                    -- slow down the commands to the action rendering port
                    if (yarp.Time_now() - t0) < 1.0 then
                        break
@@ -31,8 +29,8 @@ xp_interact_fsm = rfsm.state{
                        break
                    end
 
-                   -- Read blobs and update objects in memory and associate zones
-                   if update_objects(object_list) == true then
+                   -- slow down the commands to the action rendering port
+                   if objects_seen == true then
                        -- receiving blobs, so reset clean table counter
                        cleanTableSec = 0
                        tableClean = false
@@ -129,7 +127,7 @@ xp_interact_fsm = rfsm.state{
             entry=function()
                  print("State = "..state)
 
-                 if tool_selection_flag then
+                 if TOOL_SELECTION_FLAG == true then
                      -- select_tool
                      task = select_task(target_object)
                      if task ~= nil then

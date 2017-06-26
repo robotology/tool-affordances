@@ -22,7 +22,7 @@ function XP_initialize()
 
     -- DEFINES
 
-    TOOL_SELECTION_FLAG = 0;
+    TOOL_SELECTION_FLAG = false;
 
     -- Declare consts.
     OBJECT_MEMORY       = 0.5       -- seconds
@@ -211,6 +211,7 @@ function update_objects(object_list)
     local t_now = yarp.Time_now()
     local blobs = blobs_port:read(false)
     if blobs ~= nil and blobs:size() >= 0 then      -- blobs received
+        print("Received " .. blobs:size() .. " blobs")
         leaky_integrate(object_list, blobs, t_now)  -- stabilize objects
         forget_expired_objects(object_list)
         if get_stable_objects_count(object_list) == 0  then
@@ -276,10 +277,10 @@ end
 function select_object(object_list)
 
     -- Prioritize objects according to their location
-    for i, zone_search in ZONES_LIST do
+    for i, zone_search in ipairs(ZONES_LIST) do
         print("Looking for objects in zone " .. zone_search)
 
-        for j, obj in object_list do
+        for j, obj in ipairs(object_list) do
             if obj.zone == zone_search then
                 print("Target object in zone " .. zone_search .. " with coords" .. obj.x .. obj.y .. obj.z)
                 return obj
@@ -326,23 +327,30 @@ function select_action(obj)
         speak("affCollector does not respond")
         return "not_affordable"
     end
-    print(aff_reply:toString())
+    print("Current affordances are:" .. aff_reply:toString())
 
-    tool = aff_reply:get(0):asString()
-    if tool == "no_aff" then
+    print("aff_reply:toString()= " .. aff_reply:toString() )
+    print("aff_reply:get(0):asString()= " .. aff_reply:get(0):asString() )
+    print("aff_reply:get(0):asList():get(0):asString()= " .. aff_reply:get(0):asList():get(0):asString() )
+    print("aff_reply:get(0):asList():get(1):asString()= " .. aff_reply:get(0):asList():get(1):asDict():toString() )
+        
+
+
+    if aff_reply:toString() == "(no_aff)" then
         print(aff_reply:toString())
         -- speak("I can not do anything with this tool")
         return  "not_affordable"
     end
 
-    print("I got the tool " .. tool)
+    tool_pose = aff_reply:get(0):asList():get(0):asString()
+    print("I got the tool-pose " .. tool_pose)
 
-    tool_affs = aff_reply:get(1):asDict()
-    print("With Affordances " .. tool_affs)
+    tool_affs = aff_reply:get(0):asList():get(1):asDict()
+    print("With Affordances " .. tool_affs:toString())
 
     if zone == "UPLEFT" then
         if tool_affs:check("drag_down_right") == true then
-            aff_prob = tool_affs.find("drag_down_right").asInt()
+            aff_prob = tool_affs:find("drag_down_right"):asDouble()
             if (aff_prob > 0.7) then
                 speak("I will drag down right")
                 return "drag_down_right"
@@ -352,7 +360,7 @@ function select_action(obj)
 
     if zone == "UPRIGHT" then
         if tool_affs:check("drag_down") == true then
-            aff_prob = tool_affs.find("drag_down").asInt()
+            aff_prob = tool_affs:find("drag_down"):asDouble()
             if (aff_prob > 0.7) then
                 speak("I will drag down")
                 return "drag_down"
@@ -360,7 +368,7 @@ function select_action(obj)
         end
         speak("I can't drag down")
         if tool_affs:check("drag_left") == true then
-            aff_prob = tool_affs.find("drag_left").asInt()
+            aff_prob = tool_affs:find("drag_left"):asDouble()
             if (aff_prob > 0.7) then
                 speak("I will drag left")
                 return "drag_left"
@@ -452,6 +460,7 @@ end
 ----------------------------------
 function check_left_arm_busy()
     -- check the status the left arm
+    print("Checking if left arm is busy")
     local status = get_are_status()
     local leftarm_idle
     local lefthand_holding
@@ -691,6 +700,19 @@ end
 ----------------------------------
 --       MOTOR FUNCTIONS        --
 ----------------------------------
+function clear_tool()
+    local cmd = yarp.Bottle()
+    local rep = yarp.Bottle()
+    cmd:clear()
+    cmd:addString("cleartool")
+    toolinc_rpc:write(cmd, rep)
+
+    cmd:clear()
+    cmd:addString("cleartool")
+    affcollect_rpc:write(cmd, rep)
+
+end
+
 
 function go_home(hands)
     local cmd = yarp.Bottle()
@@ -713,6 +735,11 @@ function perform_action(action, object)
         pos:addDouble(object.y + Y_GRASP_OFFSET)
         pos:addDouble(object.z + Z_GRASP_OFFSET)
         are_cmd:write(cmd, rep)
+        print(cmd:toString())
+        while check_left_arm_busy() do
+            print(".")
+        end
+        -- Return control once left arm is not busy anymore
         return true
     end
     if action == "drag_left_hand" then

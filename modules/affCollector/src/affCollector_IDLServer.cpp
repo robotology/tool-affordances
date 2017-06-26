@@ -155,6 +155,13 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
 };
 
+class affCollector_IDLServer_cleartool : public yarp::os::Portable {
+public:
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection) YARP_OVERRIDE;
+  virtual bool read(yarp::os::ConnectionReader& connection) YARP_OVERRIDE;
+};
+
 class affCollector_IDLServer_savetofile : public yarp::os::Portable {
 public:
   std::string file;
@@ -561,6 +568,22 @@ void affCollector_IDLServer_forgetAll::init() {
   _return = "";
 }
 
+bool affCollector_IDLServer_cleartool::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("cleartool",1,1)) return false;
+  return true;
+}
+
+bool affCollector_IDLServer_cleartool::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void affCollector_IDLServer_cleartool::init() {
+}
+
 bool affCollector_IDLServer_savetofile::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
@@ -802,6 +825,14 @@ std::string affCollector_IDLServer::forgetAll() {
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
+}
+void affCollector_IDLServer::cleartool() {
+  affCollector_IDLServer_cleartool helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","void affCollector_IDLServer::cleartool()");
+  }
+  yarp().write(helper,helper);
 }
 bool affCollector_IDLServer::savetofile(const std::string& file) {
   bool _return = false;
@@ -1088,6 +1119,15 @@ bool affCollector_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "cleartool") {
+      cleartool();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(0)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "savetofile") {
       std::string file;
       if (!reader.readString(file)) {
@@ -1185,6 +1225,7 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     helpString.push_back("reset");
     helpString.push_back("clearAll");
     helpString.push_back("forgetAll");
+    helpString.push_back("cleartool");
     helpString.push_back("savetofile");
     helpString.push_back("readfile");
     helpString.push_back("verbose");
@@ -1269,8 +1310,13 @@ std::vector<std::string> affCollector_IDLServer::help(const std::string& functio
     }
     if (functionName=="forgetAll") {
       helpString.push_back("std::string forgetAll() ");
-      helpString.push_back("Removes all teh content from the memory file. Use with precaution (requires confirmation) ");
+      helpString.push_back("Removes all the content from the memory file. Use with precaution (requires confirmation) ");
       helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="cleartool") {
+      helpString.push_back("void cleartool() ");
+      helpString.push_back("Returns the active label to -1, that is, no tool loaded ");
+      helpString.push_back("@returns void ");
     }
     if (functionName=="savetofile") {
       helpString.push_back("bool savetofile(const std::string& file = \"default\") ");

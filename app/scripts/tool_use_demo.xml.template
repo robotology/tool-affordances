@@ -150,7 +150,7 @@
         <prefix></prefix>
         <geometry>(Pos (x 665.036) (y 142.117))</geometry>
     </module>
-    connection>
+        <connection>
             <from>/tool3DManager/obj3Dexp:rpc</from>
             <to>/toolIncorporator/rpc:i</to>
             <protocol>tcp</protocol>

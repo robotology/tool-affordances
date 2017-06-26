@@ -706,9 +706,14 @@ string AffCollector::forgetAll()
         forgetFlag = false;
         return "WARNING! Irreversible action: Call command again command for confirmation";
     }
-
-
 }
+
+void AffCollector::cleartool()
+{
+    activeLabel = -1;
+    return;
+}
+
 
 
 /**********************************************************/

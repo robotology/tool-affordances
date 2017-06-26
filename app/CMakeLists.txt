@@ -7,7 +7,7 @@ set(appname AffordancesProject)
 file(GLOB modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*.xml)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.txt)
-file(GLOB temps ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
+file(GLOB temps   ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
 ##file(GLOB apps ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml)
 file(GLOB monitors ${CMAKE_CURRENT_SOURCE_DIR}/scripts/monitors/*.lua) 
 
@@ -23,7 +23,7 @@ yarp_install(FILES ${conf} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${app
 yarp_install(FILES ${temps} DESTINATION ${ICUBCONTRIB_APPLICATIONS_TEMPLATES_INSTALL_DIR})
 ##yarp_install(FILES ${apps} DESTINATION ${ICUBCONTRIB_APPLICATIONS_INSTALL_DIR})
 yarp_install(FILES ${monitors} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${appname})
-yarp_install(PROGRAMS ${lua_fsm} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${PROJECTNAME}/LUA)
+yarp_install(PROGRAMS ${lua_fsm} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${appname}/LUA)
 
 # We cannot go for "yarp_install(PROGRAMS ${lua_bin} DESTINATION bin)", since on Windows, only
 # at build time (i.e. not during installation), we have to handle the Debug|Release subfolders.

@@ -55,9 +55,9 @@ yarp.Network()
 shouldExit = false
 -- Set ResourceFinder
 rf = yarp.ResourceFinder()
-rf:setDefaultContext("AffordancesProject")
+rf:setDefaultContext("AffordancesProject/LUA")
 rf:configure(arg)
-rf:setVerbose(false)
+--rf:setVerbose(false)
 
 -- load state machine model and initalize it
 fsm_file = rf:findFile("xp_root_fsm.lua")
@@ -67,7 +67,7 @@ rfsm.run(fsm)
 
 repeat
     rfsm.run(fsm)
-    yarp.Time_delay(0.1)
+    yarp.Time_delay(0.01)
 until shouldExit ~= false
 
 print("finishing")

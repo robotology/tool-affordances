@@ -98,6 +98,7 @@ public:
     std::string                 activeExp(const std::string& label = "active");
     std::string                 balanceExp(const std::string& label = "active");
 
+    void                        cleartool();
     bool                        reset(const std::string& label = "active");
     bool                        clearAll();
     std::string                 forgetAll();

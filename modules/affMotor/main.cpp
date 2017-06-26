@@ -189,6 +189,7 @@ protected:
     bool interrupting;
     double flip_hand;
     int shake_joint;
+    double traj_tol;
 
     bool elbow_set;
     double elbow_height,elbow_weight;
@@ -610,6 +611,7 @@ protected:
         // deal with the arm context
         int context;
         iCartCtrl->storeContext(&context);
+        iCartCtrl->setInTargetTol(traj_tol);
 
 
         // Transform the end-effector to the tip of the tool (if any).
@@ -901,6 +903,7 @@ protected:
 
             // deal with the arm context
             iCartCtrl->storeContext(&context);
+            iCartCtrl->setInTargetTol(traj_tol);
 
             // Transform the end-effector to the tip of the tool (if any).
             Vector tip_x=tipFrame.getCol(3).subVector(0,2);
@@ -1140,6 +1143,7 @@ protected:
 
             // deal with the arm context            
             iCartCtrl->storeContext(&context);
+            iCartCtrl->setInTargetTol(traj_tol);
 
             // Transform the end-effector to the tip of the tool (if any).            
             Vector tip_x = tipFrame.getCol(3).subVector(0,2);
@@ -1365,6 +1369,7 @@ protected:
 
             // deal with the arm context
             iCartCtrl->storeContext(&context);
+            iCartCtrl->setInTargetTol(traj_tol);
 
 
             // Transform the end-effector to the tip of the tool (if any).
@@ -1791,6 +1796,8 @@ public:
         driverL.view(iCartCtrlL);
         driverR.view(iCartCtrlR);
 
+
+
         visionPort.open(("/"+name+"/vision:i").c_str());
         finderPort.open(("/"+name+"/finder:rpc").c_str());
         rpcPort.open(("/"+name+"/rpc").c_str());
@@ -1801,9 +1808,13 @@ public:
         interrupting=false;
         handUsed="null";
         flip_hand=6.0;
+        traj_tol = 0.01; // Set tolerance on reaching target to 1cm isntead of default 1mm.
 
         pushHand="selectable";
         toolFrame=eye(4,4);
+
+        iCartCtrlL->setInTargetTol(traj_tol);
+        iCartCtrlR->setInTargetTol(traj_tol);
 
         return true;
     }

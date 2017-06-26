@@ -13,11 +13,6 @@ else
     xp_funcs = "xp_funcs.lua"
 end
 
---dofile(rf:findFile("xp_interact_fsm.lua"))
---dofile(rf:findFile("xp_funcs.lua"))
-dofile("xp_funcs.lua")
-dofile("xp_interact_fsm.lua")
-
 
 return rfsm.state {
     ----------------------------------
@@ -125,15 +120,18 @@ return rfsm.state {
    -- state HOME                   --
    ----------------------------------
    ST_HOME = rfsm.state{
-           entry=function()
+           doo=function()
                print("Module running ... ")
                t0 = yarp.Time_now()
                math.randomseed( os.time() )
 
                print("everything is fine, going home!")
                go_home(1)
+               clear_tool()
 
                speak("Ready")
+               print("Ready")
+
 
            end
    },
@@ -143,7 +141,7 @@ return rfsm.state {
    -- state FATAL                  --
    ----------------------------------
    ST_FATAL = rfsm.state{
-           entry=function()
+           doo=function()
                print("Fatal!")
                shouldExit = true;
            end
@@ -153,7 +151,7 @@ return rfsm.state {
    -- state FINI                   --
    ----------------------------------
    ST_FINI = rfsm.state{
-           entry=function()
+           doo=function()
                    print("Closing...")
                    -- close ports
                    blobs_port:close()
@@ -180,7 +178,7 @@ return rfsm.state {
    --------------------------------------------
    -- state INTERACT  is defined in xp_interact_fsm.lua --
    --------------------------------------------
-   ST_INTERACT = xp_interact_fsm,
+   ST_INTERACT = dofile(xp_interact_fsm),
 
    ----------------------------------
    -- setting the transitions      --

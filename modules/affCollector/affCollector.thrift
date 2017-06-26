@@ -108,10 +108,16 @@ service affCollector_IDLServer
 
 
     /**
-     * Removes all teh content from the memory file. Use with precaution (requires confirmation)
+     * Removes all the content from the memory file. Use with precaution (requires confirmation)
      * @return true/false on success/failure
      */
     string forgetAll();
+
+    /**
+     * Returns the active label to -1, that is, no tool loaded
+     * @returns void
+     */
+    void cleartool();
 
     /**
      * Saves the known affordances history in a given file.
