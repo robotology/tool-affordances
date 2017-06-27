@@ -67,7 +67,7 @@ rfsm.run(fsm)
 
 repeat
     rfsm.run(fsm)
-    yarp.Time_delay(0.01)
+    yarp.Time_delay(0.05)
 until shouldExit ~= false
 
 print("finishing")

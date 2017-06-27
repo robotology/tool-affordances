@@ -7,15 +7,36 @@ return rfsm.state{
            entry=function()
                  print("State = ".. state)
                  print("in substate OBSERVE, checking objects on the table!")
+                 empty_table_counter = yarp.Time_now()
            end,
 
            doo = function()
                while true do
                repeat   -- (until true) - workaround to break loops (as continue)
 
-                   -- Read blobs and update objects in memory and associate zones                   
-                   objects_seen = update_objects(object_list)
+                   -- Read blobs and update objects in memory and associate zones 
+                    if update_object_list() == false then 
+                        confirm_empty_table()                                                
+                        break
+                    end
                     
+                    -- check if received blobs are stable
+                    if get_stable_objects_count() == 0  then
+                        confirm_empty_table()                                                
+                        break
+                    end
+                  
+                   -- Check if there is any blob inside the workspace
+                   if objects_in() == false then                  
+                       if tooFarSaid == false then
+                           speak("Objects are too far!")
+                           print("Objects are too far!!!")
+                           tooFarSaid = true
+                       end
+                       confirm_empty_table()                                                
+                       break
+                   end
+
                    -- slow down the commands to the action rendering port
                    if (yarp.Time_now() - t0) < 1.0 then
                        break
@@ -29,56 +50,31 @@ return rfsm.state{
                        break
                    end
 
-                   -- slow down the commands to the action rendering port
-                   if objects_seen == true then
-                       -- receiving blobs, so reset clean table counter
-                       cleanTableSec = 0
-                       tableClean = false
+                   -- receiving blobs in workspace on idle robot: 
+                   empty_table_counter = yarp.Time_now()
+                   tableClean = false
 
-                       -- decide which object to target and the corresponding action
-                       target_object = select_object(object_list)
-                       if target_object == nil then
-                           break
-                       end
+                    -- get the 3D position
+                    get_3d_pos()  
 
-                       if target_object.zone == "OUT" then
-                           if tooFarSaid == false then
-                               speak("Objects are too far!")
-                               print("Objects are too far!!!")
-                               tooFarSaid = true
-                           end
-                           break
-                       end
-
-                       speak("Targeting object")
-                       print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
-
-                       tooFarSaid = false
-                       state = "select_action"      -- select action given affordance
-                       rfsm.send_events(fsm,'e_selectact')
+                   -- decide which object to target and the corresponding action
+                   target_object = select_object(object_list)
+                   if target_object == nil then
+                       break
+                   end
 
 
-                    -- If no stable  blobs are being received, check if table is clean
-                    else        -- No stable blobs being received
-                        if cleanTableSec > 4 then       -- it waits for 3 seconds before considering that the table is clean
-                            if tableClean == false then
-                                speak("The table is now clean, hurray!")
-                                print("The table is now clean, hurray!")
-                                tableClean = true
-                            end
-                            if holdingTool == true then
-                                -- ask ARE to drop tool
-                                drop_tool()
-                                holdingTool = false
-                            end
-                            cleanTableSec = 0;
-                        else
-                            print("counting up: " .. cleanTableSec )
-                            cleanTableSec = cleanTableSec + 1;
-                        end
-                    end
+
+                   speak("Targeting object")
+                   print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
+
+                   tooFarSaid = false
+                   state = "select_action"      -- select action given affordance
+                   rfsm.send_events(fsm,'e_selectact')
 
                     go_home(0)
+
+
                 until true
                 rfsm.yield(true)
                 end

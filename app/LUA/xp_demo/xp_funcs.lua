@@ -149,7 +149,7 @@ function leaky_integrate(object_list, blobs, t_now)
     end
 end
 
-function forget_expired_objects(object_list)
+function forget_expired_objects()
     print("Forgetting objects")
     for i=#object_list,1,-1 do
         if object_list[i].w < 0.0 then table.remove(object_list, i) end
@@ -157,7 +157,7 @@ function forget_expired_objects(object_list)
 end
 
 
-function get_stable_objects_count(object_list)
+function get_stable_objects_count()
     local count = 0
     for i=1,#object_list do
         if object_list[i].w > 1.0 then
@@ -168,7 +168,7 @@ function get_stable_objects_count(object_list)
 end
 
 --/---------------------------------------------------------------------/
-function get_3d_pos(object_list)
+function get_3d_pos()
     print(" Getting 3D position of " .. #object_list .. " objects")
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
@@ -204,29 +204,22 @@ end
 
 
 --/---------------------------------------------------------------------/
-function update_objects(object_list)
+function update_object_list()
      -- returns false when no objects or no stable objects are received.
      -- Otherwise updates the objects'struct with the latest info.
 
     local t_now = yarp.Time_now()
     local blobs = blobs_port:read(false)
-    if blobs ~= nil and blobs:size() >= 0 then      -- blobs received
-        print("Received " .. blobs:size() .. " blobs")
+    if blobs ~= nil and blobs:size() >= 0 then      -- blobs received        
         leaky_integrate(object_list, blobs, t_now)  -- stabilize objects
         forget_expired_objects(object_list)
-        if get_stable_objects_count(object_list) == 0  then
-            print("Objects not stable enough")
-            return false
-        end
 
-        print("object_list")
-        -- get the 3D position
-        get_3d_pos(object_list)
-        -- and corrsponding zone
-        update_zone(object_list)
+        update_zone()
 
+        print("Received " .. blobs:size() .. " blobs")
         return true
     else
+        print("No blobs received")        
         return false
     end
 end
@@ -258,7 +251,7 @@ end
 
 
 --/---------------------------------------------------------------------/
-function update_zone(object_list)
+function update_zone()
     for i=1,#object_list do
         local obj = object_list[i]
         local zone = get_object_zone(obj)
@@ -267,6 +260,34 @@ function update_zone(object_list)
     return true
 end
 
+function objects_in()
+    for i=1,#object_list do
+        local obj = object_list[i]
+        if obj.zone ~= "OUT" then
+            return true
+        end
+    end
+    return false
+end
+
+function confirm_empty_table()
+    -- If there are no blobs within the working area, and robot not busy, table is clean
+    -- waits for 4 seconds before considering that the table is clean
+    timer = yarp.Time_now() - empty_table_counter
+    if timer > 4 then       
+        if tableClean == false then
+            speak("The table is now clean, hurray!")
+            print("The table is now clean, hurray!")
+            tableClean = true
+        end
+        if holdingTool == true then
+            -- ask ARE to drop tool
+            drop_tool()
+            holdingTool = false
+        end
+        empty_table_counter = yarp.Time_now();
+    end
+end
 
 
 ----------------------------------
@@ -274,13 +295,13 @@ end
 ----------------------------------
 
 --/---------------------------------------------------------------------/
-function select_object(object_list)
+function select_object(objects)
 
     -- Prioritize objects according to their location
     for i, zone_search in ipairs(ZONES_LIST) do
         print("Looking for objects in zone " .. zone_search)
 
-        for j, obj in ipairs(object_list) do
+        for j, obj in ipairs(objects) do
             if obj.zone == zone_search then
                 print("Target object in zone " .. zone_search .. " with coords" .. obj.x .. obj.y .. obj.z)
                 return obj
@@ -332,9 +353,6 @@ function select_action(obj)
     print("aff_reply:toString()= " .. aff_reply:toString() )
     print("aff_reply:get(0):asString()= " .. aff_reply:get(0):asString() )
     print("aff_reply:get(0):asList():get(0):asString()= " .. aff_reply:get(0):asList():get(0):asString() )
-    print("aff_reply:get(0):asList():get(1):asString()= " .. aff_reply:get(0):asList():get(1):asDict():toString() )
-        
-
 
     if aff_reply:toString() == "(no_aff)" then
         print(aff_reply:toString())
@@ -344,6 +362,8 @@ function select_action(obj)
 
     tool_pose = aff_reply:get(0):asList():get(0):asString()
     print("I got the tool-pose " .. tool_pose)
+
+    print("aff_reply:get(0):asList():get(1):asString()= " .. aff_reply:get(0):asList():get(1):asDict():toString())      
 
     tool_affs = aff_reply:get(0):asList():get(1):asDict()
     print("With Affordances " .. tool_affs:toString())
@@ -734,10 +754,11 @@ function perform_action(action, object)
         pos:addDouble(object.x + X_GRASP_OFFSET)
         pos:addDouble(object.y + Y_GRASP_OFFSET)
         pos:addDouble(object.z + Z_GRASP_OFFSET)
+        cmd:addString("left")
         are_cmd:write(cmd, rep)
         print(cmd:toString())
         while check_left_arm_busy() do
-            print(".")
+            -- Just wait until arm is not busy                        
         end
         -- Return control once left arm is not busy anymore
         return true
