@@ -115,7 +115,6 @@ end
 
 function leaky_integrate(object_list, blobs, t_now)
     -- update object list
-    print("Leaky integrating")
     print("Checking object 2D positions and updating table")
     for i=0,blobs:size()-1 do
         obj = blobs:get(i):asList()
@@ -216,10 +215,9 @@ function update_object_list()
 
         update_zone()
 
-        print("Received " .. blobs:size() .. " blobs")
         return true
     else
-        print("No blobs received")        
+      
         return false
     end
 end
@@ -260,7 +258,7 @@ function update_zone()
     return true
 end
 
-function objects_in()
+function objects_in_workspace()
     for i=1,#object_list do
         local obj = object_list[i]
         if obj.zone ~= "OUT" then
@@ -543,7 +541,6 @@ function drop_tool()
 
     local cmd = yarp.Bottle()
     local rep = yarp.Bottle()
-    cmd:clear()
     rep:clear()
     cmd:addString("drop")
     cmd:addString("over")
@@ -558,6 +555,9 @@ function drop_tool()
     rep:clear()
     cmd:addString("cleartool")
     toolinc_rpc:write(cmd, rep)
+    
+    -- send same command 'cleartool' to affCollector.
+    affcollect_rpc:write(cmd, rep)
 
     speak("I'm done")
 end

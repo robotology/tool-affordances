@@ -16,34 +16,50 @@ return rfsm.state{
 
                    -- Read blobs and update objects in memory and associate zones 
                     if update_object_list() == false then 
-                        confirm_empty_table()                                                
+                        print("No blobs received")  
+                        confirm_empty_table()                                                                     
                         break
                     end
                     
                     -- check if received blobs are stable
                     if get_stable_objects_count() == 0  then
-                        confirm_empty_table()                                                
+                        confirm_empty_table()
+                        print("Blobs received not stable")                                                
                         break
                     end
-                  
-                   -- Check if there is any blob inside the workspace
-                   if objects_in() == false then                  
-                       if tooFarSaid == false then
-                           speak("Objects are too far!")
-                           print("Objects are too far!!!")
-                           tooFarSaid = true
-                       end
-                       confirm_empty_table()                                                
-                       break
-                   end
 
-                   -- slow down the commands to the action rendering port
-                   if (yarp.Time_now() - t0) < 1.0 then
+                    print("Received " .. #object_list .. " stable blobs")  
+
+                    -- slow down the commands to the action rendering port
+                    if (yarp.Time_now() - t0) < 1.0 then
                        break
-                   else
+                    else
                        t0 = yarp.Time_now()
                        reset_wholebody()
-                   end
+                    end
+
+                    -- get the 3D position
+                    get_3d_pos()  
+
+                    print("Received " .. #object_list .. " blobs")
+                    for i=1,#object_list do
+                        local obj = object_list[i]
+                        print("Object " .. i )
+                        print("-2D coords (" .. obj.u .. "," .. obj.v  .. ")" )
+                        print("-3D coords (" .. obj.x .. ", " .. obj.y .. ", " .. obj.z .. "), Zone: "   .. obj.zone)
+                    end
+                  
+                    -- Check if there is any blob inside the workspace
+                    if objects_in_workspace() == false then                  
+                       if tooFarSaid == false then
+                           speak("Objects are too far!")                           
+                           tooFarSaid = true
+                       end
+                       print("Objects are too far!!!")
+                       confirm_empty_table()                                                
+                       break
+                    end
+
 
                    -- if arm is busy, ignore blobs.
                    if check_left_arm_busy() == true then
@@ -54,8 +70,7 @@ return rfsm.state{
                    empty_table_counter = yarp.Time_now()
                    tableClean = false
 
-                    -- get the 3D position
-                    get_3d_pos()  
+
 
                    -- decide which object to target and the corresponding action
                    target_object = select_object(object_list)

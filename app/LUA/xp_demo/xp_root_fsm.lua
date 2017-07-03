@@ -80,7 +80,7 @@ return rfsm.state {
 
 
                     -- Connect to RPCs
-                    -- To other APP modules
+                    -- To other APP modules  /toolIncorporator/rpc:i
                     if not yarp.NetworkBase_connect(toolinc_rpc:getName(),"/toolIncorporator/rpc:i") then print (toolinc_rpc:getName() .. " NOT connected")  else print (toolinc_rpc:getName() .. " connected")  end
                     if not yarp.NetworkBase_connect(tmanager_rpc:getName(),"/tool3DManager/rpc:i") then print (tmanager_rpc:getName() .. " NOT connected")  else print (tmanager_rpc:getName() .. " connected")  end
                     if not yarp.NetworkBase_connect(affcollect_rpc:getName(),"/affCollector/rpc:i") then print (affcollect_rpc:getName() .. " NOT connected") else print (affcollect_rpc:getName() .. " connected") end
