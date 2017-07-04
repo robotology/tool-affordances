@@ -4,7 +4,7 @@ return rfsm.state{
    -- state SUB_OBSERVE               --
    ----------------------------------
    SUB_OBSERVE = rfsm.state{
-           entry=function()
+           doo=function()
                  print("State = ".. state)
                  print("in substate OBSERVE, checking objects on the table!")
                  empty_table_counter = yarp.Time_now()
@@ -101,7 +101,7 @@ return rfsm.state{
     -- state SUB_SELECTACT           --
     ----------------------------------
     SUB_SELECTACT = rfsm.state{
-           entry=function()
+           doo=function()
                speak("Selecting action")
                print("State = " .. state)
 
@@ -135,7 +135,7 @@ return rfsm.state{
     -- state SUB_GETTOOL             --
     ----------------------------------
     SUB_GETTOOL = rfsm.state{
-            entry=function()
+            doo=function()
                  print("State = "..state)
 
                  if TOOL_SELECTION_FLAG == true then
@@ -206,7 +206,7 @@ return rfsm.state{
    -- state SUB_DOACTION             --
    ----------------------------------
    SUB_DOACTION = rfsm.state{
-          entry=function()
+          doo=function()
                 print("State = "..state)
                 print("Performing action ", action)
                 local actOK = perform_action(action, target_object)
@@ -225,7 +225,7 @@ return rfsm.state{
    -- state SUB_EXIT               --
    ----------------------------------
    SUB_EXIT = rfsm.state{
-           entry=function()
+           doo=function()
                speak("Ok, bye bye")
                rfsm.send_events(fsm, 'e_observe_done')
            end

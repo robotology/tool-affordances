@@ -27,9 +27,10 @@ function XP_initialize()
     -- Declare consts.
     OBJECT_MEMORY       = 0.5       -- seconds
     SENSITIVITY         = 0.8       -- 80 percent
-    X_GRASP_OFFSET      = 0.02       -- m
-    Y_GRASP_OFFSET      = 0.02     -- m
-    Z_GRASP_OFFSET      = 0.0       -- m
+    X_GRASP_OFFSET      = 0.01      -- m it will reach towards the robot from the estimated 3D position
+    Y_GRASP_OFFSET      = 0.01       -- m it will reach to the right of the estimated 3D position
+    Z_GRASP_OFFSET      = 0.01      -- m it will reach above of the estimated 3D position
+    Z_OBJECT_OFFSET     = 0.04      --grasp objects from 4 cm above table (z+=0.04)
 
     -- LIMIT LINES
     MIN_X = -0.6        -- meter
@@ -188,12 +189,12 @@ function get_3d_pos()
         if bt then
             object_list[i+1].x = bt:get(0):asDouble()
             object_list[i+1].y = bt:get(1):asDouble()
-            object_list[i+1].z = bt:get(2):asDouble() + 0.04          --get position 4 cm above table (z+=0.04)
+            object_list[i+1].z = bt:get(2):asDouble() + Z_OBJECT_OFFSET          --get position 4 cm above table (z+=0.04)
             print("Object " ..  i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
         else                     -- single object, does not come wrapped in bottle
             object_list[i+1].x = rep:get(0):asDouble()
             object_list[i+1].y = rep:get(1):asDouble()
-            object_list[i+1].z = rep:get(2):asDouble() + 0.04          --get position 4 cm above table (z+=0.04)
+            object_list[i+1].z = rep:get(2):asDouble() + Z_OBJECT_OFFSET          --get position 4 cm above table (z+=0.04)
             print("Object " .. i+1 .. " at 3D " .. object_list[i+1].x .. "," .. object_list[i+1].y .. "," .. object_list[i+1].z )
             return true
         end
@@ -498,7 +499,7 @@ function check_left_arm_busy()
     -- do not do any other action if left arm is busy
     if not leftarm_idle or lefthand_holding then
         print("Left hand or arm is busy. Ignoring objects on the table!")
-        print("Status:", leftarm_idle, lefthand_holding, not leftarm_idle or lefthand_holding)
+        --print("Status:", leftarm_idle, lefthand_holding, not leftarm_idle or lefthand_holding)
         return true
     end
 
@@ -784,9 +785,9 @@ function perform_action(action, object)
         local cmd = yarp.Bottle()
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
-        cmd:addDouble(object.x - 0.10)
+        cmd:addDouble(object.x - 0.08)
         cmd:addDouble(object.y)
-        cmd:addDouble(object.z + 0.00)
+        cmd:addDouble(object.z - 0.02)
         cmd:addDouble(270)
         cmd:addDouble(math.abs(object.x -(CENTER_X + 0.07)))
         print(cmd:toString())
@@ -799,7 +800,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.05)
         cmd:addDouble(object.y + 0.07)
-        cmd:addDouble(object.z + 0.01)
+        cmd:addDouble(object.z - 0.01)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (CENTER_Y - 0.10)))
         print(cmd:toString())
@@ -812,7 +813,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.06)
         cmd:addDouble(object.y - 0.02)
-        cmd:addDouble(object.z + 0.01)
+        cmd:addDouble(object.z - 0.01)
         cmd:addDouble(0)
         cmd:addDouble(math.abs(object.y - (CENTER_Y + 0.10)))
         print(cmd:toString())
@@ -824,8 +825,8 @@ function perform_action(action, object)
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.06)
-        cmd:addDouble(object.y - 0.02)
-        cmd:addDouble(object.z + 0.01)
+        cmd:addDouble(object.y - 0.04)
+        cmd:addDouble(object.z - 0.02)
         cmd:addDouble(315)
         local a = math.abs(object.y - (CENTER_Y + 0.10))
         local b = math.abs(object.x - (CENTER_X + 0.05))
