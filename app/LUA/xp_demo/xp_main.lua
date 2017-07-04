@@ -8,7 +8,7 @@
 -- rFSM state machine controlling the flow of the tool use demo (aka Xperience demo).
 
 
---                  -0.3                   0.05                     0.4
+--                  -0.3                   0.05                     0.25
 --                 _________________________|_________________________ -> Y
 --            -0.6 |                      | |                        |
 --                 |                        |                        |

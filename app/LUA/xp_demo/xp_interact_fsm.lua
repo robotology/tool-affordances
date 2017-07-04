@@ -4,7 +4,7 @@ return rfsm.state{
    -- state SUB_OBSERVE               --
    ----------------------------------
    SUB_OBSERVE = rfsm.state{
-           doo=function()
+           entry=function()
                  print("State = ".. state)
                  print("in substate OBSERVE, checking objects on the table!")
                  empty_table_counter = yarp.Time_now()
