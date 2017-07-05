@@ -144,14 +144,14 @@
         <geometry>(Pos (x 1223.88) (y 697.435))</geometry>
     </module>
     <module>
-        <name>xp_main.lua</name>
-        <parameters> </parameters>
+        <name>rfsmGui</name>
+        <parameters> --rfsm xp_root_fsm.lua --context AffordancesProject/LUA --run --period 50 </parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 665.036) (y 142.117))</geometry>
     </module>
         <connection>
-            <from>/tool3DManager/obj3Dexp:rpc</from>
+            <from>/tool3DManager/toolinc:rpc</from>
             <to>/toolIncorporator/rpc:i</to>
             <protocol>tcp</protocol>
             <geometry>(Pos ((x 321) (y 357.5)) ((x 313) (y 285)) ((x 350) (y 430))  )</geometry>

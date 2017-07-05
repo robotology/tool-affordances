@@ -25,7 +25,6 @@ using namespace yarp::math;
 using namespace yarp::dev;
 
 // XXX XXX Remove disp from all the functions using it.
-// XXX Remove checks for "invalid" tools
 
 /**********************************************************
 					PUBLIC METHODS
@@ -125,7 +124,7 @@ bool Tool3DManager::configure(ResourceFinder &rf)
     retRPC = retRPC && rpcSimToolLoader.open(("/"+name+"/simToolLoader:rpc").c_str()); // rpc server to query the simtooloader module
     retRPC = retRPC && rpcSimulator.open(("/"+name+"/simulator:rpc").c_str());         // rpc server to query the simulator
     retRPC = retRPC && rpcAffMotor.open(("/"+name+"/affMotor:rpc").c_str());           // rpc server to query Affordance Motor Module
-    retRPC = retRPC && rpc3Dexp.open(("/"+name+"/obj3Dexp:rpc").c_str());              // rpc server to query objects3DExplorer module
+    retRPC = retRPC && rpc3Dexp.open(("/"+name+"/toolinc:rpc").c_str());              // rpc server to query toolIncorporator module
     retRPC = retRPC && rpcObjFinder.open(("/"+name+"/objFind:rpc").c_str());           // rpc server to query objectFinder
     retRPC = retRPC && rpcGraspClass.open(("/"+name+"/graspClass:rpc").c_str());           // rpc server to query graspClassifier
     retRPC = retRPC && rpcToolClass.open(("/"+name+"/toolClass:rpc").c_str());           // rpc server to query graspClassifier
@@ -598,7 +597,7 @@ bool Tool3DManager::predExp(int toolini, int goal)
 
 
 bool Tool3DManager::setSeg(bool seg){
-    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+    Bottle cmd3DE,reply3DE;                 // bottles for toolIncorporator
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("setSeg");
     if (seg){
@@ -606,11 +605,11 @@ bool Tool3DManager::setSeg(bool seg){
     }else{
         cmd3DE.addString("OFF");
     }
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "objects3DExplorer couldnt set segmentatio to ON/OFF" << endl;
+        cout << "toolIncorporator couldnt set segmentatio to ON/OFF" << endl;
         return false;
     }
 
@@ -632,12 +631,12 @@ bool Tool3DManager::setSeg(bool seg){
 /**********************************************************/
 bool Tool3DManager::load3Dmodel(const string &cloudName)
 {
-    // Communicates with objects3DExplorer to load the corresponding Model
-    Bottle cmd3DE,reply3DE;                 // bottles for Objects3Dexplorer
+    // Communicates with toolIncorporator to load the corresponding Model
+    Bottle cmd3DE,reply3DE;                 // bottles for toolIncorporator
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("loadCloud");
     cmd3DE.addString(cloudName);
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
 
     if (reply3DE.get(0).asString() == "[ack]" ){
@@ -645,7 +644,7 @@ bool Tool3DManager::load3Dmodel(const string &cloudName)
         cout << "Cloud " << cloudName << " loaded" << endl;
         return true;
     }else {
-        cout << "objects3DExplorer coudln't load the tool." << endl;
+        cout << "toolIncorporator coudln't load the tool." << endl;
         cout << "Check the spelling of the name, or, if the tool has no known model, try 'explore (tool)'." << endl;
         return false;
     }
@@ -657,7 +656,7 @@ string Tool3DManager::graspToolExe(const std::string &tool)
 {
     Bottle cmdAMM, replyAMM;               // bottles for Affordance Motor Module
     Bottle cmdARE, replyARE;               // bottles for actionsRenderingEngine
-    Bottle cmd3DE, reply3DE;                 // bottles for objects3DExplorer
+    Bottle cmd3DE, reply3DE;                 // bottles for toolIncorporator
 
     // Remove any end effector extension that might be.
     cmdAMM.clear();replyAMM.clear();
@@ -725,15 +724,15 @@ string Tool3DManager::graspToolExe(const std::string &tool)
 /**********************************************************/
 bool Tool3DManager::lookToolExe()
 {
-    // Communicates with objects3DExplorer to load the corresponding Model, and find its pose and tooltip
+    // Communicates with toolIncorporator to load the corresponding Model, and find its pose and tooltip
     Bottle cmd3DE,reply3DE;                 // bottles for toolFeatExt
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("lookAtTool");
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
 
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "objects3DExplorer coudln't look at tool." << endl;
+        cout << "toolIncorporator coudln't look at tool." << endl;
         return false;
     }
 
@@ -837,9 +836,9 @@ bool Tool3DManager::getToolSimExe(const string &tool, const double graspOr,const
     cmd3DE.addDouble(graspDisp);
     cmd3DE.addDouble(tiltValid);
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "Sent RPC command to object3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sent RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "Object3DExplorer coudln't compute the tooltip." << endl;
+        cout << "toolIncorporator coudln't compute the tooltip." << endl;
         return false;
     }
     cout << " Received reply: " << reply3DE.toString() << endl;
@@ -881,7 +880,7 @@ bool Tool3DManager::getToolParamExe(const string &tool, const double graspOr, co
     cout <<  "Tool  "<< tool_loaded << " grasped!" << endl;
 
     bool ok;
-    // Query objects3DExplorer to load model to load 3D Pointcloud.
+    // Query toolIncorporator to load model to load 3D Pointcloud.
     cout << "Querying objectd3DExplorer to set tooltip based on the folllowing parameters." << endl;
     cout << " -- orientation: "<< graspOr << endl << " -- displacement: " << graspDisp << endl << " -- tilt: " << graspTilt  <<endl << " -- shift: " << graspShift << endl;
     ok = findPoseParamExe(tooltip, graspOr, graspDisp, graspTilt, graspShift);
@@ -1013,17 +1012,17 @@ bool Tool3DManager::regraspExe(Point3D &newTip, const double graspOr, const doub
 /**********************************************************/
 bool Tool3DManager::findPoseAlignExe(Point3D &ttip, double &ori, double &displ, double &tilt)
 {
-    // Query object3DExplorer to find the tooltip
+    // Query toolIncorporator to find the tooltip
     Bottle cmd3DE,reply3DE;
     cout << "Finding out Pose and tooltip by aligning 3D partial view with model." << endl;
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("findTooltipAlign");
     cmd3DE.addInt(5);
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() == "[nack]" ){
-        cout << "Objects3Dexplorer couldn't find out the pose." << endl;
+        cout << "toolIncorporator couldn't find out the pose." << endl;
         return false;
     }
 
@@ -1045,7 +1044,7 @@ bool Tool3DManager::findPoseAlignExe(Point3D &ttip, double &ori, double &displ, 
 /**********************************************************/
 bool Tool3DManager::findPoseParamExe(Point3D &ttip, const double graspOr, const double graspDisp, const double graspTilt, const double graspShift)
 {
-    // Query object3DExplorer to find the tooltip
+    // Query toolIncorporator to find the tooltip
     cout << "Finding out tooltoltip from model and grasp parameters." << endl;
     Bottle cmd3DE, reply3DE;
 
@@ -1055,11 +1054,11 @@ bool Tool3DManager::findPoseParamExe(Point3D &ttip, const double graspOr, const 
     cmd3DE.addDouble(graspDisp);
     cmd3DE.addDouble(graspTilt);
     cmd3DE.addDouble(graspShift);
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "Objects3Dexplorer couldn't estimate the tip." << endl;
+        cout << "toolIncorporator couldn't estimate the tip." << endl;
         return false;
     }
     Bottle ttBot = reply3DE.tail();
@@ -1075,7 +1074,7 @@ bool Tool3DManager::findPoseParamExe(Point3D &ttip, const double graspOr, const 
 /**********************************************************/
 bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point3D &ttip)
 {
-    // Query object3DExplorer to find the tooltip
+    // Query toolIncorporator to find the tooltip
     cout << "Finding out tooltoltip by exploration and symmetry" << endl;
     Bottle cmd3DE, reply3DE;
 
@@ -1083,9 +1082,9 @@ bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point
     cmd3DE.addString("exploreTool");
     cmd3DE.addString(tool);
     cmd3DE.addString(exp_mode);
-    cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
     if (reply3DE.get(0).asString() != "[ack]" ){
         cout << "There was some error exploring the tool." << endl;
         return false;
@@ -1102,9 +1101,9 @@ bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point
 
         cmd3DE.clear();   reply3DE.clear();
         cmd3DE.addString("makecanon");
-        cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+        cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
         rpc3Dexp.write(cmd3DE, reply3DE);
-        cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+        cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
         if (reply3DE.get(0).asString() != "[ack]" ){
             cout << "Main planes could not be computed." << endl;
             return false;
@@ -1112,9 +1111,9 @@ bool Tool3DManager::exploreTool(const string &tool,const string &exp_mode, Point
 
         cmd3DE.clear();   reply3DE.clear();
         cmd3DE.addString("findTooltipSym");
-        cout << "Sending RPC command to objects3Dexplorer: " << cmd3DE.toString() << "."<< endl;
+        cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
         rpc3Dexp.write(cmd3DE, reply3DE);
-        cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+        cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
         if (reply3DE.get(0).asString() != "[ack]" ){
             cout << "There was some estimating the tooltip." << endl;
             return false;
@@ -1145,12 +1144,12 @@ int Tool3DManager::findToolInd(const string& tool)
 
 double Tool3DManager::findOri()
 {
-    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+    Bottle cmd3DE,reply3DE;                 // bottles for toolIncorporator
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("getOri");
     rpc3Dexp.write(cmd3DE, reply3DE);
     if (reply3DE.get(0).asString() != "[ack]" ){
-        cout << "objects3DExplorer coudln't return tool's orientation." << endl;
+        cout << "toolIncorporator coudln't return tool's orientation." << endl;
         return false;
     }
     double ori = reply3DE.get(0).asDouble();
@@ -1186,13 +1185,13 @@ bool Tool3DManager::addToolTip(const Point3D ttip)
 bool Tool3DManager::extractFeats()
 {    // Query toolFeatExt to extract features
     cout << "Extacting features of handled tool." << endl;
-    Bottle cmd3DE,reply3DE;                 // bottles for objects3DExplorer
+    Bottle cmd3DE,reply3DE;                 // bottles for toolIncorporator
 
     cmd3DE.clear();   reply3DE.clear();
     cmd3DE.addString("extractFeats");
-    cout << "Sending RPC command to objects3DExplorer: " << cmd3DE.toString() << "."<< endl;
+    cout << "Sending RPC command to toolIncorporator: " << cmd3DE.toString() << "."<< endl;
     rpc3Dexp.write(cmd3DE, reply3DE);
-    cout << "RPC reply from objects3Dexplorer: " << reply3DE.toString() << "."<< endl;
+    cout << "RPC reply from toolIncorporator: " << reply3DE.toString() << "."<< endl;
 
     return true;
 }

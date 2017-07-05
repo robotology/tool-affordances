@@ -77,7 +77,7 @@ protected:
     yarp::os::RpcClient         rpcGraspClass;          //rpc port to affMotor Module
     yarp::os::RpcClient         rpcToolClass;          //rpc port to affMotor Module
 
-    yarp::os::RpcClient         rpc3Dexp;               //rpc connection to objects3Dexplroer to extract features from cloud
+    yarp::os::RpcClient         rpc3Dexp;               //rpc connection to toolIncorporator to extract features from cloud
 
     yarp::os::RpcClient         rpcObjFinder;           //rpc connecting to object finder
 

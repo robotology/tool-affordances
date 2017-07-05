@@ -198,6 +198,6 @@ return rfsm.state {
    rfsm.transition { src='ST_INITVOCABS', tgt='ST_HOME', events={ 'e_done' } },
 
    rfsm.transition { src='ST_HOME', tgt='ST_INTERACT', events={ 'e_done' } },
-   rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_done' } },
+   rfsm.transition { src='ST_INTERACT', tgt='ST_FINI', events={ 'e_task_done' } },
 
 }

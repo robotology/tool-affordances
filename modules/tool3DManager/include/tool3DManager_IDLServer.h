@@ -30,7 +30,7 @@ public:
    */
   virtual bool setSeg(const bool seg = 0);
   /**
-   * Loads the tool on objects3DExplorer and changes name
+   * Loads the tool on toolIncorporator and changes name
    * @return true/false on success/failure on setting name
    */
   virtual bool loadModel(const std::string& tool);
@@ -45,7 +45,7 @@ public:
   /**
    * Performs the sequence to get the tool: \n
    * - Grasp (through ARE)
-   * - Load tool in objects3Dexplorer (by setToolName)
+   * - Load tool in toolIncorporator (by setToolName)
    * - Find pose and tooltip with align method (by findPose)
    * @return true/false on success/failure of grasping and loading the named tool
    */

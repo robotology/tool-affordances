@@ -125,7 +125,7 @@ function leaky_integrate(object_list, blobs, t_now)
         end
     end
 
-    --print("Checking stability")
+    --Checking("print stability")
     for key, value in pairs(object_list) do        
         is_overlaped = false
         for i=0,blobs:size()-1 do

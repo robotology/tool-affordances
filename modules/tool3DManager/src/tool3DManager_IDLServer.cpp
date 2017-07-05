@@ -1903,7 +1903,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
     }
     if (functionName=="loadModel") {
       helpString.push_back("bool loadModel(const std::string& tool) ");
-      helpString.push_back("Loads the tool on objects3DExplorer and changes name ");
+      helpString.push_back("Loads the tool on toolIncorporator and changes name ");
       helpString.push_back("@return true/false on success/failure on setting name ");
     }
     if (functionName=="getToolParam") {
@@ -1918,7 +1918,7 @@ std::vector<std::string> tool3DManager_IDLServer::help(const std::string& functi
       helpString.push_back("bool getToolAlign(const std::string& tool = \"unknown\") ");
       helpString.push_back("Performs the sequence to get the tool: \n ");
       helpString.push_back("- Grasp (through ARE) ");
-      helpString.push_back("- Load tool in objects3Dexplorer (by setToolName) ");
+      helpString.push_back("- Load tool in toolIncorporator (by setToolName) ");
       helpString.push_back("- Find pose and tooltip with align method (by findPose) ");
       helpString.push_back("@return true/false on success/failure of grasping and loading the named tool ");
     }

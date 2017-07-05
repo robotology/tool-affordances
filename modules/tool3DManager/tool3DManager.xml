@@ -74,7 +74,7 @@
         </output>
         <output port_type="service">
             <type>rpc</type>
-            <port>/tool3DManager/obj3Dexp:rpc</port>
+            <port>/tool3DManager/toolinc:rpc</port>
             <description> Send commands to the object3Dexplorer for tool pose estimation.</description>        
         </output>
         <output port_type="service">

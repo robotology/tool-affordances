@@ -1,7 +1,11 @@
 return rfsm.state{
 
+
+    -- XXX Find a way so the object interacted is not just the first stable one, but the one in the priority zone.
+    -- XXX Check the displ in tooltip estimation, seems to be always off to the left. 
+
    ----------------------------------
-   -- state SUB_OBSERVE               --
+   -- state SUB_OBSERVE            --
    ----------------------------------
    SUB_OBSERVE = rfsm.state{
            entry=function()
@@ -16,7 +20,7 @@ return rfsm.state{
 
                    -- Read blobs and update objects in memory and associate zones 
                     if update_object_list() == false then 
-                        print("No blobs received")  
+                        --print("No blobs received")                           
                         confirm_empty_table()                                                                     
                         break
                     end
@@ -24,7 +28,7 @@ return rfsm.state{
                     -- check if received blobs are stable
                     if get_stable_objects_count() == 0  then
                         confirm_empty_table()
-                        print("Blobs received not stable")                                                
+                        --print("Blobs received not stable")                                                
                         break
                     end
 
@@ -227,7 +231,8 @@ return rfsm.state{
    SUB_EXIT = rfsm.state{
            doo=function()
                speak("Ok, bye bye")
-               rfsm.send_events(fsm, 'e_observe_done')
+               print("closing state machine")
+               rfsm.send_events(fsm, 'e_task_done')
            end
    },
 
