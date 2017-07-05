@@ -35,7 +35,7 @@ The experiments using 2D features require:
 - [OpenCV](http://opencv.org/)
 
 The experiments using 3D features interact with:
-- [tool-incporporation](https://github.com/robotology/tool-incorporation)
+- [tool-incorporation](https://github.com/robotology/tool-incorporation)
 
 ## How to compile
 In `Linux systems` code can be compiled as follows:
