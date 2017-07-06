@@ -1,5 +1,13 @@
 <application>
     <name>TOOL_USE_DEMO_APP</name>
+
+    <dependencies>
+            <port>/icub/camcalib/left/out</port>
+            <port>/icub/camcalib/right/out</port>
+            <port>/icub/cartesianController/left_arm/state:o</port>
+            <port>/icub/cartesianController/right_arm/state:o</port>
+            <port>/iKinGazeCtrl/rpc</port>
+    </dependencies>
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--motor::block_eyes 5.0</parameters>
@@ -146,10 +154,21 @@
     <module>
         <name>rfsmGui</name>
         <parameters> --rfsm xp_root_fsm.lua --context AffordancesProject/LUA --run --period 50 </parameters>
+        <dependencies>
+            <port timeout="10">/lbpExtract/blobs:o</port>
+            <port timeout="10">/toolIncorporator/rpc:i</port>
+            <port timeout="10">/tool3DManager/rpc:i</port>
+            <port timeout="10">/affCollector/rpc:i</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
+            <port timeout="10">/actionsRenderingEngine/rpc</port>
+            <port timeout="10">/actionsRenderingEngine/get:io</port>
+        </dependencies>
         <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 665.036) (y 142.117))</geometry>
     </module>
+
+
         <connection>
             <from>/tool3DManager/toolinc:rpc</from>
             <to>/toolIncorporator/rpc:i</to>
