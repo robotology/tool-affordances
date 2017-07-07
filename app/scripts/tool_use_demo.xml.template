@@ -153,7 +153,7 @@
     </module>
     <module>
         <name>rfsmGui</name>
-        <parameters> --rfsm xp_root_fsm.lua --context AffordancesProject/LUA --run --period 50 </parameters>
+        <parameters> --rfsm xp_root_fsm.lua --context AffordancesProject/LUA --period 50 </parameters>
         <dependencies>
             <port timeout="10">/lbpExtract/blobs:o</port>
             <port timeout="10">/toolIncorporator/rpc:i</port>
