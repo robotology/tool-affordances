@@ -43,7 +43,8 @@ return rfsm.state{
                     end
 
                     -- get the 3D position
-                    get_3d_pos()  
+                    get_3d_pos()
+                    update_zone()
 
                     print("Received " .. #object_list .. " blobs")
                     for i=1,#object_list do

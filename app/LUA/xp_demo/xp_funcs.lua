@@ -213,7 +213,7 @@ function update_object_list()
         leaky_integrate(object_list, blobs, t_now)  -- stabilize objects
         forget_expired_objects(object_list)
 
-        update_zone()
+        --update_zone()
 
         return true
     else
@@ -272,7 +272,7 @@ function confirm_empty_table()
     -- If there are no blobs within the working area, and robot not busy, table is clean
     -- waits for 4 seconds before considering that the table is clean
     timer = yarp.Time_now() - empty_table_counter
-    if timer > 4 then       
+    if timer > 5 then       
         if tableClean == false then
             speak("The table is now clean, hurray!")
             print("The table is now clean, hurray!")
@@ -799,7 +799,7 @@ function perform_action(action, object)
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.05)
-        cmd:addDouble(object.y + 0.07)
+        cmd:addDouble(object.y + 0.1)
         cmd:addDouble(object.z - 0.01)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (CENTER_Y - 0.10)))
