@@ -27,10 +27,10 @@ function XP_initialize()
     -- Declare consts.
     OBJECT_MEMORY       = 0.5       -- seconds
     SENSITIVITY         = 0.8       -- 80 percent
-    X_GRASP_OFFSET      = 0.03      -- m it will reach towards the robot from the estimated 3D position
-    Y_GRASP_OFFSET      = 0.01       -- m it will reach to the right of the estimated 3D position
-    Z_GRASP_OFFSET      = 0.01      -- m it will reach above of the estimated 3D position
-    Z_OBJECT_OFFSET     = 0.04      --grasp objects from 4 cm above table (z+=0.04)
+    X_GRASP_OFFSET      = 0.05      -- m it will reach towards the robot from the estimated 3D position
+    Y_GRASP_OFFSET      = 0.02      -- m it will reach to the right of the estimated 3D position
+    Z_GRASP_OFFSET      = 0.03      -- m it will reach above of the estimated 3D position
+    Z_OBJECT_OFFSET     = 0.02      -- grasp objects from 4 cm above table (z+=0.04)
 
     -- LIMIT LINES
     MIN_X = -0.6        -- meter
@@ -825,7 +825,7 @@ function perform_action(action, object)
         local rep = yarp.Bottle()
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.06)
-        cmd:addDouble(object.y - 0.04)
+        cmd:addDouble(object.y - 0.08)
         cmd:addDouble(object.z - 0.02)
         cmd:addDouble(315)
         local a = math.abs(object.y - (CENTER_Y + 0.10))
