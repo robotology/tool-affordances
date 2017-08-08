@@ -61,7 +61,7 @@ Radial drag action with 3D features, as in Humanoids 2015, ICRA 2017 and TCDS 20
  
 Table cleaning demo, involving zone dependent actions, tool incorporation and tool selection:
  * `aff-explorer`: lua module to automatically run affordance exploration using the demo's scenario
- * `xperience_sm`: lua rFSM module to automatically run affordance exploration using the demo's scenario as a proper State Machine.
+ * `table_cleaning_SM`: lua rFSM module to automatically run affordance exploration using the demo's scenario as a proper State Machine.
  * `drop-away`: lua module to send the drop-away command continuously for the port-monitored demo version.
   The demo can also be coordinated by means of port-monitors, using the PMs in /app/scripts/monitors
  
