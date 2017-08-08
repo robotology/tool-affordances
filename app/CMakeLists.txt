@@ -11,10 +11,10 @@ file(GLOB temps   ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
 ##file(GLOB apps ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml)
 file(GLOB monitors ${CMAKE_CURRENT_SOURCE_DIR}/scripts/monitors/*.lua) 
 
-set(lua_fsm        ${CMAKE_CURRENT_SOURCE_DIR}/LUA/xp_demo/xp_funcs.lua
-                   ${CMAKE_CURRENT_SOURCE_DIR}/LUA/xp_demo/xp_interact_fsm.lua
-                   ${CMAKE_CURRENT_SOURCE_DIR}/LUA/xp_demo/xp_root_fsm.lua)
-set(lua_bin        ${CMAKE_CURRENT_SOURCE_DIR}/LUA/xp_demo/xp_main.lua)
+set(lua_fsm        ${CMAKE_CURRENT_SOURCE_DIR}/LUA/table_clean_SM/xp_funcs.lua
+                   ${CMAKE_CURRENT_SOURCE_DIR}/LUA/table_clean_SM/xp_interact_fsm.lua
+                   ${CMAKE_CURRENT_SOURCE_DIR}/LUA/table_clean_SM/xp_root_fsm.lua)
+set(lua_bin        ${CMAKE_CURRENT_SOURCE_DIR}/LUA/table_clean_SM/xp_main.lua)
         
 
 ### create a single target that installs all applications at once
