@@ -12,7 +12,7 @@ Moreover, it provides the motor and managing modules to run the tool use demo (c
 [![tool use demo video](/tool_use_vidprof.png)](https://www.youtube.com/watch?v=2Jmm4zel134)
 
 ## Use
-Most of the exploration actions can be executed either individually or in a cycle using the manager modules' commands, see affManager and tool3DManager help. For running full experimental exploration as well as for the behavior-based tool use demo, see the applications [here](https://github.com/robotology/tool-affordances/tree/master/app/scripts).
+Most of the exploration actions can be executed either individually or in a cycle using the manager modules' commands, see affManager and tool3DManager help. For running full experimental exploration as well as for the behavior-based tool use demo, see the applications [here](https://github.com/robotology/tool-affordances/tree/master/app/LUA).
 
 ## Theoretical background
 The methods executed by the modules in this repository have been described in detail in the following papers:
