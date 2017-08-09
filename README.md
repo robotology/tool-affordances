@@ -17,12 +17,13 @@ Most of the exploration actions can be executed either individually or in a cycl
 ## Theoretical background
 The methods executed by the modules in this repository have been described in detail in the following papers:
 
-T. Mar, V. Tikhanoff, L. Natale "What can I do with this tool? Self-supervised learning of tool affordances from their 3D geometry.", _IEEE Transactions on Cognitive and Developmental Systems 2017_. 
-T. Mar, V. Tikhanoff, G. Metta, L. Natale "Self-supervised learning of tool affordances from 3D tool representation through parallel SOM mapping ", _ICRA 2017_, Singapore. 
-T. Mar, V. Tikhanoff, G. Metta, L. Natale "Multi-model approach based on 3D functional features for tool affordance learning in robotics", _Humanoids 2015_, Singapore. 
-T. Mar, V. Tikhanoff, G. Metta, L. Natale "Self-supervised learning of grasp dependent tool affordances on the iCub Humanoid robot ", _ICRA 2015_, Seattle. 
+- T. Mar, V. Tikhanoff, L. Natale "What can I do with this tool? Self-supervised learning of tool affordances from their 3D geometry.", _IEEE Transactions on Cognitive and Developmental Systems 2017_. 
+- T. Mar, V. Tikhanoff, G. Metta, L. Natale "Self-supervised learning of tool affordances from 3D tool representation through parallel SOM mapping ", _ICRA 2017_, Singapore. 
+- T. Mar, V. Tikhanoff, G. Metta, L. Natale "Multi-model approach based on 3D functional features for tool affordance learning in robotics", _Humanoids 2015_, Singapore. 
+- T. Mar, V. Tikhanoff, G. Metta, L. Natale "Self-supervised learning of grasp dependent tool affordances on the iCub Humanoid robot ", _ICRA 2015_, Seattle. 
 
 As well as in Tanis Mar's PhD Thesis: 
+
 "Affordances for and from Manipulation: A Developmental Approach to Tool Use Learning on iCub."
 
 ## Dependencies
