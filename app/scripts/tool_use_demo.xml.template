@@ -80,14 +80,14 @@
     </module>
     <module>
         <name>caffeCoder</name>
-        <parameters>--name caffeCoderGrasp</parameters>
+        <parameters>--name caffeCoderGrasp --from caffeCoder_resnet.ini</parameters>
         <node>icub-cuda</node>
         <prefix></prefix>
         <geometry>(Pos (x 608.9) (y 495.9))</geometry>
     </module>
     <module>
         <name>dispBlobber</name>
-        <parameters>--minBlobSize 1000</parameters>
+        <parameters>--minBlobSize 400</parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 310) (y 10))</geometry>
