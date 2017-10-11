@@ -27,10 +27,10 @@ function XP_initialize()
     -- Declare consts.
     OBJECT_MEMORY       = 0.5       -- seconds
     SENSITIVITY         = 0.8       -- 80 percent
-    X_GRASP_OFFSET      = 0.05      -- m it will reach towards the robot from the estimated 3D position
-    Y_GRASP_OFFSET      = 0.02      -- m it will reach to the right of the estimated 3D position
+    X_GRASP_OFFSET      = 0.04      -- m it will reach towards the robot from the estimated 3D position
+    Y_GRASP_OFFSET      = -0.03      -- m it will reach to the right of the estimated 3D position
     Z_GRASP_OFFSET      = 0.03      -- m it will reach above of the estimated 3D position
-    Z_OBJECT_OFFSET     = 0.02      -- grasp objects from 4 cm above table (z+=0.04)
+    Z_OBJECT_OFFSET     = 0.01      -- grasp objects from 4 cm above table (z+=0.04)
 
     -- LIMIT LINES
     MIN_X = -0.6        -- meter
@@ -145,7 +145,7 @@ function leaky_integrate(object_list, blobs, t_now)
         else
             value.w = value.w - (t_now-value.t)/OBJECT_MEMORY
         end
-        print("Blob " .. key .. " has stability value of " .. value.w ) 
+        --print("Blob " .. key .. " has stability value of " .. value.w ) 
     end
 end
 
@@ -319,20 +319,20 @@ function select_action(obj)
     local act = "not_affordable"
 
     if zone == "OUT" then
-        speak("Object out of reach!")
+        speak("Object out of limits!")
         print("Objects out of limits!!")
         return "not_affordable"
     end
 
     -- Reachable by hand (no tool required)
     if zone == "BOTTOMLEFT" then
-        speak("Object reachable!")
+        speak("I can reach it!")
         print("Objects reachable!!")
         return  "take_hand"
     end
 
     if zone == "BOTTOMRIGHT" then
-        speak("Object bottomright!")
+        speak("I can push it!!")
         print("Object bottomright!!")
         return "drag_left_hand"
     end
@@ -343,7 +343,6 @@ function select_action(obj)
     local aff_reply = get_tool_affordance()
     if aff_reply == nil then
         print("no reply from affCollector.")
-        speak("affCollector does not respond")
         return "not_affordable"
     end
     print("Current affordances are:" .. aff_reply:toString())
@@ -370,7 +369,7 @@ function select_action(obj)
         if tool_affs:check("drag_down_right") == true then
             aff_prob = tool_affs:find("drag_down_right"):asDouble()
             if (aff_prob > 0.7) then
-                speak("I will drag down right")
+                speak("I will drag it down right")
                 return "drag_down_right"
             end
         end
@@ -380,15 +379,15 @@ function select_action(obj)
         if tool_affs:check("drag_down") == true then
             aff_prob = tool_affs:find("drag_down"):asDouble()
             if (aff_prob > 0.7) then
-                speak("I will drag down")
+                speak("I will drag it down")
                 return "drag_down"
             end
         end
-        speak("I can't drag down")
+        speak("I can't drag it down")
         if tool_affs:check("drag_left") == true then
             aff_prob = tool_affs:find("drag_left"):asDouble()
             if (aff_prob > 0.7) then
-                speak("I will drag left")
+                speak("I will drag it left")
                 return "drag_left"
             end
         end
@@ -559,7 +558,7 @@ function drop_tool()
     -- send same command 'cleartool' to affCollector.
     affcollect_rpc:write(cmd, rep)
 
-    speak("I'm done")
+    speak("Done")
 end
 
 ----------------------------------
@@ -655,6 +654,8 @@ function ask_for_tool(tool_name)
     local tool_loaded = rep:get(0):asString()
 
     if tool_loaded == "not_loaded" then  return "invalid"   end
+
+    -- speak(" I think this is a " .. tool_loaded)
 
     print("find the tool pose")
     cmd:clear()
@@ -770,7 +771,7 @@ function perform_action(action, object)
         cmd:addString("drag3D")
         cmd:addDouble(object.x - 0.05)
         cmd:addDouble(object.y + 0.07)
-        cmd:addDouble(object.z + 0.0)
+        cmd:addDouble(object.z + 0.02)
         cmd:addDouble(180)
         cmd:addDouble(math.abs(object.y - (REACHABLE_ZONE_Y.max - 0.10)))
         cmd:addDouble(0.0)              -- remove tool tilt

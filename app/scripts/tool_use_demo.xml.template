@@ -73,7 +73,7 @@
     </module>
     <module>
         <name>graspChecker</name>
-        <parameters></parameters>
+        <parameters>--from caffeCoder_resnet.ini</parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry></geometry>
@@ -136,13 +136,6 @@
          <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
      </module>
 
-    <module>
-        <name>iSpeak</name>
-        <parameters>--package acapela-tts</parameters>
-        <node>icub-win1</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
-    </module>
     <module>
         <name>drop-away.lua</name>
         <parameters></parameters>
