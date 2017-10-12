@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>graspChecker</name>
+    <description>Checks if a grasp has been successful or not</description>
+        <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+    <version>0.5</version>
+    
+    <description-long>
+    Uses the visual classification pipeline trained on empty and full iCub hands to classify whether the hand of the iCub is open full or not. 
+    </description-long>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>    
+    <param desc="Name of the module" default="graspChecker"> name</param>
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+  	  <author email="vadim.tikhanoff@iit.it"> Ugo Pattacini </author>
+	  <author email="tanis.mar@iit.it"> Tanis Mar </author>
+    </authors>
+    
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <input port_type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/graspChecker/rpc:i</port>
+            <description> Takes the following RPC commands
+                -# <b>help</b>:  produces this help.
+                -# <b>train</b> <i>"empty"/"full" </i>: Command to train the hand on empty/full examples.
+                -# <b>check</b> Checks whether the hand is full or empty. Returns "empty" or "full" as strings.
+            </description>
+        </input>
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/graspChecker/img:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives the camera image.</description>
+        </input>
+        <input>
+            <type>Bottle</type>
+            <port carrier="udp">/graspChecker/bb:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description> Receives bounding box coordinates (tl, br) of the object of interest. </description>
+        </input>
+
+        <!-- output data if available -->
+        
+        <output>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/graspChecker/img:o</port>
+            <description>Sends out the image to propagate it to Himrep.</description>
+        </output> 
+        <output port_type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/graspChecker/himrep:rpc</port>
+            <description>rpc port to communicate with the HimRep module, which manages the coder and classifier modules. </description>
+        </output>
+    </data>
+
+    <dependencies>
+        <computer>
+            The classification pipeline should be running, which is connected to this in the APP.  
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>       
+    </development>
+
+</module>
+

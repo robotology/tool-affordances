@@ -111,7 +111,7 @@ service tool3DManager_IDLServer
     Vector objRot();
 
     /**
-     * Command to train tools by their label
+     * Command to train empty/full hand: Looks at active hand (using ARE observe), crops image around end-effector, and associates to label.
      * @return true/false on success/failure to train classifiers.
      */
     bool learn(1: string label);
@@ -145,6 +145,7 @@ service tool3DManager_IDLServer
 
     /**
      * Performs a drag action from the object in the direction indicated by theta and radius. \n
+     * tilt corresponds to the pitch angle wrt the table plane.
      * @return true/false on success/failure to do Action
      */
     bool drag(1:double thetha = 0.0, 2:double radius = 0.0,  3:double tilt = -15.0);
@@ -152,6 +153,7 @@ service tool3DManager_IDLServer
     /**
      * Performs a drag action from the given 3D coords in the direction indicated by theta and radius. \n
      * The trial consist on locating the object and executing the slide action
+     * useTool false, will keep the tool in the hand, but perform action with the wrist/hand.
      * @return true/false on success/failure to do Action
      */
     bool drag3D(1:double x, 2:double y, 3:double z, 4:double thetha = 0.0, 5:double radius = 0.0,  6:double tilt = -15.0, 7:bool useTool = true);
@@ -176,7 +178,7 @@ service tool3DManager_IDLServer
     bool resetObj();
 
 
-
+    // Commands for running affordance learning exploration experiments.
     /**
      * Runs numAct actions for numPoses times, each time with a random tool in a random pose
      * @return true/false on success/failure to perform all actions
