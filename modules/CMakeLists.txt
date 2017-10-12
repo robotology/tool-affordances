@@ -15,6 +15,7 @@ add_subdirectory(tool3DManager)
 #add_subdirectory(xperience_sm)
 #add_subdirectory(aff-explorer)
 add_subdirectory(drop-away)
+add_subdirectory(graspChecker)
 
 # Generic modules
 add_subdirectory(affMotor)
