@@ -17,7 +17,7 @@
   */
 
 #include <yarp/os/Network.h>
-#include <yarp/os/Module.h>
+#include <yarp/os/RFModule.h>
 #include <yarp/dev/all.h>
 
 #include "simtoolloader.h"

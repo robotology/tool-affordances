@@ -73,21 +73,21 @@
     </module>
     <module>
         <name>graspChecker</name>
-        <parameters></parameters>
+        <parameters>--from caffeCoder_resnet.ini</parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry></geometry>
     </module>
     <module>
         <name>caffeCoder</name>
-        <parameters>--name caffeCoderGrasp</parameters>
+        <parameters>--name caffeCoderGrasp --from caffeCoder_resnet.ini</parameters>
         <node>icub-cuda</node>
         <prefix></prefix>
         <geometry>(Pos (x 608.9) (y 495.9))</geometry>
     </module>
     <module>
         <name>dispBlobber</name>
-        <parameters>--minBlobSize 1000</parameters>
+        <parameters>--minBlobSize 400</parameters>
         <node>icub21</node>
         <prefix></prefix>
         <geometry>(Pos (x 310) (y 10))</geometry>
@@ -136,13 +136,6 @@
          <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
      </module>
 
-    <module>
-        <name>iSpeak</name>
-        <parameters>--package acapela-tts</parameters>
-        <node>icub-win1</node>
-        <prefix></prefix>
-        <geometry>(Pos (x 1554.59) (y 472.318))</geometry>
-    </module>
     <module>
         <name>drop-away.lua</name>
         <parameters></parameters>

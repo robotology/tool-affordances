@@ -85,7 +85,7 @@ return rfsm.state{
 
 
 
-                   speak("Targeting object")
+                   speak("I see an object")
                    print("Targeting object at = ".. target_object.x .. target_object.y .. target_object.z)
 
                    tooFarSaid = false
@@ -107,7 +107,6 @@ return rfsm.state{
     ----------------------------------
     SUB_SELECTACT = rfsm.state{
            doo=function()
-               speak("Selecting action")
                print("State = " .. state)
 
                action = select_action(target_object)
@@ -130,7 +129,7 @@ return rfsm.state{
                else
                    -- task is doable
                    state = "do_action"
-                   speak("I can do action ", action)
+                   --speak("I can do action ", action)
                    rfsm.send_events(fsm,'e_doaction')
                end
            end

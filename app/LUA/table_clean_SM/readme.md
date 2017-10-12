@@ -10,8 +10,13 @@ An example execution of such behavior can be observed on the following video (cl
 ## Execution
 In order to run this demo, two xml applications need to be launched:
 - TOOL_USE_DEMO: loads all the required modules except for the tool recognition ones.
-- TOOL_USE_OTFR: loads the tool recognition modules. In fact, this application is an instance of the OnTheFlyRecognition (OTFR), pre-trained with the tools commonly use in the demo, namely, rake, hook, hoe, shovel and stick, shown below:
+- TOOL_USE_OTFR: loads the tool recognition modules. In fact, this application is an instance of the OnTheFlyRecognition (OTFR), pre-trained with the tools commonly use in the demo, namely, rake, shovel and stick, shown below:
+
 ![demo_tools](https://github.com/robotology/tool-affordances/blob/master/app/LUA/table_clean_SM/Demo_tools.png)
-Of course, this classifier can be retrained to adapt for new tools, in order to see how to do that, check the [OTFR documentation](https://github.com/robotology/onthefly-recognition). In that case, however, the corresponding 3D models of the new tools will have to be provded making the label and model name of each tool match exactly. See the tool-incorporation documentation for more information about how and where to do so.
 
 When all modules are started, the rFSM GUI will open the table-clean state machine. In order to start the demo, just click on the play button. The robot will go to home position to observe the table, and react to objects placed on the table, as can be observed in the video above.
+
+## Retraining
+Of course, this classifier can be retrained to adapt for new tools. In order to see how to do that, the ` onTheflyRecognition_with_tools` app is recommended, although not mandatory (check the [OTFR documentation](https://github.com/robotology/onthefly-recognition)). In that case, however, the corresponding 3D models of the new tools will have to be provded making the label and model name of each tool match exactly. See the [tool-incorporation documentation](https://github.com/robotology/tool-incorporation) for more information about how and where to do so.
+
+Also, the demo relies on a second classifier to make sure whether attempted grasps on objects have been successful or not. This classifier relies on the `graspChecker` module to manage the custom OTFR pipeline. In case it is necessary to retrain it, it can be easily done using the command `train empty/full` offered by the tool3DManager module. (For ease, objects can be placed in the robot's hand using `expect` command offered by ARE. 
