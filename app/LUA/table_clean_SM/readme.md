@@ -19,7 +19,7 @@ When all modules are started, the rFSM GUI will open the table-clean state machi
 
 For understanding and debugging purposes, a functional walkthrough of the demo is provided on the following document, where the relevant function calls and all the rpc calls are listed and briefly explained: 
 
-[Walkthough](https://github.com/robotology/tool-affordances/blob/master/app/LUA/table_clean_SM/demoFunctionCalls.md)
+[Walkthrough](https://github.com/robotology/tool-affordances/blob/master/app/LUA/table_clean_SM/demoFunctionCalls.md)
 
 # Further info
 ## Affordance knowledge
