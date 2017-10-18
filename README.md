@@ -25,7 +25,7 @@ The modules are located under the `modules` directory. Given the number of diffe
 * `drop-away`: lua module to send the drop-away command continuously. It should be connected to ARE by the `pm_drop_clas` port monitor in order to generate the behavior of dropping away objects only when the hand is grasping something. 
  * `affMotor`: Extension of [karmaMotor](https://github.com/robotology/karma) which adds radial drag and diametral slide actions.
   
-##### Memory
+#### Memory
  * `simtoolloader`: Enables easy loading of tool models in the simulator on the robot's hand, allowing the user to decide the orientation, tilt and shift of the tool. Sample tool models are provided in `./modules/simtoolloader/app/models/`
  * `affCollector`: Accepts labels of objects/tool/categories, and for each, based on pairs action-effect, computes and updates the success rate of each label for each action.
 
