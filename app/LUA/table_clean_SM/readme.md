@@ -17,6 +17,10 @@ In order to run this demo, two xml applications need to be launched:
 
 When all modules are started, the rFSM GUI will open the table-clean state machine. In order to start the demo, just click on the play button. The robot will go to home position to observe the table, and react to objects placed on the table, as can be observed in the video above.
 
+For understanding and debugging purposes, a functional walkthrough of the demo is provided on the following document, where the relevant function calls and all the rpc calls are listed and briefly explained: 
+
+[Walkthrough](https://github.com/robotology/tool-affordances/blob/master/app/LUA/table_clean_SM/demoFunctionCalls.md)
+
 # Further info
 ## Affordance knowledge
 In the current state of the demo, the knowledge of the affordances that each of the considered tool-poses offer is provided by the [affCollector](https://github.com/robotology/tool-affordances/tree/master/modules/affCollector) module, which in turns reads it from the file `affs_DEMO.txt` where they have been pre-trained. The affordances of new tools can be added, by adding the corresponding entries in the file (ideally learned by exploration by the robot). Note, however, that in that case this new tools would also have to trained in the classifier, as explained below. 
