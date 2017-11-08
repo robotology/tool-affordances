@@ -1,9 +1,9 @@
 ## Overview
 This repository contains modules concerning the exploration and learning of tool affordances. 
 The general learning schema consists of 3 phases: 
-1. Exploration: After being provided a tool, iCub extracts a descriptor vector to represent it, and executes a series of actions, recording the achieved effects. 
-2. Learning: After enough tool affordance data (that is, the effects achieved by each action with each tool) has been recorded, it is sent to an affordance learning model, which learns the relationship between the tool, the action, and the achieved effects. 
-3. Prediction: Given any tool similar to the ones used diring training, the iCub extracts its descriptive features and feeds them to the trained affordance model, which in turn is able to predict the expected effect for any given action. This predictions can be used to select the best action for any task acheived through the action repertoire, or even to select another tool. 
+1. **Exploration**: After being provided a tool, the iCub extracts a descriptor vector to represent it, and executes a series of actions, recording the achieved effects. 
+2. **Learning**: After enough tool affordance data (that is, the effects achieved by each action with each tool) has been recorded, it is sent to an affordance learning model, which learns the relationship between the tool, the action, and the achieved effects. 
+3. **Prediction**: Given any tool similar to the ones used diring training, the iCub extracts its descriptive features and feeds them to the trained affordance model, which in turn is able to predict the expected effect for any given action. This predictions can be used to select the best action for any task acheived through the action repertoire, or even to select another tool. 
 
 A diagram of the described learning schema can be observed below:
 ![learnSchema](/toolAffCycle_noToolSel.png)
